@@ -23,15 +23,18 @@ def create_app():
     migrate.init_app(app, db)
 
     with app.app_context():
-        # Import routes
+        # Import models and routes
+        from .models import user, link_tracking
         from .routes import auth
         from .routes import main
+        from .routes import referrals
         from .routes.users import users
         
         # Register blueprints
         app.register_blueprint(auth.bp)
         app.register_blueprint(main.main)
         app.register_blueprint(users)
+        app.register_blueprint(referrals.bp)
 
         # Add CLI commands
         @app.cli.command('setup-admin')

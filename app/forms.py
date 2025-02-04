@@ -54,3 +54,10 @@ class ResetPasswordForm(FlaskForm):
         EqualTo('password', message='Passwords must match')
     ])
     submit = SubmitField('Reset Password')
+
+class RedirectUrlForm(FlaskForm):
+    url = StringField('Redirect URL', validators=[
+        DataRequired(),
+        Length(max=500, message='URL must be less than 500 characters')
+    ])
+    submit = SubmitField('Update Redirect URL')

@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="py-4">
+    <nav aria-label="breadcrumb" class="d-none d-md-inline-block">
+        <ol class="breadcrumb breadcrumb-dark breadcrumb-transparent">
+            <li class="breadcrumb-item"><a href="{{ url_for('main.dashboard') }}">Dashboard</a></li>
+            <li class="breadcrumb-item active">Referral Management</li>
+        </ol>
+    </nav>
+    <div class="d-flex justify-content-between w-100 flex-wrap">
+        <div class="mb-3 mb-lg-0">
+            <h1 class="h4">Referral Management</h1>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12 mb-4">
+        <div class="card border-0 shadow components-section">
+            <div class="card-body">
+                <div class="row mb-4">
+                    <div class="col-lg-12">
+                        <h2 class="h5">Global Redirect URL</h2>
+                        <form action="{{ url_for('referrals.admin_referrals') }}" method="post">
+                            {{ form.hidden_tag() }}
+                            <div class="mb-3">
+                                {{ form.url.label(class="form-label") }}
+                                {{ form.url(class="form-control") }}
+                                {% if form.url.errors %}
+                                    {% for error in form.url.errors %}
+                                        <div class="invalid-feedback d-block">{{ error }}</div>
+                                    {% endfor %}
+                                {% endif %}
+                            </div>
+                            {{ form.submit(class="btn btn-primary") }}
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 mb-4">
+        <div class="card border-0 shadow components-section">
+            <div class="card-body">
+                <h2 class="h5 mb-4">Sales Team Statistics</h2>
+                <div class="table-responsive">
+                    <table class="table table-centered table-nowrap mb-0 rounded">
+                        <thead class="thead-light">
+                            <tr>
+                                <th class="border-0">Name</th>
+                                <th class="border-0">Email</th>
+                                <th class="border-0">Unique Link</th>
+                                <th class="border-0">Total Clicks</th>
+                                <th class="border-0">Unique Visitors</th>
+                                <th class="border-0">Last Click</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for user in user_stats %}
+                            <tr>
+                                <td>{{ user.name }}</td>
+                                <td>{{ user.email }}</td>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <input type="text" class="form-control form-control-sm" value="{{ user.unique_link }}" readonly>
+                                        <button class="btn btn-sm btn-primary ms-2" onclick="copyToClipboard('{{ user.unique_link }}')">
+                                            <span class="fas fa-copy"></span>
+                                        </button>
+                                    </div>
+                                </td>
+                                <td>{{ user.stats.total_clicks }}</td>
+                                <td>{{ user.stats.unique_visitors }}</td>
+                                <td>
+                                    {% if user.stats.last_click %}
+                                        {{ user.stats.last_click.strftime('%Y-%m-%d %H:%M:%S') }}
+                                    {% else %}
+                                        Never
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function copyToClipboard(text) {
+    navigator.clipboard.writeText(text).then(function() {
+        // You could add a toast notification here
+        console.log('Link copied to clipboard');
+    }).catch(function(err) {
+        console.error('Failed to copy text: ', err);
+    });
+}
+</script>
+{% endblock %}
