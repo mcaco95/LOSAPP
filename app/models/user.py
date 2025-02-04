@@ -2,6 +2,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import UserMixin
 from datetime import datetime, timedelta
 import secrets
+import uuid
 from .. import db, login_manager
 
 class User(UserMixin, db.Model):
@@ -12,6 +13,8 @@ class User(UserMixin, db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     reset_token = db.Column(db.String(100), unique=True)
     reset_token_expiry = db.Column(db.DateTime)
+    is_admin = db.Column(db.Boolean, default=False)
+    unique_link = db.Column(db.String(100), unique=True, default=lambda: str(uuid.uuid4()))
 
     @property
     def username(self):
