@@ -1,12 +1,16 @@
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
+from flask_mail import Mail
+from flask_migrate import Migrate
 from .config import Config
 
 # Initialize extensions
 db = SQLAlchemy()
 login_manager = LoginManager()
 login_manager.login_view = 'auth.login'
+mail = Mail()
+migrate = Migrate()
 
 def create_app():
     app = Flask(__name__)
@@ -15,6 +19,8 @@ def create_app():
     # Initialize Flask extensions
     db.init_app(app)
     login_manager.init_app(app)
+    mail.init_app(app)
+    migrate.init_app(app, db)
 
     with app.app_context():
         # Import routes
@@ -24,8 +30,5 @@ def create_app():
         # Register blueprints
         app.register_blueprint(auth.bp)
         app.register_blueprint(main.main)
-
-        # Create database tables
-        db.create_all()
 
         return app
