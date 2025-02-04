@@ -6,3 +6,5 @@ Flask-Migrate==4.0.5
 Werkzeug==3.0.1
 python-dotenv==1.0.0
 email_validator==2.1.0
+geoip2==4.8.0
+user-agents==2.2.0

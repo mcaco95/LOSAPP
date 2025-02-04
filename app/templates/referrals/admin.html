@@ -1,5 +1,9 @@
 {% extends "base.html" %}
 
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/jvectormap@2.0.4/jquery-jvectormap.css" type="text/css" media="screen"/>
+{% endblock %}
+
 {% block content %}
 <div class="py-4">
     <nav aria-label="breadcrumb" class="d-none d-md-inline-block">
@@ -74,7 +78,7 @@
                                 <td>{{ user.stats.unique_visitors }}</td>
                                 <td>
                                     {% if user.stats.last_click %}
-                                        {{ user.stats.last_click.strftime('%Y-%m-%d %H:%M:%S') }}
+                                        {{ user.stats.last_click }}
                                     {% else %}
                                         Never
                                     {% endif %}
@@ -88,9 +92,90 @@
         </div>
     </div>
 </div>
+
+<!-- Analytics Cards Row -->
+<div class="row">
+    <!-- Device Distribution Card -->
+    <div class="col-12 col-xl-6 mb-4">
+        <div class="card border-0 shadow">
+            <div class="card-header">
+                <h5 class="mb-0">Device Distribution</h5>
+            </div>
+            <div class="card-body">
+                <div class="chart-container" style="position: relative; height:300px;">
+                    <canvas id="deviceChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Geographic Distribution Card -->
+    <div class="col-12 col-xl-6 mb-4">
+        <div class="card border-0 shadow">
+            <div class="card-header">
+                <h5 class="mb-0">Geographic Distribution</h5>
+            </div>
+            <div class="card-body">
+                <div id="worldMap" style="height: 300px;"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Top Locations Card -->
+    <div class="col-12 mb-4">
+        <div class="card border-0 shadow">
+            <div class="card-header">
+                <h5 class="mb-0">Top Locations</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6 class="fw-bold">Top Countries</h6>
+                        <div class="table-responsive">
+                            <table class="table table-centered table-nowrap mb-0 rounded">
+                                <thead class="thead-light">
+                                    <tr>
+                                        <th class="border-0">Country</th>
+                                        <th class="border-0">Clicks</th>
+                                        <th class="border-0">Percentage</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="topCountriesTable">
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <h6 class="fw-bold">Top Cities</h6>
+                        <div class="table-responsive">
+                            <table class="table table-centered table-nowrap mb-0 rounded">
+                                <thead class="thead-light">
+                                    <tr>
+                                        <th class="border-0">City</th>
+                                        <th class="border-0">Country</th>
+                                        <th class="border-0">Clicks</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="topCitiesTable">
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}
 
-{% block scripts %}
+{% block extra_js %}
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<!-- jVectorMap -->
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jvectormap@2.0.4/jquery-jvectormap.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jvectormap@2.0.4/jquery-jvectormap-world-mill.js"></script>
+
 <script>
 function copyToClipboard(text) {
     navigator.clipboard.writeText(text).then(function() {
@@ -98,6 +183,161 @@ function copyToClipboard(text) {
         console.log('Link copied to clipboard');
     }).catch(function(err) {
         console.error('Failed to copy text: ', err);
+    });
+}
+
+try {
+    // Initialize data structures with default values
+    let deviceData = {
+        desktop: 0,
+        mobile: 0,
+        tablet: 0
+    };
+    let countryData = {};
+    let cityData = {};
+
+    // Get user stats data with custom JSON encoder
+    const userStats = {{ user_stats_json|safe }};
+
+    // Safely process user stats with error handling
+    if (Array.isArray(userStats)) {
+        userStats.forEach(user => {
+            try {
+                if (!user || !user.stats) return;
+
+                const stats = user.stats;
+                const deviceBreakdown = stats.device_breakdown || {};
+                const countryBreakdown = stats.country_breakdown || {};
+                const cityBreakdown = Array.isArray(stats.city_breakdown) ? stats.city_breakdown : [];
+
+                // Safely accumulate device stats
+                Object.entries(deviceBreakdown).forEach(([type, count]) => {
+                    if (type in deviceData && typeof count === 'number') {
+                        deviceData[type] += count;
+                    }
+                });
+
+                // Safely accumulate country stats
+                Object.entries(countryBreakdown).forEach(([country, count]) => {
+                    if (country && typeof count === 'number') {
+                        countryData[country] = (countryData[country] || 0) + count;
+                    }
+                });
+
+                // Safely accumulate city stats
+                cityBreakdown.forEach(city => {
+                    if (city && typeof city.name === 'string' && typeof city.country === 'string') {
+                        const key = `${city.name}|${city.country}`;
+                        if (!cityData[key]) {
+                            cityData[key] = {
+                                name: city.name,
+                                country: city.country,
+                                count: 0
+                            };
+                        }
+                        if (typeof city.count === 'number') {
+                            cityData[key].count += city.count;
+                        }
+                    }
+                });
+            } catch (err) {
+                console.error('Error processing user stats:', err);
+            }
+        });
+    }
+
+    // Device Distribution Chart
+    const deviceCtx = document.getElementById('deviceChart');
+    if (deviceCtx) {
+        new Chart(deviceCtx.getContext('2d'), {
+            type: 'doughnut',
+            data: {
+                labels: ['Desktop', 'Mobile', 'Tablet'],
+                datasets: [{
+                    data: [deviceData.desktop, deviceData.mobile, deviceData.tablet],
+                    backgroundColor: ['#4B49AC', '#FFC100', '#248AFD'],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    }
+                }
+            }
+        });
+    }
+
+    // World Map
+    const mapData = {};
+    Object.entries(countryData).forEach(([country, count]) => {
+        if (country && typeof count === 'number') {
+            mapData[country.toLowerCase()] = count;
+        }
+    });
+
+    $('#worldMap').vectorMap({
+        map: 'world_mill',
+        backgroundColor: 'transparent',
+        series: {
+            regions: [{
+                values: mapData,
+                scale: ['#C8EEFF', '#0071A4'],
+                normalizeFunction: 'polynomial'
+            }]
+        },
+        onRegionTipShow: function(e, el, code) {
+            el.html(el.html() + ' - ' + (mapData[code] || 0) + ' clicks');
+        }
+    });
+
+    // Populate Top Countries Table
+    const totalClicks = Object.values(countryData).reduce((a, b) => a + b, 0);
+    const topCountriesTable = document.getElementById('topCountriesTable');
+    if (topCountriesTable) {
+        const topCountriesHtml = Object.entries(countryData)
+            .filter(([country]) => country && typeof country === 'string')
+            .sort(([,a], [,b]) => b - a)
+            .slice(0, 5)
+            .map(([country, clicks]) => `
+                <tr>
+                    <td>${country}</td>
+                    <td>${clicks}</td>
+                    <td>${totalClicks > 0 ? ((clicks / totalClicks) * 100).toFixed(1) : '0'}%</td>
+                </tr>
+            `)
+            .join('');
+        topCountriesTable.innerHTML = topCountriesHtml || '<tr><td colspan="3">No country data available</td></tr>';
+    }
+
+    // Populate Top Cities Table
+    const topCitiesTable = document.getElementById('topCitiesTable');
+    if (topCitiesTable) {
+        const topCitiesHtml = Object.values(cityData)
+            .filter(city => city && typeof city.name === 'string' && typeof city.country === 'string')
+            .sort((a, b) => (b.count || 0) - (a.count || 0))
+            .slice(0, 5)
+            .map(city => `
+                <tr>
+                    <td>${city.name}</td>
+                    <td>${city.country}</td>
+                    <td>${city.count || 0}</td>
+                </tr>
+            `)
+            .join('');
+        topCitiesTable.innerHTML = topCitiesHtml || '<tr><td colspan="3">No city data available</td></tr>';
+    }
+} catch (err) {
+    console.error('Error initializing dashboard:', err);
+    // Add fallback content for charts/tables in case of error
+    ['deviceChart', 'worldMap', 'topCountriesTable', 'topCitiesTable'].forEach(id => {
+        const element = document.getElementById(id);
+        if (element) {
+            element.innerHTML = '<div class="alert alert-danger">Error loading data</div>';
+        }
     });
 }
 </script>

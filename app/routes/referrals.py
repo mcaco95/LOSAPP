@@ -1,10 +1,25 @@
 from flask import Blueprint, redirect, request, render_template, flash, url_for
+import json
 from flask_login import login_required, current_user
+import geoip2.database
+from datetime import datetime
 from ..models.link_tracking import GlobalRedirect, LinkClick
 from ..models.user import User
 from ..decorators import admin_required
 from .. import db
 from ..forms import RedirectUrlForm
+
+class CustomJSONEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, datetime):
+            return obj.isoformat()
+        return super().default(obj)
+
+# Initialize GeoIP reader
+try:
+    geo_reader = geoip2.database.Reader('GeoLite2-City.mmdb')
+except:
+    geo_reader = None
 
 bp = Blueprint('referrals', __name__)
 
@@ -22,6 +37,21 @@ def handle_referral(unique_link):
             visitor_ip=request.remote_addr,
             user_agent=request.user_agent.string
         )
+        
+        # Set device type
+        click.set_device_type()
+        
+        # Add geographic data if GeoIP reader is available
+        if geo_reader and request.remote_addr:
+            try:
+                geo_data = geo_reader.city(request.remote_addr)
+                click.country = geo_data.country.iso_code
+                click.city = geo_data.city.name
+                click.region = geo_data.subdivisions.most_specific.name
+            except:
+                # If IP lookup fails, continue without geo data
+                pass
+        
         db.session.add(click)
         db.session.commit()
     
@@ -51,16 +81,33 @@ def admin_referrals():
     if current_redirect:
         form.url.data = current_redirect.redirect_url
     
-    # Get stats for all users
-    users = User.query.all()
-    user_stats = []
-    for user in users:
-        stats = LinkClick.get_stats_for_user(user.id)
-        user_stats.append({
-            'name': user.name or user.email,
-            'email': user.email,
-            'unique_link': f"{request.host_url}r/{user.unique_link}",
-            'stats': stats
-        })
+    try:
+        # Get stats for all users
+        users = User.query.all()
+        user_stats = []
+        for user in users:
+            if user and user.id:  # Ensure we have a valid user
+                try:
+                    stats = LinkClick.get_stats_for_user(user.id)
+                    # Ensure all required fields are present with defaults
+                    user_stats.append({
+                        'name': user.name or user.email or 'Unknown User',
+                        'email': user.email or 'No Email',
+                        'unique_link': f"{request.host_url}r/{user.unique_link}" if user.unique_link else '',
+                        'stats': stats
+                    })
+                except Exception as e:
+                    # Log the error but continue processing other users
+                    print(f"Error processing stats for user {user.id}: {str(e)}")
+                    continue
+    except Exception as e:
+        print(f"Error fetching user stats: {str(e)}")
+        user_stats = []
     
-    return render_template('referrals/admin.html', form=form, user_stats=user_stats)
+    # Pre-encode user_stats using our CustomJSONEncoder
+    encoded_stats = json.dumps(user_stats, cls=CustomJSONEncoder)
+    
+    return render_template('referrals/admin.html', 
+                         form=form, 
+                         user_stats=user_stats,
+                         user_stats_json=encoded_stats)
