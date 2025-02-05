@@ -2,7 +2,8 @@ from flask import Blueprint, redirect, request, render_template, flash, url_for
 import json
 from flask_login import login_required, current_user
 import geoip2.database
-from datetime import datetime
+from datetime import datetime, timedelta
+from sqlalchemy import desc
 from ..models.link_tracking import GlobalRedirect, LinkClick
 from ..models.user import User
 from ..decorators import admin_required
@@ -32,9 +33,15 @@ def handle_referral(unique_link):
     # If we have a valid user, record the click
     user = User.query.filter_by(unique_link=unique_link).first()
     if user:
+        # Get real IP address, checking X-Forwarded-For header first (for proxy scenarios like Ngrok)
+        visitor_ip = request.headers.get('X-Forwarded-For', request.remote_addr)
+        if visitor_ip and ',' in visitor_ip:
+            # If multiple IPs in X-Forwarded-For, take the first one (original client)
+            visitor_ip = visitor_ip.split(',')[0].strip()
+            
         click = LinkClick(
             user_id=user.id,
-            visitor_ip=request.remote_addr,
+            visitor_ip=visitor_ip,
             user_agent=request.user_agent.string
         )
         
@@ -42,9 +49,9 @@ def handle_referral(unique_link):
         click.set_device_type()
         
         # Add geographic data if GeoIP reader is available
-        if geo_reader and request.remote_addr:
+        if geo_reader and visitor_ip:
             try:
-                geo_data = geo_reader.city(request.remote_addr)
+                geo_data = geo_reader.city(visitor_ip)
                 click.country = geo_data.country.iso_code
                 click.city = geo_data.city.name
                 click.region = geo_data.subdivisions.most_specific.name
@@ -111,3 +118,49 @@ def admin_referrals():
                          form=form, 
                          user_stats=user_stats,
                          user_stats_json=encoded_stats)
+
+@bp.route('/admin/click-history')
+@login_required
+@admin_required
+def click_history():
+    """Show detailed history of all clicks"""
+    page = request.args.get('page', 1, type=int)
+    per_page = 50
+    
+    # Base query
+    query = LinkClick.query.join(User).order_by(desc(LinkClick.timestamp))
+    
+    # Apply filters if present
+    filters = {
+        'user_id': request.args.get('user_id', type=int),
+        'device_type': request.args.get('device_type'),
+        'country': request.args.get('country'),
+        'days': request.args.get('days', type=int)
+    }
+    
+    if filters['user_id']:
+        query = query.filter(LinkClick.user_id == filters['user_id'])
+    if filters['device_type']:
+        query = query.filter(LinkClick.device_type == filters['device_type'])
+    if filters['country']:
+        query = query.filter(LinkClick.country == filters['country'])
+    if filters['days']:
+        cutoff_date = datetime.utcnow() - timedelta(days=filters['days'])
+        query = query.filter(LinkClick.timestamp >= cutoff_date)
+    
+    # Execute paginated query
+    pagination = query.paginate(page=page, per_page=per_page, error_out=False)
+    clicks = pagination.items
+    
+    # Get filter options
+    users = User.query.all()
+    countries = db.session.query(LinkClick.country).distinct().all()
+    device_types = ['desktop', 'mobile', 'tablet']
+    
+    return render_template('referrals/click_history.html',
+                         clicks=clicks,
+                         pagination=pagination,
+                         filters=filters,
+                         users=users,
+                         countries=[c[0] for c in countries if c[0]],
+                         device_types=device_types)
