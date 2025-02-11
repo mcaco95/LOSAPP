@@ -28,17 +28,19 @@ def create_app():
 
     with app.app_context():
         # Import models and routes
-        from .models import user, link_tracking
+        from .models import user, link_tracking, company, point_config, reward
         from .routes import auth
         from .routes import main
         from .routes import referrals
         from .routes.users import users
+        from .api.v1 import bp as api_v1_bp
         
         # Register blueprints
         app.register_blueprint(auth.bp)
         app.register_blueprint(main.main)
         app.register_blueprint(users)
         app.register_blueprint(referrals.bp)
+        app.register_blueprint(api_v1_bp)
 
         # Add CLI commands
         @app.cli.command('setup-admin')
@@ -63,5 +65,25 @@ def create_app():
             
             db.session.commit()
             print('Admin setup complete')
+
+        @app.cli.command('init-points-rewards')
+        def init_points_rewards():
+            """Initialize points and rewards system."""
+            from .services.points import PointService
+            from .services.reward import RewardService
+            
+            print('Initializing points system...')
+            if PointService.initialize_point_system():
+                print('Points system initialized successfully')
+            else:
+                print('Error initializing points system')
+            
+            print('Initializing rewards system...')
+            if RewardService.initialize_reward_system():
+                print('Rewards system initialized successfully')
+            else:
+                print('Error initializing rewards system')
+            
+            print('Points and rewards system initialization complete')
 
         return app

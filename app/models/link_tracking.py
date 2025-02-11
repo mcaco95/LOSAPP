@@ -3,6 +3,7 @@ import re
 from user_agents import parse
 from sqlalchemy.dialects.postgresql import JSONB
 from .. import db
+from ..services.points import PointService
 
 class GlobalRedirect(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -57,6 +58,19 @@ class LinkClick(db.Model):
                 self.device_type = 'tablet'
             else:
                 self.device_type = 'desktop'
+        
+        # Award points for the click
+        try:
+            # Check if this is a unique click (first time from this IP)
+            is_unique = not LinkClick.query.filter_by(
+                user_id=self.user_id,
+                visitor_ip=self.visitor_ip
+            ).filter(LinkClick.id != self.id).first()
+            
+            # Award points
+            PointService.award_points_for_click(self.user_id, is_unique)
+        except Exception as e:
+            print(f"Error awarding points for click: {str(e)}")
 
     @classmethod
     def get_stats_for_user(cls, user_id):
