@@ -18,6 +18,7 @@ class User(UserMixin, db.Model):
     unique_link = db.Column(db.String(100), unique=True, default=lambda: str(uuid.uuid4()))
     points = db.Column(db.Integer, default=0)
     points_history = db.Column(JSONB)  # Renamed from points_metadata to be more specific
+    profile_picture = db.Column(db.String(255))  # Store path/url to profile picture
 
     # Relationships are added by backref in other models:
     # companies = relationship from Company model

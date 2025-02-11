@@ -1,0 +1,112 @@
+{% extends "base.html" %}
+
+{% block title %}My Profile{% endblock %}
+
+{% block content %}
+<div class="py-4">
+    <nav aria-label="breadcrumb" class="d-none d-md-inline-block">
+        <ol class="breadcrumb breadcrumb-dark breadcrumb-transparent">
+            <li class="breadcrumb-item">
+                <a href="{{ url_for('main.dashboard') }}">
+                    <svg class="icon icon-xxs" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
+                </a>
+            </li>
+            <li class="breadcrumb-item active" aria-current="page">Profile</li>
+        </ol>
+    </nav>
+    <div class="d-flex justify-content-between w-100 flex-wrap">
+        <div class="mb-3 mb-lg-0">
+            <h1 class="h4">My Profile</h1>
+            <p class="mb-0">Manage your profile settings and account preferences</p>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12 col-xl-8">
+            <!-- Change Password Form -->
+            <div class="card card-body border-0 shadow mb-4">
+                <h2 class="h5 mb-4">Change Password</h2>
+                <form action="{{ url_for('users.change_password') }}" method="POST">
+                    {{ password_form.csrf_token }}
+                    <div class="row">
+                        <div class="col-md-12 mb-3">
+                            <div>
+                                <label for="current_password">Current Password</label>
+                                {{ password_form.current_password(class="form-control", placeholder="Enter your current password") }}
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <div>
+                                <label for="new_password">New Password</label>
+                                {{ password_form.new_password(class="form-control", placeholder="Enter new password") }}
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <div>
+                                <label for="confirm_password">Confirm New Password</label>
+                                {{ password_form.confirm_password(class="form-control", placeholder="Confirm new password") }}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mt-3">
+                        <button class="btn btn-gray-800 mt-2 animate-up-2" type="submit">Update Password</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div class="col-12 col-xl-4">
+            <!-- Profile Picture Card -->
+            <div class="card card-body border-0 shadow mb-4">
+                <h2 class="h5 mb-4">Profile Picture</h2>
+                <div class="d-flex align-items-center">
+                    <div class="me-3">
+                        {% if current_user.profile_picture %}
+                            <img class="rounded avatar-xl" src="{{ url_for('static', filename=current_user.profile_picture) }}" alt="Profile Picture">
+                        {% else %}
+                            <div class="avatar-xl">
+                                <div class="avatar-name rounded-circle bg-gray-800">
+                                    <span>{{ current_user.name[0] if current_user.name else current_user.email[0] }}</span>
+                                </div>
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="file-field">
+                        <form action="{{ url_for('users.update_profile_picture') }}" method="POST" enctype="multipart/form-data">
+                            {{ picture_form.csrf_token }}
+                            <div class="d-flex justify-content-xl-center ms-xl-3">
+                                <div class="d-flex">
+                                    <svg class="icon text-gray-500 me-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M8 4a3 3 0 00-3 3v4a5 5 0 0010 0V7a1 1 0 112 0v4a7 7 0 11-14 0V7a5 5 0 0110 0v4a3 3 0 11-6 0V7a1 1 0 012 0v4a1 1 0 102 0V7a3 3 0 00-3-3z" clip-rule="evenodd"></path></svg>
+                                    {{ picture_form.picture(class="form-control") }}
+                                    <div class="d-md-block text-left">
+                                        <div class="fw-normal text-dark mb-1">Choose Image</div>
+                                        <div class="text-gray small">JPG, GIF or PNG. Max size of 800K</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <button type="submit" class="btn btn-gray-800 mt-2 animate-up-2">Upload Picture</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Referral QR Code Card -->
+            <div class="card card-body border-0 shadow">
+                <h2 class="h5 mb-4">Your Referral Code</h2>
+                <div class="text-center">
+                    <div class="mb-3">
+                        <img src="{{ qr_code_url }}" alt="Referral QR Code" class="img-fluid">
+                    </div>
+                    <p class="text-gray mb-2">Your unique referral code:</p>
+                    <div class="d-flex align-items-center justify-content-center">
+                        <code class="me-2">{{ current_user.unique_link }}</code>
+                        <button class="btn btn-sm btn-gray-800" onclick="navigator.clipboard.writeText('{{ current_user.unique_link }}')">
+                            <svg class="icon icon-xs" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"></path></svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

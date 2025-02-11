@@ -136,14 +136,18 @@
                             <div class="row align-items-center">
                                 <div class="col-auto">
                                     <div class="avatar">
-                                        <div class="avatar-name rounded-circle bg-gray-800">
-                                            <span>{{ user.initials }}</span>
-                                        </div>
+                                        {% if user.profile_picture %}
+                                            <img class="avatar rounded-circle" src="{{ url_for('static', filename=user.profile_picture) }}" alt="{{ user.username }}">
+                                        {% else %}
+                                            <div class="avatar-name rounded-circle bg-gray-800">
+                                                <span>{{ user.username[0] }}</span>
+                                            </div>
+                                        {% endif %}
                                     </div>
                                 </div>
                                 <div class="col-auto ms--2">
                                     <h4 class="h6 mb-0">
-                                        <a href="#">{{ user.name }}</a>
+                                        <a href="#">{{ user.username }}</a>
                                     </h4>
                                     <div class="d-flex align-items-center">
                                         <small class="text-success fw-bold">{{ user.points }} points</small>

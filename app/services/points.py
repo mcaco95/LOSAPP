@@ -185,7 +185,8 @@ class PointService:
                 'username': user.username,
                 'points': user.points,
                 'rank': idx + 1,
-                'stats': user.get_stats()
+                'stats': user.get_stats(),
+                'profile_picture': user.profile_picture
             } for idx, user in enumerate(top_users)]
         except Exception as e:
             raise ValueError(f"Error getting top users: {str(e)}")

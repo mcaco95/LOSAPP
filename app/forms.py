@@ -1,4 +1,5 @@
 from flask_wtf import FlaskForm
+from flask_wtf.file import FileField, FileAllowed
 from wtforms import StringField, PasswordField, BooleanField, SubmitField, HiddenField
 from wtforms.validators import DataRequired, Email, Length, EqualTo, Optional
 
@@ -61,3 +62,20 @@ class RedirectUrlForm(FlaskForm):
         Length(max=500, message='URL must be less than 500 characters')
     ])
     submit = SubmitField('Update Redirect URL')
+
+class ChangePasswordForm(FlaskForm):
+    current_password = PasswordField('Current Password', validators=[DataRequired()])
+    new_password = PasswordField('New Password', validators=[
+        DataRequired(),
+        Length(min=6, message='Password must be at least 6 characters long')
+    ])
+    confirm_password = PasswordField('Confirm New Password', validators=[
+        DataRequired(),
+        EqualTo('new_password', message='Passwords must match')
+    ])
+
+class ProfilePictureForm(FlaskForm):
+    picture = FileField('Profile Picture', validators=[
+        DataRequired(),
+        FileAllowed(['jpg', 'jpeg', 'png', 'gif'], 'Images only!')
+    ])
