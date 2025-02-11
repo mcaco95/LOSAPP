@@ -82,7 +82,8 @@
                         <th class="border-0">IP Address</th>
                         <th class="border-0">Device</th>
                         <th class="border-0">Location</th>
-                        <th class="border-0 rounded-end">User Agent</th>
+                        <th class="border-0">User Agent</th>
+                        <th class="border-0 rounded-end">Details</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -107,6 +108,45 @@
                         </td>
                         <td class="text-wrap" style="max-width: 300px;">
                             <small class="text-muted">{{ click.user_agent }}</small>
+                        </td>
+                        <td>
+                            <button class="btn btn-sm btn-gray-800" type="button" data-bs-toggle="collapse" 
+                                    data-bs-target="#metadata-{{ click.id }}" aria-expanded="false">
+                                <svg class="icon icon-xs" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                            </button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="7" class="p-0">
+                            <div class="collapse" id="metadata-{{ click.id }}">
+                                <div class="card card-body m-2">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <h6 class="mb-3">Browser Information</h6>
+                                            <p class="mb-1"><strong>Platform:</strong> {{ click.tracking_metadata.platform or 'Unknown' }}</p>
+                                            <p class="mb-1"><strong>Browser:</strong> {{ click.tracking_metadata.browser or 'Unknown' }} {{ click.tracking_metadata.version or '' }}</p>
+                                            <p class="mb-1"><strong>Language:</strong> {{ click.tracking_metadata.language or 'Unknown' }}</p>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <h6 class="mb-3">Request Details</h6>
+                                            <p class="mb-1"><strong>Referrer:</strong> {{ click.tracking_metadata.referrer or 'Direct' }}</p>
+                                            <p class="mb-1"><strong>UTC Timestamp:</strong> {{ click.tracking_metadata.timestamp_utc }}</p>
+                                        </div>
+                                    </div>
+                                    {% if click.tracking_metadata.headers %}
+                                    <div class="row mt-3">
+                                        <div class="col-12">
+                                            <h6 class="mb-2">Request Headers</h6>
+                                            <div class="bg-gray-50 p-2 rounded" style="max-height: 200px; overflow-y: auto;">
+                                                <pre class="mb-0"><code>{{ click.tracking_metadata.headers|tojson(indent=2) }}</code></pre>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
                         </td>
                     </tr>
                     {% else %}

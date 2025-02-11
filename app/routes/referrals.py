@@ -39,10 +39,22 @@ def handle_referral(unique_link):
             # If multiple IPs in X-Forwarded-For, take the first one (original client)
             visitor_ip = visitor_ip.split(',')[0].strip()
             
+        # Prepare tracking metadata
+        tracking_metadata = {
+            'headers': dict(request.headers),
+            'platform': request.user_agent.platform,
+            'browser': request.user_agent.browser,
+            'version': request.user_agent.version,
+            'language': request.accept_languages.best,
+            'referrer': request.referrer,
+            'timestamp_utc': datetime.utcnow().isoformat()
+        }
+
         click = LinkClick(
             user_id=user.id,
             visitor_ip=visitor_ip,
-            user_agent=request.user_agent.string
+            user_agent=request.user_agent.string,
+            tracking_metadata=tracking_metadata
         )
         
         # Set device type

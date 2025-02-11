@@ -1,6 +1,7 @@
 from datetime import datetime
 import re
 from user_agents import parse
+from sqlalchemy.dialects.postgresql import JSONB
 from .. import db
 
 class GlobalRedirect(db.Model):
@@ -8,6 +9,7 @@ class GlobalRedirect(db.Model):
     redirect_url = db.Column(db.String(500), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     is_active = db.Column(db.Boolean, default=True)
+    redirect_metadata = db.Column(JSONB)  # Store additional redirect configuration in JSONB format
 
     def __init__(self, redirect_url):
         # Ensure URL has protocol prefix
@@ -40,6 +42,7 @@ class LinkClick(db.Model):
     
     # Device data
     device_type = db.Column(db.String(20))  # desktop/mobile/tablet
+    tracking_metadata = db.Column(JSONB)  # Store additional tracking data in JSONB format
     
     # Relationships
     user = db.relationship('User', backref=db.backref('link_clicks', lazy='dynamic'))
