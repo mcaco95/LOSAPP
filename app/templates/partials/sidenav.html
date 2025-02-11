@@ -32,14 +32,85 @@
           <span class="mt-1 ms-1 sidebar-text">Dashboard</span>
         </a>
       </li>
-      <li class="nav-item {% if request.endpoint == 'main.dashboard' %}active{% endif %}">
-        <a href="{{ url_for('main.dashboard') }}" class="nav-link">
+      {% if current_user.email == 'simon@logisticsonesource.com' %}
+      <!-- Admin Navigation -->
+      <li class="nav-item {% if request.endpoint == 'main.admin_dashboard' %}active{% endif %}">
+        <a href="{{ url_for('main.admin_dashboard') }}" class="nav-link">
+          <span class="sidebar-icon">
+            <svg class="icon icon-xs me-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M2 10a8 8 0 018-8v8h8a8 8 0 11-16 0z"></path><path d="M12 2.252A8.014 8.014 0 0117.748 8H12V2.252z"></path></svg>
+          </span> 
+          <span class="sidebar-text">Admin Overview</span>
+        </a>
+      </li>
+
+      <li class="nav-item {% if request.endpoint == 'main.admin_points' %}active{% endif %}">
+        <a href="{{ url_for('main.admin_points') }}" class="nav-link">
+          <span class="sidebar-icon">
+            <svg class="icon icon-xs me-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M10 2a1 1 0 011 1v1.323l3.954 1.582 1.599-.8a1 1 0 01.894 1.79l-1.233.616 1.738 5.42a1 1 0 01-.285 1.05A3.989 3.989 0 0115 15a3.989 3.989 0 01-2.667-1.019 1 1 0 01-.285-1.05l1.715-5.349L11 6.477V16h2a1 1 0 110 2H7a1 1 0 110-2h2V6.477L6.237 7.582l1.715 5.349a1 1 0 01-.285 1.05A3.989 3.989 0 015 15a3.989 3.989 0 01-2.667-1.019 1 1 0 01-.285-1.05l1.738-5.42-1.233-.616a1 1 0 01.894-1.79l1.599.8L9 4.323V3a1 1 0 011-1z"></path></svg>
+          </span>
+          <span class="sidebar-text">Points Management</span>
+        </a>
+      </li>
+
+      <li class="nav-item {% if request.endpoint == 'main.admin_rewards' %}active{% endif %}">
+        <a href="{{ url_for('main.admin_rewards') }}" class="nav-link">
+          <span class="sidebar-icon">
+            <svg class="icon icon-xs me-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z"></path></svg>
+          </span>
+          <span class="sidebar-text">Rewards Management</span>
+        </a>
+      </li>
+      {% else %}
+      <!-- User Navigation -->
+      <li class="nav-item {% if request.endpoint == 'main.user_dashboard' %}active{% endif %}">
+        <a href="{{ url_for('main.user_dashboard') }}" class="nav-link">
           <span class="sidebar-icon">
             <svg class="icon icon-xs me-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M2 10a8 8 0 018-8v8h8a8 8 0 11-16 0z"></path><path d="M12 2.252A8.014 8.014 0 0117.748 8H12V2.252z"></path></svg>
           </span> 
           <span class="sidebar-text">Overview</span>
         </a>
       </li>
+
+      <!-- Points & Rewards Section -->
+      <li class="nav-item">
+        <span class="nav-link d-flex justify-content-between align-items-center" data-bs-toggle="collapse" data-bs-target="#submenu-points" aria-expanded="true">
+          <span>
+            <span class="sidebar-icon">
+              <svg class="icon icon-xs me-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M10 2a1 1 0 011 1v1.323l3.954 1.582 1.599-.8a1 1 0 01.894 1.79l-1.233.616 1.738 5.42a1 1 0 01-.285 1.05A3.989 3.989 0 0115 15a3.989 3.989 0 01-2.667-1.019 1 1 0 01-.285-1.05l1.715-5.349L11 6.477V16h2a1 1 0 110 2H7a1 1 0 110-2h2V6.477L6.237 7.582l1.715 5.349a1 1 0 01-.285 1.05A3.989 3.989 0 015 15a3.989 3.989 0 01-2.667-1.019 1 1 0 01-.285-1.05l1.738-5.42-1.233-.616a1 1 0 01.894-1.79l1.599.8L9 4.323V3a1 1 0 011-1z"></path></svg>
+            </span>
+            <span class="sidebar-text">Points & Rewards</span>
+          </span>
+          <span class="link-arrow">
+            <svg class="icon icon-sm" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path></svg>
+          </span>
+        </span>
+        <div class="multi-level collapse show" role="list" id="submenu-points" aria-expanded="false">
+          <ul class="flex-column nav">
+            <li class="nav-item {% if request.endpoint == 'main.user_dashboard' %}active{% endif %}">
+              <a href="{{ url_for('main.user_dashboard') }}" class="nav-link">
+                <span class="sidebar-text">Points Dashboard</span>
+              </a>
+            </li>
+            <li class="nav-item {% if request.endpoint == 'main.user_rewards' %}active{% endif %}">
+              <a href="{{ url_for('main.user_rewards') }}" class="nav-link">
+                <span class="sidebar-text">Rewards</span>
+              </a>
+            </li>
+          </ul>
+        </div>
+      </li>
+      </li>
+
+      <!-- Companies Section -->
+      <li class="nav-item {% if request.endpoint == 'main.user_companies' %}active{% endif %}">
+        <a href="{{ url_for('main.user_companies') }}" class="nav-link">
+          <span class="sidebar-icon">
+            <svg class="icon icon-xs me-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M4 4a2 2 0 012-2h8a2 2 0 012 2v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4zm7 5h2a1 1 0 010 2h-2v2a1 1 0 11-2 0v-2H7a1 1 0 110-2h2V7a1 1 0 112 0v2z"></path></svg>
+          </span>
+          <span class="sidebar-text">Companies</span>
+        </a>
+      </li>
+      {% endif %}
       {% if current_user.email == 'simon@logisticsonesource.com' %}
       <li class="nav-item {% if request.endpoint.startswith('users.') %}active{% endif %}">
         <a href="{{ url_for('users.index') }}" class="nav-link">

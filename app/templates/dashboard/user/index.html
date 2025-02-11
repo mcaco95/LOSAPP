@@ -1,0 +1,276 @@
+{% extends "base.html" %}
+
+{% block title %}Points Dashboard{% endblock %}
+
+{% block extra_css %}
+    <link type="text/css" href="{{ url_for('static', filename='css/points-rewards.css') }}" rel="stylesheet">
+{% endblock %}
+
+{% block extra_js %}
+    <script src="{{ url_for('static', filename='js/points-rewards.js') }}"></script>
+{% endblock %}
+
+{% block content %}
+<div class="py-4">
+    <!-- Points Overview Row -->
+    <div class="row">
+        <div class="col-12 col-sm-6 col-xl-4 mb-4">
+            <div class="card border-0 shadow">
+                <div class="card-body">
+                    <div class="row d-block d-xl-flex align-items-center">
+                        <div class="col-12 col-xl-5 text-xl-center mb-3 mb-xl-0 d-flex align-items-center justify-content-xl-center">
+                            <div class="icon-shape icon-shape-primary rounded me-4 me-sm-0">
+                                <svg class="icon" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-3a1 1 0 00-.867.5 1 1 0 11-1.731-1A3 3 0 0113 8a3.001 3.001 0 01-2 2.83V11a1 1 0 11-2 0v-1a1 1 0 011-1 1 1 0 100-2zm0 8a1 1 0 100-2 1 1 0 000 2z"/>
+                                </svg>
+                            </div>
+                            <div class="d-sm-none">
+                                <h2 class="h5">Total Points</h2>
+                                <h3 class="fw-extrabold mb-1">{{ total_points }}</h3>
+                            </div>
+                        </div>
+                        <div class="col-12 col-xl-7 px-xl-0">
+                            <div class="d-none d-sm-block">
+                                <h2 class="h6 text-gray-400 mb-0">Total Points</h2>
+                                <h3 class="fw-extrabold mb-2">{{ total_points }}</h3>
+                            </div>
+                            <small class="d-flex align-items-center text-success">
+                                <svg class="icon icon-xs me-1" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M14.707 12.707a1 1 0 01-1.414 0L10 9.414l-3.293 3.293a1 1 0 01-1.414-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 010 1.414z"/>
+                                </svg>
+                                <span class="fw-bold">{{ points_change }}% increase</span> this month
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-sm-6 col-xl-4 mb-4">
+            <div class="card border-0 shadow">
+                <div class="card-body">
+                    <div class="row d-block d-xl-flex align-items-center">
+                        <div class="col-12 col-xl-5 text-xl-center mb-3 mb-xl-0 d-flex align-items-center justify-content-xl-center">
+                            <div class="icon-shape icon-shape-secondary rounded me-4 me-sm-0">
+                                <svg class="icon" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z"/>
+                                </svg>
+                            </div>
+                            <div class="d-sm-none">
+                                <h2 class="h5">Rank</h2>
+                                <h3 class="fw-extrabold mb-1">#{{ rank }}</h3>
+                            </div>
+                        </div>
+                        <div class="col-12 col-xl-7 px-xl-0">
+                            <div class="d-none d-sm-block">
+                                <h2 class="h6 text-gray-400 mb-0">Your Rank</h2>
+                                <h3 class="fw-extrabold mb-2">#{{ rank }}</h3>
+                            </div>
+                            <small class="d-flex align-items-center">
+                                <span class="text-success fw-bold">{{ rank_percentile }}%</span>&nbsp;of top performers
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-sm-6 col-xl-4 mb-4">
+            <div class="card border-0 shadow">
+                <div class="card-body">
+                    <div class="row d-block d-xl-flex align-items-center">
+                        <div class="col-12 col-xl-5 text-xl-center mb-3 mb-xl-0 d-flex align-items-center justify-content-xl-center">
+                            <div class="icon-shape icon-shape-tertiary rounded me-4 me-sm-0">
+                                <svg class="icon" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M10 2a1 1 0 011 1v1.323l3.954 1.582 1.599-.8a1 1 0 01.894 1.79l-1.233.616 1.738 5.42a1 1 0 01-.285 1.05A3.989 3.989 0 0115 15a3.989 3.989 0 01-2.667-1.019 1 1 0 01-.285-1.05l1.715-5.349L11 6.477V16h2a1 1 0 110 2H7a1 1 0 110-2h2V6.477L6.237 7.582l1.715 5.349a1 1 0 01-.285 1.05A3.989 3.989 0 015 15a3.989 3.989 0 01-2.667-1.019 1 1 0 01-.285-1.05l1.738-5.42-1.233-.616a1 1 0 01.894-1.79l1.599.8L9 4.323V3a1 1 0 011-1zm-5 8.274l-.818 2.552c.25.112.526.174.818.174.292 0 .569-.062.818-.174L5 10.274zm10 0l-.818 2.552c.25.112.526.174.818.174.292 0 .569-.062.818-.174L15 10.274z"/>
+                                </svg>
+                            </div>
+                            <div class="d-sm-none">
+                                <h2 class="h5">Next Reward</h2>
+                                <h3 class="fw-extrabold mb-1">{{ next_reward_points }} pts</h3>
+                            </div>
+                        </div>
+                        <div class="col-12 col-xl-7 px-xl-0">
+                            <div class="d-none d-sm-block">
+                                <h2 class="h6 text-gray-400 mb-0">Next Reward</h2>
+                                <h3 class="fw-extrabold mb-2">{{ next_reward_points }} pts</h3>
+                            </div>
+                            <div class="small d-flex mt-1">
+                                <div>
+                                    <div class="progress">
+                                        <div class="progress-bar bg-tertiary" role="progressbar" style="width: {{ next_reward_progress }}%" aria-valuenow="{{ next_reward_progress }}" aria-valuemin="0" aria-valuemax="100"></div>
+                                    </div>
+                                    <small class="fw-bold">{{ next_reward_progress }}% progress</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Points History and Leaderboard Row -->
+    <div class="row">
+        <div class="col-12 col-xl-8 mb-4">
+            <div class="card border-0 shadow">
+                <div class="card-header">
+                    <div class="row align-items-center">
+                        <div class="col">
+                            <h2 class="fs-5 fw-bold mb-0">Points History</h2>
+                        </div>
+                        <div class="col text-end">
+                            <div class="btn-group">
+                                <button class="btn btn-sm btn-gray-800">Week</button>
+                                <button class="btn btn-sm btn-gray-800">Month</button>
+                                <button class="btn btn-sm btn-gray-800">Year</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="ct-chart-points height-400"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-xl-4 mb-4">
+            <div class="card border-0 shadow">
+                <div class="card-header">
+                    <div class="row align-items-center">
+                        <div class="col">
+                            <h2 class="fs-5 fw-bold mb-0">Top Performers</h2>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <ul class="list-group list-group-flush list my--3">
+                        {% for user in top_users %}
+                        <li class="list-group-item px-0">
+                            <div class="row align-items-center">
+                                <div class="col-auto">
+                                    <div class="avatar">
+                                        <div class="avatar-name rounded-circle bg-gray-800">
+                                            <span>{{ user.initials }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-auto ms--2">
+                                    <h4 class="h6 mb-0">
+                                        <a href="#">{{ user.name }}</a>
+                                    </h4>
+                                    <div class="d-flex align-items-center">
+                                        <small class="text-success fw-bold">{{ user.points }} points</small>
+                                    </div>
+                                </div>
+                                <div class="col text-end">
+                                    <span class="badge bg-primary">#{{ loop.index }}</span>
+                                </div>
+                            </div>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Companies Row -->
+    <div class="row">
+        <div class="col-12 mb-4">
+            <div class="card border-0 shadow">
+                <div class="card-header">
+                    <div class="row align-items-center">
+                        <div class="col">
+                            <h2 class="fs-5 fw-bold mb-0">Your Companies</h2>
+                        </div>
+                        <div class="col text-end">
+                            <a href="#" class="btn btn-sm btn-primary">Add Company</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="table-responsive">
+                    <table class="table align-items-center table-flush">
+                        <thead class="thead-light">
+                            <tr>
+                                <th class="border-bottom" scope="col">Company</th>
+                                <th class="border-bottom" scope="col">Status</th>
+                                <th class="border-bottom" scope="col">Points Earned</th>
+                                <th class="border-bottom" scope="col">Last Updated</th>
+                                <th class="border-bottom" scope="col">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for company in companies %}
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <div class="avatar rounded bg-gray-800 me-3">
+                                            <span>{{ company.initials }}</span>
+                                        </div>
+                                        <div class="d-block">
+                                            <span class="fw-bold">{{ company.name }}</span>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="badge bg-{{ company.status_color }}">{{ company.status }}</span>
+                                </td>
+                                <td>
+                                    <span class="fw-bold">{{ company.points }}</span>
+                                </td>
+                                <td>
+                                    <span class="small">{{ company.updated_at }}</span>
+                                </td>
+                                <td>
+                                    <div class="btn-group">
+                                        <button class="btn btn-link text-dark dropdown-toggle dropdown-toggle-split m-0 p-0" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                            <span class="icon icon-sm">
+                                                <span class="fas fa-ellipsis-h icon-dark"></span>
+                                            </span>
+                                        </button>
+                                        <div class="dropdown-menu py-0">
+                                            <a class="dropdown-item rounded-top" href="#"><span class="fas fa-eye me-2"></span>View Details</a>
+                                            <a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#updateStatus"><span class="fas fa-edit me-2"></span>Update Status</a>
+                                            <a class="dropdown-item text-danger rounded-bottom" href="#"><span class="fas fa-trash-alt me-2"></span>Remove</a>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Status Update Modal -->
+<div class="modal fade" id="updateStatus" tabindex="-1" role="dialog" aria-labelledby="updateStatusLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="h6 modal-title" id="updateStatusLabel">Update Company Status</h2>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form>
+                    <div class="mb-3">
+                        <label for="statusSelect" class="form-label">New Status</label>
+                        <select class="form-select" id="statusSelect">
+                            <option value="new">New</option>
+                            <option value="completed_form">Completed Form</option>
+                            <option value="meeting_scheduled">Meeting Scheduled</option>
+                            <option value="sold">Sold</option>
+                            <option value="paid">Paid</option>
+                        </select>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary">Update Status</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

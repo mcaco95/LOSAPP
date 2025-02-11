@@ -1,0 +1,244 @@
+{% extends "base.html" %}
+
+{% block title %}My Companies{% endblock %}
+
+{% block extra_css %}
+    <link type="text/css" href="{{ url_for('static', filename='css/points-rewards.css') }}" rel="stylesheet">
+{% endblock %}
+
+{% block extra_js %}
+    <script src="{{ url_for('static', filename='js/points-rewards.js') }}"></script>
+{% endblock %}
+
+{% block content %}
+<div class="py-4">
+    <!-- Company Statistics -->
+    <div class="row">
+        <div class="col-12 col-sm-6 col-xl-4 mb-4">
+            <div class="card border-0 shadow">
+                <div class="card-body">
+                    <div class="row d-block d-xl-flex align-items-center">
+                        <div class="col-12 col-xl-5 text-xl-center mb-3 mb-xl-0 d-flex align-items-center justify-content-xl-center">
+                            <div class="icon-shape icon-shape-primary rounded me-4 me-sm-0">
+                                <svg class="icon" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z"/>
+                                </svg>
+                            </div>
+                            <div class="d-sm-none">
+                                <h2 class="h5">Total Companies</h2>
+                                <h3 class="fw-extrabold mb-1">{{ statistics.total_companies }}</h3>
+                            </div>
+                        </div>
+                        <div class="col-12 col-xl-7 px-xl-0">
+                            <div class="d-none d-sm-block">
+                                <h2 class="h6 text-gray-400 mb-0">Total Companies</h2>
+                                <h3 class="fw-extrabold mb-2">{{ statistics.total_companies }}</h3>
+                            </div>
+                            <small class="d-flex align-items-center">
+                                <span class="text-success fw-bold">{{ statistics.by_status.get('sold', 0) }}</span>&nbsp;companies sold
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-sm-6 col-xl-4 mb-4">
+            <div class="card border-0 shadow">
+                <div class="card-body">
+                    <div class="row d-block d-xl-flex align-items-center">
+                        <div class="col-12 col-xl-5 text-xl-center mb-3 mb-xl-0 d-flex align-items-center justify-content-xl-center">
+                            <div class="icon-shape icon-shape-secondary rounded me-4 me-sm-0">
+                                <svg class="icon" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z"/>
+                                </svg>
+                            </div>
+                            <div class="d-sm-none">
+                                <h2 class="h5">Active Companies</h2>
+                                <h3 class="fw-extrabold mb-1">{{ statistics.by_status.get('new', 0) + statistics.by_status.get('meeting_scheduled', 0) }}</h3>
+                            </div>
+                        </div>
+                        <div class="col-12 col-xl-7 px-xl-0">
+                            <div class="d-none d-sm-block">
+                                <h2 class="h6 text-gray-400 mb-0">Active Companies</h2>
+                                <h3 class="fw-extrabold mb-2">{{ statistics.by_status.get('new', 0) + statistics.by_status.get('meeting_scheduled', 0) }}</h3>
+                            </div>
+                            <small class="d-flex align-items-center">
+                                <span class="text-success fw-bold">{{ statistics.by_status.get('meeting_scheduled', 0) }}</span>&nbsp;meetings scheduled
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-sm-6 col-xl-4 mb-4">
+            <div class="card border-0 shadow">
+                <div class="card-body">
+                    <div class="row d-block d-xl-flex align-items-center">
+                        <div class="col-12 col-xl-5 text-xl-center mb-3 mb-xl-0 d-flex align-items-center justify-content-xl-center">
+                            <div class="icon-shape icon-shape-tertiary rounded me-4 me-sm-0">
+                                <svg class="icon" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M4 4a2 2 0 00-2 2v1h16V6a2 2 0 00-2-2H4z"/>
+                                    <path fill-rule="evenodd" d="M18 9H2v5a2 2 0 002 2h12a2 2 0 002-2V9zM4 13a1 1 0 011-1h1a1 1 0 110 2H5a1 1 0 01-1-1zm5-1a1 1 0 100 2h1a1 1 0 100-2H9z"/>
+                                </svg>
+                            </div>
+                            <div class="d-sm-none">
+                                <h2 class="h5">Points Earned</h2>
+                                <h3 class="fw-extrabold mb-1">{{ companies|sum(attribute='points') }}</h3>
+                            </div>
+                        </div>
+                        <div class="col-12 col-xl-7 px-xl-0">
+                            <div class="d-none d-sm-block">
+                                <h2 class="h6 text-gray-400 mb-0">Points Earned</h2>
+                                <h3 class="fw-extrabold mb-2">{{ companies|sum(attribute='points') }}</h3>
+                            </div>
+                            <small class="d-flex align-items-center">
+                                From {{ companies|length }} companies
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Companies Table -->
+    <div class="row">
+        <div class="col-12 mb-4">
+            <div class="card border-0 shadow">
+                <div class="card-header">
+                    <div class="row align-items-center">
+                        <div class="col">
+                            <h2 class="fs-5 fw-bold mb-0">Your Companies</h2>
+                        </div>
+                        <div class="col text-end">
+                            <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#addCompany">Add Company</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="table-responsive">
+                    <table class="table align-items-center table-flush">
+                        <thead class="thead-light">
+                            <tr>
+                                <th class="border-bottom" scope="col">Company</th>
+                                <th class="border-bottom" scope="col">Status</th>
+                                <th class="border-bottom" scope="col">Points Earned</th>
+                                <th class="border-bottom" scope="col">Last Updated</th>
+                                <th class="border-bottom" scope="col">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for company in companies %}
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <div class="avatar rounded bg-gray-800 me-3">
+                                            <span>{{ company.initials }}</span>
+                                        </div>
+                                        <div class="d-block">
+                                            <span class="fw-bold">{{ company.name }}</span>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="badge bg-{{ company.status_color }}">{{ company.status }}</span>
+                                </td>
+                                <td>
+                                    <span class="fw-bold">{{ company.points }}</span>
+                                </td>
+                                <td>
+                                    <span class="small">{{ company.updated_at }}</span>
+                                </td>
+                                <td>
+                                    <div class="btn-group">
+                                        <button class="btn btn-link text-dark dropdown-toggle dropdown-toggle-split m-0 p-0" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                            <span class="icon icon-sm">
+                                                <span class="fas fa-ellipsis-h icon-dark"></span>
+                                            </span>
+                                        </button>
+                                        <div class="dropdown-menu py-0">
+                                            <a class="dropdown-item rounded-top" href="#"><span class="fas fa-eye me-2"></span>View Details</a>
+                                            <a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#updateStatus" data-company-id="{{ company.id }}"><span class="fas fa-edit me-2"></span>Update Status</a>
+                                            <a class="dropdown-item text-danger rounded-bottom" href="#"><span class="fas fa-trash-alt me-2"></span>Remove</a>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Company Modal -->
+<div class="modal fade" id="addCompany" tabindex="-1" role="dialog" aria-labelledby="addCompanyLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="h6 modal-title" id="addCompanyLabel">Add New Company</h2>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form>
+                    <div class="mb-3">
+                        <label for="companyName" class="form-label">Company Name</label>
+                        <input type="text" class="form-control" id="companyName" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="companyStatus" class="form-label">Initial Status</label>
+                        <select class="form-select" id="companyStatus">
+                            <option value="new">New</option>
+                            <option value="completed_form">Completed Form</option>
+                            <option value="meeting_scheduled">Meeting Scheduled</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="companyNotes" class="form-label">Notes (Optional)</label>
+                        <textarea class="form-control" id="companyNotes" rows="3"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="saveCompany">Add Company</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Status Update Modal -->
+<div class="modal fade" id="updateStatus" tabindex="-1" role="dialog" aria-labelledby="updateStatusLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="h6 modal-title" id="updateStatusLabel">Update Company Status</h2>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form>
+                    <div class="mb-3">
+                        <label for="statusSelect" class="form-label">New Status</label>
+                        <select class="form-select" id="statusSelect">
+                            <option value="new">New</option>
+                            <option value="completed_form">Completed Form</option>
+                            <option value="meeting_scheduled">Meeting Scheduled</option>
+                            <option value="sold">Sold</option>
+                            <option value="paid">Paid</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="statusNotes" class="form-label">Status Update Notes (Optional)</label>
+                        <textarea class="form-control" id="statusNotes" rows="3"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="updateStatusBtn">Update Status</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

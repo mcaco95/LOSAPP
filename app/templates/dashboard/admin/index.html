@@ -1,0 +1,187 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard{% endblock %}
+
+{% block extra_css %}
+    <link type="text/css" href="{{ url_for('static', filename='css/points-rewards.css') }}" rel="stylesheet">
+{% endblock %}
+
+{% block extra_js %}
+    <script src="{{ url_for('static', filename='js/points-rewards.js') }}"></script>
+{% endblock %}
+
+{% block content %}
+<div class="py-4">
+    <!-- System Overview Row -->
+    <div class="row">
+        <div class="col-12 col-sm-6 col-xl-4 mb-4">
+            <div class="card border-0 shadow">
+                <div class="card-body">
+                    <div class="row d-block d-xl-flex align-items-center">
+                        <div class="col-12 col-xl-5 text-xl-center mb-3 mb-xl-0 d-flex align-items-center justify-content-xl-center">
+                            <div class="icon-shape icon-shape-primary rounded me-4 me-sm-0">
+                                <svg class="icon" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z"/>
+                                </svg>
+                            </div>
+                            <div class="d-sm-none">
+                                <h2 class="h5">Total Users</h2>
+                                <h3 class="fw-extrabold mb-1">{{ total_users }}</h3>
+                            </div>
+                        </div>
+                        <div class="col-12 col-xl-7 px-xl-0">
+                            <div class="d-none d-sm-block">
+                                <h2 class="h6 text-gray-400 mb-0">Total Users</h2>
+                                <h3 class="fw-extrabold mb-2">{{ total_users }}</h3>
+                            </div>
+                            <small class="d-flex align-items-center text-success">
+                                <svg class="icon icon-xs me-1" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M14.707 12.707a1 1 0 01-1.414 0L10 9.414l-3.293 3.293a1 1 0 01-1.414-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 010 1.414z"/>
+                                </svg>
+                                <span class="fw-bold">{{ user_growth }}% growth</span> this month
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-sm-6 col-xl-4 mb-4">
+            <div class="card border-0 shadow">
+                <div class="card-body">
+                    <div class="row d-block d-xl-flex align-items-center">
+                        <div class="col-12 col-xl-5 text-xl-center mb-3 mb-xl-0 d-flex align-items-center justify-content-xl-center">
+                            <div class="icon-shape icon-shape-secondary rounded me-4 me-sm-0">
+                                <svg class="icon" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M4 4a2 2 0 00-2 2v1h16V6a2 2 0 00-2-2H4z"/>
+                                    <path fill-rule="evenodd" d="M18 9H2v5a2 2 0 002 2h12a2 2 0 002-2V9zM4 13a1 1 0 011-1h1a1 1 0 110 2H5a1 1 0 01-1-1zm5-1a1 1 0 100 2h1a1 1 0 100-2H9z"/>
+                                </svg>
+                            </div>
+                            <div class="d-sm-none">
+                                <h2 class="h5">Total Points</h2>
+                                <h3 class="fw-extrabold mb-1">{{ total_points }}</h3>
+                            </div>
+                        </div>
+                        <div class="col-12 col-xl-7 px-xl-0">
+                            <div class="d-none d-sm-block">
+                                <h2 class="h6 text-gray-400 mb-0">Total Points</h2>
+                                <h3 class="fw-extrabold mb-2">{{ total_points }}</h3>
+                            </div>
+                            <small class="d-flex align-items-center text-success">
+                                <svg class="icon icon-xs me-1" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M14.707 12.707a1 1 0 01-1.414 0L10 9.414l-3.293 3.293a1 1 0 01-1.414-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 010 1.414z"/>
+                                </svg>
+                                <span class="fw-bold">{{ points_growth }}% increase</span> this month
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Top Performers -->
+    <div class="row">
+        <div class="col-12 mb-4">
+            <div class="card border-0 shadow">
+                <div class="card-header">
+                    <div class="row align-items-center">
+                        <div class="col">
+                            <h2 class="fs-5 fw-bold mb-0">Top Performers</h2>
+                        </div>
+                    </div>
+                </div>
+                <div class="table-responsive">
+                    <table class="table align-items-center table-flush">
+                        <thead class="thead-light">
+                            <tr>
+                                <th class="border-bottom" scope="col">Rank</th>
+                                <th class="border-bottom" scope="col">User</th>
+                                <th class="border-bottom" scope="col">Points</th>
+                                <th class="border-bottom" scope="col">Stats</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for user in top_performers %}
+                            <tr>
+                                <td>
+                                    <span class="fw-bold">#{{ user.rank }}</span>
+                                </td>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <div class="avatar rounded bg-gray-800 me-3">
+                                            <span>{{ user.username[:2] }}</span>
+                                        </div>
+                                        <div class="d-block">
+                                            <span class="fw-bold">{{ user.username }}</span>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="fw-bold">{{ user.points }}</span>
+                                </td>
+                                <td>
+                                    <div class="small">
+                                        {% for key, value in user.stats.items() %}
+                                        <div>{{ key }}: {{ value }}</div>
+                                        {% endfor %}
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Activity Table -->
+    <div class="row">
+        <div class="col-12 mb-4">
+            <div class="card border-0 shadow">
+                <div class="card-header">
+                    <div class="row align-items-center">
+                        <div class="col">
+                            <h2 class="fs-5 fw-bold mb-0">Recent Activity</h2>
+                        </div>
+                        <div class="col text-end">
+                            <a href="#" class="btn btn-sm btn-primary">View All</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="table-responsive">
+                    <table class="table align-items-center table-flush">
+                        <thead class="thead-light">
+                            <tr>
+                                <th class="border-bottom" scope="col">User</th>
+                                <th class="border-bottom" scope="col">Action</th>
+                                <th class="border-bottom" scope="col">Points</th>
+                                <th class="border-bottom" scope="col">Timestamp</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for activity in recent_activity %}
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <div class="avatar rounded bg-gray-800 me-3">
+                                            <span>{{ activity.user[:2] }}</span>
+                                        </div>
+                                        <div class="d-block">
+                                            <span class="fw-bold">{{ activity.user }}</span>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>{{ activity.reason }}</td>
+                                <td><span class="fw-bold">{{ activity.amount }}</span></td>
+                                <td><span class="small">{{ activity.timestamp }}</span></td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

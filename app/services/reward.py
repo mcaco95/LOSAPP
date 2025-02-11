@@ -13,7 +13,7 @@ class RewardService:
             name=name,
             points_required=points_required,
             description=description,
-            metadata=metadata or {}
+            reward_metadata=metadata or {}
         )
         
         try:
@@ -76,7 +76,7 @@ class RewardService:
             user_reward = UserReward(
                 user_id=user_id,
                 reward_id=reward_id,
-                metadata=metadata or {}
+                redemption_metadata=metadata or {}
             )
             db.session.add(user_reward)
             
@@ -135,3 +135,89 @@ class RewardService:
                 for reward_id, name, count in top_rewards
             ]
         }
+
+    @staticmethod
+    def get_all_rewards():
+        """Get all rewards for admin view"""
+        try:
+            rewards = Reward.query.order_by(Reward.points_required.asc()).all()
+            return [{
+                'id': reward.id,
+                'name': reward.name,
+                'description': reward.description,
+                'points_required': reward.points_required,
+                'is_active': reward.is_active,
+                'stock': reward.reward_metadata.get('stock') if reward.reward_metadata else None,
+                'color': reward.reward_metadata.get('color', 'primary') if reward.reward_metadata else 'primary'
+            } for reward in rewards]
+        except Exception as e:
+            raise ValueError(f"Error getting all rewards: {str(e)}")
+
+    @staticmethod
+    def get_recent_redemptions(limit=10):
+        """Get recent reward redemptions with detailed information"""
+        try:
+            redemptions = UserReward.query.join(
+                User, UserReward.user_id == User.id
+            ).join(
+                Reward, UserReward.reward_id == Reward.id
+            ).order_by(
+                UserReward.earned_at.desc()
+            ).limit(limit).all()
+
+            return [{
+                'user_name': redemption.user.username,
+                'user_initials': ''.join(word[0].upper() for word in redemption.user.username.split() if word),
+                'reward_name': redemption.reward.name,
+                'points_used': redemption.reward.points_required,
+                'date': redemption.earned_at.strftime('%Y-%m-%d %H:%M'),
+                'status': redemption.redemption_metadata.get('status', 'Pending') if redemption.redemption_metadata else 'Pending',
+                'status_color': {
+                    'Pending': 'warning',
+                    'Fulfilled': 'success',
+                    'Cancelled': 'danger'
+                }.get(redemption.redemption_metadata.get('status', 'Pending') if redemption.redemption_metadata else 'Pending', 'warning')
+            } for redemption in redemptions]
+        except Exception as e:
+            raise ValueError(f"Error getting recent redemptions: {str(e)}")
+
+    @staticmethod
+    def get_next_reward(user_id):
+        """Get next available reward for user"""
+        try:
+            user = User.query.get(user_id)
+            if not user:
+                raise ValueError(f"User {user_id} not found")
+                
+            # Get next reward above user's points
+            next_reward = Reward.query.filter(
+                Reward.points_required > user.points,
+                Reward.is_active == True
+            ).order_by(Reward.points_required.asc()).first()
+            
+            if not next_reward:
+                return None
+                
+            # Calculate progress
+            points_needed = next_reward.points_required - user.points
+            progress = (user.points / next_reward.points_required) * 100
+            
+            # Estimate time to achieve based on point history
+            history = user.get_points_history()
+            if history:
+                recent_points = sum(
+                    t['amount'] for t in history[-7:]  # Last 7 transactions
+                )
+                points_per_day = recent_points / 7
+                days_to_achieve = points_needed / points_per_day if points_per_day > 0 else None
+            else:
+                days_to_achieve = None
+                
+            return {
+                'reward': next_reward.to_dict(),
+                'points_needed': points_needed,
+                'progress_percentage': round(progress, 2),
+                'estimated_days': round(days_to_achieve, 1) if days_to_achieve else None
+            }
+        except Exception as e:
+            raise ValueError(f"Error getting next reward: {str(e)}")

@@ -1,0 +1,122 @@
+/* Points Dashboard Styles */
+
+/* Chart Container */
+.height-400 {
+    height: 400px;
+}
+
+/* Progress Bar Animations */
+.progress-bar {
+    transition: width 0.6s ease;
+}
+
+/* Points Change Animation */
+@keyframes pointsIncrease {
+    0% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.2);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+.points-change {
+    animation: pointsIncrease 0.6s ease-out;
+}
+
+/* Status Badge Colors */
+.badge.bg-new { background-color: #6c757d; }
+.badge.bg-completed_form { background-color: #17a2b8; }
+.badge.bg-meeting_scheduled { background-color: #ffc107; }
+.badge.bg-sold { background-color: #28a745; }
+.badge.bg-paid { background-color: #007bff; }
+
+/* Avatar Styles */
+.avatar-name {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    color: #fff;
+}
+
+/* Points Chart Customization */
+.ct-chart-points .ct-series-a .ct-line {
+    stroke: #17a2b8;
+    stroke-width: 2px;
+}
+
+.ct-chart-points .ct-series-a .ct-point {
+    stroke: #17a2b8;
+    stroke-width: 6px;
+}
+
+.ct-chart-points .ct-series-a .ct-area {
+    fill: #17a2b8;
+    fill-opacity: 0.1;
+}
+
+/* Tooltip Customization */
+.ct-tooltip {
+    position: absolute;
+    display: inline-block;
+    min-width: 3em;
+    padding: 8px 10px;
+    background: #383838;
+    color: #fff;
+    text-align: center;
+    pointer-events: none;
+    z-index: 100;
+    transition: opacity .2s linear;
+}
+
+.ct-tooltip:after {
+    content: "";
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    margin-left: -5px;
+    border: 5px solid transparent;
+    border-top-color: #383838;
+}
+
+/* Card Hover Effects */
+.card {
+    transition: transform 0.2s ease-in-out;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+}
+
+/* Status Update Modal */
+.modal-content {
+    border-radius: 0.5rem;
+}
+
+.modal-header {
+    border-top-left-radius: 0.5rem;
+    border-top-right-radius: 0.5rem;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+    .height-400 {
+        height: 300px;
+    }
+    
+    .btn-group {
+        width: 100%;
+    }
+    
+    .btn-group .btn {
+        flex: 1;
+    }
+}

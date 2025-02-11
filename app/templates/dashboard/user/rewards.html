@@ -1,0 +1,149 @@
+{% extends "base.html" %}
+
+{% block title %}My Rewards{% endblock %}
+
+{% block extra_css %}
+    <link type="text/css" href="{{ url_for('static', filename='css/points-rewards.css') }}" rel="stylesheet">
+{% endblock %}
+
+{% block extra_js %}
+    <script src="{{ url_for('static', filename='js/points-rewards.js') }}"></script>
+{% endblock %}
+
+{% block content %}
+<div class="py-4">
+    <!-- Next Reward Progress -->
+    <div class="row">
+        <div class="col-12 mb-4">
+            <div class="card border-0 shadow">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-12 col-xl-5 text-xl-center mb-3 mb-xl-0 d-flex align-items-center justify-content-xl-center">
+                            <div class="icon-shape icon-shape-tertiary rounded me-4">
+                                <svg class="icon" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M10 2a1 1 0 011 1v1.323l3.954 1.582 1.599-.8a1 1 0 01.894 1.79l-1.233.616 1.738 5.42a1 1 0 01-.285 1.05A3.989 3.989 0 0115 15a3.989 3.989 0 01-2.667-1.019 1 1 0 01-.285-1.05l1.715-5.349L11 6.477V16h2a1 1 0 110 2H7a1 1 0 110-2h2V6.477L6.237 7.582l1.715 5.349a1 1 0 01-.285 1.05A3.989 3.989 0 015 15a3.989 3.989 0 01-2.667-1.019 1 1 0 01-.285-1.05l1.738-5.42-1.233-.616a1 1 0 01.894-1.79l1.599.8L9 4.323V3a1 1 0 011-1z"/>
+                                </svg>
+                            </div>
+                            <div class="d-sm-none">
+                                <h2 class="h5">Next Reward</h2>
+                                <h3 class="fw-extrabold mb-1">{{ next_reward_points }} pts</h3>
+                            </div>
+                        </div>
+                        <div class="col-12 col-xl-7 px-xl-0">
+                            <div class="d-none d-sm-block">
+                                <h2 class="h6 text-gray-400 mb-0">Next Reward</h2>
+                                <h3 class="fw-extrabold mb-2">{{ next_reward_points }} pts</h3>
+                            </div>
+                            <div class="small d-flex mt-1">
+                                <div class="w-100">
+                                    <div class="progress">
+                                        <div class="progress-bar bg-tertiary" role="progressbar" style="width: {{ next_reward_progress }}%" aria-valuenow="{{ next_reward_progress }}" aria-valuemin="0" aria-valuemax="100"></div>
+                                    </div>
+                                    <small class="fw-bold">{{ next_reward_progress }}% progress</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Available Rewards -->
+    <div class="row">
+        {% for reward in available_rewards %}
+        <div class="col-12 col-sm-6 col-xl-4 mb-4">
+            <div class="card border-0 shadow">
+                <div class="card-body">
+                    <div class="row d-block d-xl-flex align-items-center">
+                        <div class="col-12 col-xl-5 text-xl-center mb-3 mb-xl-0 d-flex align-items-center justify-content-xl-center">
+                            <div class="icon-shape icon-shape-primary rounded me-4 me-sm-0">
+                                <svg class="icon" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M11 17a1 1 0 001.447.894l4-2A1 1 0 0017 15V9.236a1 1 0 00-1.447-.894l-4 2a1 1 0 00-.553.894V17zM15.211 6.276a1 1 0 000-1.788l-4.764-2.382a1 1 0 00-.894 0L4.789 4.488a1 1 0 000 1.788l4.764 2.382a1 1 0 00.894 0l4.764-2.382zM4.447 8.342A1 1 0 003 9.236V15a1 1 0 00.553.894l4 2A1 1 0 009 17v-5.764a1 1 0 00-.553-.894l-4-2z"/>
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="col-12 col-xl-7 px-xl-0">
+                            <div class="d-none d-sm-block">
+                                <h2 class="h6 text-gray-400 mb-0">{{ reward.name }}</h2>
+                                <h3 class="fw-extrabold mb-2">{{ reward.points_required }} pts</h3>
+                            </div>
+                            <p class="text-gray-500 mb-3">{{ reward.description }}</p>
+                            <button class="btn btn-sm btn-tertiary" onclick="redeemReward({{ reward.id }})">Redeem Reward</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Redemption History -->
+    <div class="row">
+        <div class="col-12 mb-4">
+            <div class="card border-0 shadow">
+                <div class="card-header">
+                    <div class="row align-items-center">
+                        <div class="col">
+                            <h2 class="fs-5 fw-bold mb-0">Redemption History</h2>
+                        </div>
+                    </div>
+                </div>
+                <div class="table-responsive">
+                    <table class="table align-items-center table-flush">
+                        <thead class="thead-light">
+                            <tr>
+                                <th class="border-bottom" scope="col">Reward</th>
+                                <th class="border-bottom" scope="col">Points</th>
+                                <th class="border-bottom" scope="col">Status</th>
+                                <th class="border-bottom" scope="col">Redeemed On</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for reward in reward_history %}
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <div class="d-block">
+                                            <span class="fw-bold">{{ reward.name }}</span>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="fw-bold">{{ reward.points_required }}</span>
+                                </td>
+                                <td>
+                                    <span class="badge bg-success">Redeemed</span>
+                                </td>
+                                <td>
+                                    <span class="small">{{ reward.redeemed_at }}</span>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Redeem Confirmation Modal -->
+<div class="modal fade" id="redeemConfirmation" tabindex="-1" role="dialog" aria-labelledby="redeemConfirmationLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="h6 modal-title" id="redeemConfirmationLabel">Confirm Redemption</h2>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to redeem this reward? This action cannot be undone.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="confirmRedeem">Confirm Redemption</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
