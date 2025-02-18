@@ -1,6 +1,6 @@
 {
-  "name": "Flask Dashboard",
-  "short_name": "Flask Dashboard",
+  "name": "LOS",
+  "short_name": "LOS",
   "icons": [
     {
       "src": "/static/img/favicon/android-chrome-192x192.png",
