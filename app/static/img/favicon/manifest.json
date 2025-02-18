@@ -1,6 +1,6 @@
 {
-  "name": "LOS",
-  "short_name": "LOS",
+  "name": "LOS App",
+  "short_name": "LOS App",
   "icons": [
     {
       "src": "/static/img/favicon/android-chrome-192x192.png",
