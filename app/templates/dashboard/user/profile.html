@@ -61,15 +61,19 @@
                 <h2 class="h5 mb-4">Profile Picture</h2>
                 <div class="d-flex align-items-center">
                     <div class="me-3">
-                        {% if current_user.profile_picture %}
-                            <img class="rounded avatar-xl" src="{{ url_for('static', filename=current_user.profile_picture) }}" alt="Profile Picture">
-                        {% else %}
-                            <div class="avatar-xl">
+                        <div class="avatar-xl rounded">
+                            {% if current_user.profile_picture %}
+                                <img 
+                                    src="{{ url_for('static', filename=current_user.profile_picture) }}" 
+                                    alt="Profile Picture"
+                                    onerror="this.onerror=null; this.parentElement.innerHTML='<div class=\'avatar-name rounded-circle bg-gray-800\'><span>{{ current_user.name[0] if current_user.name else current_user.email[0] }}</span></div>';"
+                                >
+                            {% else %}
                                 <div class="avatar-name rounded-circle bg-gray-800">
                                     <span>{{ current_user.name[0] if current_user.name else current_user.email[0] }}</span>
                                 </div>
-                            </div>
-                        {% endif %}
+                            {% endif %}
+                        </div>
                     </div>
                     <div class="file-field">
                         <form action="{{ url_for('users.update_profile_picture') }}" method="POST" enctype="multipart/form-data">

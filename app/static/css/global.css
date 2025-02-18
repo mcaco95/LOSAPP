@@ -1,21 +1,52 @@
 /* Global Styles */
 
+/* Avatar Styles */
+.avatar-xl {
+    width: 120px;
+    height: 120px;
+    object-fit: cover;
+    background-color: #ffffff;
+    border: 2px solid #e9ecef;
+}
+
+.avatar-xl img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 1;
+}
+
+.avatar-name {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2.5rem;
+    color: #ffffff;
+}
+
 /* Watermark */
 .los-watermark {
     position: fixed;
-    bottom: 20px;
-    right: 20px;
-    z-index: -1;  /* Put it behind all content */
+    bottom: 0;
+    right: 0;
+    width: 1250px;
+    height: 1250px;
+    overflow: hidden;
+    z-index: -1;
     pointer-events: none;
 }
 
 .los-watermark img {
-    opacity: 0.15;  /* Slightly reduced opacity */
-    width: 250px;  /* Increased size */
+    opacity: 0.7;
+    width: 2000px;
     height: auto;
-    background-color: white;
-    border-radius: 4px;
-    mix-blend-mode: multiply;
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    transform-origin: bottom right;
+    transform: translate(50%, 50%);
 }
 
 /* Ensure content stays above watermark */

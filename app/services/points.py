@@ -259,6 +259,7 @@ class PointService:
                 if history:
                     for entry in history[-limit:]:
                         entry['user'] = user.username
+                        entry['profile_picture'] = user.profile_picture
                         recent.append(entry)
             
             # Sort by timestamp and get the most recent entries

@@ -108,9 +108,15 @@
                                 </td>
                                 <td>
                                     <div class="d-flex align-items-center">
-                                        <div class="avatar rounded bg-gray-800 me-3">
-                                            <span>{{ user.username[:2] }}</span>
-                                        </div>
+                                    <div class="avatar me-3">
+                                        {% if user.profile_picture %}
+                                            <img class="avatar rounded-circle" src="{{ url_for('static', filename=user.profile_picture) }}" alt="{{ user.username }}">
+                                        {% else %}
+                                            <div class="avatar-name rounded-circle bg-gray-800">
+                                                <span>{{ user.username[0] }}</span>
+                                            </div>
+                                        {% endif %}
+                                    </div>
                                         <div class="d-block">
                                             <span class="fw-bold">{{ user.username }}</span>
                                         </div>
@@ -164,9 +170,15 @@
                             <tr>
                                 <td>
                                     <div class="d-flex align-items-center">
-                                        <div class="avatar rounded bg-gray-800 me-3">
-                                            <span>{{ activity.user[:2] }}</span>
-                                        </div>
+                                    <div class="avatar me-3">
+                                        {% if activity.profile_picture %}
+                                            <img class="avatar rounded-circle" src="{{ url_for('static', filename=activity.profile_picture) }}" alt="{{ activity.user }}">
+                                        {% else %}
+                                            <div class="avatar-name rounded-circle bg-gray-800">
+                                                <span>{{ activity.user[0] }}</span>
+                                            </div>
+                                        {% endif %}
+                                    </div>
                                         <div class="d-block">
                                             <span class="fw-bold">{{ activity.user }}</span>
                                         </div>
