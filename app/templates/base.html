@@ -27,6 +27,9 @@
     <!-- Volt CSS -->
     <link type="text/css" href="{{ url_for('static', filename='css/volt.css') }}" rel="stylesheet">
 
+    <!-- Global CSS -->
+    <link type="text/css" href="{{ url_for('static', filename='css/global.css') }}" rel="stylesheet">
+
     {% block extra_css %}{% endblock %}
 </head>
 
@@ -77,6 +80,10 @@
     <script src="{{ url_for('static', filename='js/volt.js') }}"></script>
 
     {% block extra_js %}{% endblock %}
+
+    <div class="los-watermark">
+        <img src="{{ url_for('static', filename='img/LOS_watermark.png') }}" alt="LOS Watermark">
+    </div>
 </body>
 
 </html>

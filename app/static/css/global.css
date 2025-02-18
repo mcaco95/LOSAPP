@@ -1,0 +1,19 @@
+/* Global Styles */
+
+/* Watermark */
+.los-watermark {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 0;
+    pointer-events: none;
+}
+
+.los-watermark img {
+    opacity: 0.2;
+    width: 150px;
+    height: auto;
+    background-color: white;
+    border-radius: 4px;
+    mix-blend-mode: multiply;
+}
