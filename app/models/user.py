@@ -53,18 +53,24 @@ class User(UserMixin, db.Model):
         self.reset_token_expiry = None
         db.session.commit()
 
-    def add_points(self, amount, reason=None):
+    def add_points(self, amount, reason=None, metadata=None):
         """Add points to user's balance and record in metadata"""
         if not self.points_history:
             self.points_history = {'transactions': []}
         
         # Record point transaction
-        self.points_history['transactions'].append({
+        transaction = {
             'amount': amount,
             'reason': reason,
             'timestamp': datetime.utcnow().isoformat(),
             'balance_after': self.points + amount
-        })
+        }
+        
+        # Add metadata if provided
+        if metadata:
+            transaction['metadata'] = metadata
+        
+        self.points_history['transactions'].append(transaction)
         
         self.points += amount
         db.session.commit()

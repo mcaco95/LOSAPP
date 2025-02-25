@@ -70,6 +70,17 @@ def get_points_summary():
     except Exception as e:
         return jsonify({'error': 'Internal server error'}), 500
 
+@bp.route('/points/distribution', methods=['GET'])
+@admin_required
+def get_points_distribution():
+    """Get points distribution data for charts by time period"""
+    period = request.args.get('period', 'month')
+    try:
+        distribution_data = PointService.get_points_distribution(period)
+        return jsonify(distribution_data), 200
+    except Exception as e:
+        return jsonify({'error': 'Internal server error'}), 500
+
 # Rewards Routes
 @bp.route('/rewards', methods=['GET'])
 @login_required

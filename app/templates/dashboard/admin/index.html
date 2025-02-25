@@ -4,6 +4,33 @@
 
 {% block extra_css %}
     <link type="text/css" href="{{ url_for('static', filename='css/points-rewards.css') }}" rel="stylesheet">
+    <style>
+        .company-avatar {
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            color: white;
+            border-radius: 6px;
+            font-size: 0.8rem;
+        }
+        
+        .status-badge {
+            padding: 4px 8px;
+            border-radius: 30px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+        
+        .status-lead { background-color: #e9f5ff; color: #0d6efd; }
+        .status-demo_scheduled { background-color: #fff3cd; color: #fd7e14; }
+        .status-demo_completed { background-color: #e9f7ef; color: #28a745; }
+        .status-client_signed { background-color: #d1e7dd; color: #198754; }
+        .status-renewed { background-color: #cff4fc; color: #0dcaf0; }
+        .status-upgraded { background-color: #f8d7da; color: #dc3545; }
+    </style>
 {% endblock %}
 
 {% block extra_js %}
@@ -26,19 +53,19 @@
                             </div>
                             <div class="d-sm-none">
                                 <h2 class="h5">Total Users</h2>
-                                <h3 class="fw-extrabold mb-1">{{ total_users }}</h3>
+                                <h3 class="fw-extrabold mb-1">{{ metrics.total_users }}</h3>
                             </div>
                         </div>
                         <div class="col-12 col-xl-7 px-xl-0">
                             <div class="d-none d-sm-block">
                                 <h2 class="h6 text-gray-400 mb-0">Total Users</h2>
-                                <h3 class="fw-extrabold mb-2">{{ total_users }}</h3>
+                                <h3 class="fw-extrabold mb-2">{{ metrics.total_users }}</h3>
                             </div>
                             <small class="d-flex align-items-center text-success">
                                 <svg class="icon icon-xs me-1" fill="currentColor" viewBox="0 0 20 20">
                                     <path fill-rule="evenodd" d="M14.707 12.707a1 1 0 01-1.414 0L10 9.414l-3.293 3.293a1 1 0 01-1.414-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 010 1.414z"/>
                                 </svg>
-                                <span class="fw-bold">{{ user_growth }}% growth</span> this month
+                                <span class="fw-bold">{{ metrics.user_growth }}% growth</span> this month
                             </small>
                         </div>
                     </div>
@@ -58,19 +85,19 @@
                             </div>
                             <div class="d-sm-none">
                                 <h2 class="h5">Total Points</h2>
-                                <h3 class="fw-extrabold mb-1">{{ total_points }}</h3>
+                                <h3 class="fw-extrabold mb-1">{{ metrics.total_points }}</h3>
                             </div>
                         </div>
                         <div class="col-12 col-xl-7 px-xl-0">
                             <div class="d-none d-sm-block">
                                 <h2 class="h6 text-gray-400 mb-0">Total Points</h2>
-                                <h3 class="fw-extrabold mb-2">{{ total_points }}</h3>
+                                <h3 class="fw-extrabold mb-2">{{ metrics.total_points }}</h3>
                             </div>
                             <small class="d-flex align-items-center text-success">
                                 <svg class="icon icon-xs me-1" fill="currentColor" viewBox="0 0 20 20">
                                     <path fill-rule="evenodd" d="M14.707 12.707a1 1 0 01-1.414 0L10 9.414l-3.293 3.293a1 1 0 01-1.414-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 010 1.414z"/>
                                 </svg>
-                                <span class="fw-bold">{{ points_growth }}% increase</span> this month
+                                <span class="fw-bold">{{ metrics.points_growth }}% increase</span> this month
                             </small>
                         </div>
                     </div>
@@ -141,7 +168,7 @@
         </div>
     </div>
 
-    <!-- Recent Activity Table -->
+    <!-- Recent Activity -->
     <div class="row">
         <div class="col-12 mb-4">
             <div class="card border-0 shadow">
@@ -150,19 +177,16 @@
                         <div class="col">
                             <h2 class="fs-5 fw-bold mb-0">Recent Activity</h2>
                         </div>
-                        <div class="col text-end">
-                            <a href="#" class="btn btn-sm btn-primary">View All</a>
-                        </div>
                     </div>
                 </div>
                 <div class="table-responsive">
                     <table class="table align-items-center table-flush">
                         <thead class="thead-light">
                             <tr>
-                                <th class="border-bottom" scope="col">User</th>
-                                <th class="border-bottom" scope="col">Action</th>
+                                <th class="border-bottom" scope="col">Partner</th>
+                                <th class="border-bottom" scope="col">Activity</th>
                                 <th class="border-bottom" scope="col">Points</th>
-                                <th class="border-bottom" scope="col">Timestamp</th>
+                                <th class="border-bottom" scope="col">Date</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -170,28 +194,99 @@
                             <tr>
                                 <td>
                                     <div class="d-flex align-items-center">
-                                    <div class="avatar me-3">
                                         {% if activity.profile_picture %}
-                                            <img class="avatar rounded-circle" src="{{ url_for('static', filename=activity.profile_picture) }}" alt="{{ activity.user }}">
+                                            <img src="{{ url_for('static', filename=activity.profile_picture) }}" class="avatar rounded-circle me-3">
                                         {% else %}
-                                            <div class="avatar-name rounded-circle bg-gray-800">
+                                            <div class="avatar-name rounded-circle bg-gray-800 me-3">
                                                 <span>{{ activity.user[0] }}</span>
                                             </div>
                                         {% endif %}
-                                    </div>
                                         <div class="d-block">
                                             <span class="fw-bold">{{ activity.user }}</span>
                                         </div>
                                     </div>
                                 </td>
-                                <td>{{ activity.reason }}</td>
-                                <td><span class="fw-bold">{{ activity.amount }}</span></td>
-                                <td><span class="small">{{ activity.timestamp }}</span></td>
+                                <td>
+                                    <span class="fw-normal">{{ activity.message }}</span>
+                                </td>
+                                <td>
+                                    <span class="fw-bold text-success">+{{ activity.amount }} points</span>
+                                </td>
+                                <td>
+                                    <span class="small text-gray">{% if activity.timestamp %}{{ activity.timestamp.split('T')[0] }} {{ activity.timestamp.split('T')[1].split('.')[0] }}{% else %}-{% endif %}</span>
+                                </td>
                             </tr>
                             {% endfor %}
                         </tbody>
                     </table>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Status Changes History -->
+    <div class="card border-0 shadow mb-4">
+        <div class="card-header">
+            <div class="row align-items-center">
+                <div class="col">
+                    <h2 class="fs-5 fw-bold mb-0">Status Changes History</h2>
+                </div>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-centered table-nowrap mb-0 rounded">
+                    <thead class="thead-light">
+                        <tr>
+                            <th class="border-0">Company</th>
+                            <th class="border-0">Partner</th>
+                            <th class="border-0">From Status</th>
+                            <th class="border-0">To Status</th>
+                            <th class="border-0">Points Awarded</th>
+                            <th class="border-0">Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for change in status_changes %}
+                        <tr>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <span class="fw-bold">{{ change.company_name }}</span>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <span class="fw-normal">{{ change.user_name }}</span>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="fw-normal">{{ change.from_status_display }}</span>
+                            </td>
+                            <td>
+                                <span class="fw-bold text-success">{{ change.to_status_display }}</span>
+                            </td>
+                            <td>
+                                <span class="fw-bold text-warning">+{{ change.points_awarded }}</span>
+                            </td>
+                            <td>
+                                <span class="fw-normal">
+                                    {% if change.timestamp %}
+                                        {{ change.timestamp.split('T')[0] }}
+                                    {% else %}
+                                        -
+                                    {% endif %}
+                                </span>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="6" class="text-center py-4">
+                                <span class="text-gray-500">No status changes found</span>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>

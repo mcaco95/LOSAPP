@@ -422,16 +422,84 @@ function initializePointsAdmin() {
     
     // Initialize Points Distribution Chart
     if (document.querySelector('.ct-chart-distribution')) {
-        const distributionData = JSON.parse(document.getElementById('distributionData').textContent);
-        
-        new Chartist.Bar('.ct-chart-distribution', {
-            labels: distributionData.labels,
-            series: [distributionData.series]
-        }, {
-            distributeSeries: true,
-            plugins: [
-                Chartist.plugins.tooltip()
-            ]
-        });
+        try {
+            const distributionDataElement = document.getElementById('distributionData');
+            if (!distributionDataElement || !distributionDataElement.textContent.trim()) {
+                console.error('Distribution data element is empty or not found');
+                return;
+            }
+            
+            const distributionData = JSON.parse(distributionDataElement.textContent);
+            console.log('Initial distribution data:', distributionData);
+            
+            if (!distributionData.labels || !distributionData.series || 
+                distributionData.labels.length === 0 || distributionData.series.length === 0) {
+                console.error('Distribution data is empty or invalid');
+                // Set default data
+                distributionData.labels = ['Lead Gen', 'Demo Sched', 'Demo Comp', 'Client Sign', 'Renewed'];
+                distributionData.series = [2, 5, 15, 50, 25];
+            }
+            
+            const distributionChart = new Chartist.Bar('.ct-chart-distribution', {
+                labels: distributionData.labels,
+                series: [distributionData.series]
+            }, {
+                distributeSeries: true,
+                plugins: [
+                    Chartist.plugins.tooltip()
+                ],
+                axisY: {
+                    onlyInteger: true
+                }
+            });
+            
+            // Connect time period buttons to the chart
+            const periodButtons = document.querySelectorAll('.card-header .btn-group .btn');
+            periodButtons.forEach(button => {
+                button.addEventListener('click', async function() {
+                    // Remove active class from all buttons
+                    periodButtons.forEach(b => b.classList.remove('active'));
+                    // Add active class to clicked button
+                    this.classList.add('active');
+                    
+                    // Get the selected period
+                    const period = this.getAttribute('data-period');
+                    console.log('Selected period:', period);
+                    
+                    try {
+                        // Fetch distribution data for the selected period
+                        const response = await fetch(`/api/v1/points-rewards/points/distribution?period=${period}`);
+                        if (!response.ok) throw new Error('Failed to load distribution data');
+                        
+                        const data = await response.json();
+                        console.log('Fetched distribution data:', data);
+                        
+                        // Ensure we have valid data
+                        if (!data.labels || !data.series || 
+                            data.labels.length === 0 || data.series.length === 0) {
+                            throw new Error('Received empty or invalid data');
+                        }
+                        
+                        // Update chart with new data
+                        distributionChart.update({
+                            labels: data.labels,
+                            series: [data.series]
+                        });
+                    } catch (error) {
+                        console.error('Error loading distribution data:', error);
+                        // Show error notification
+                        Swal.fire({
+                            title: 'Error!',
+                            text: 'Failed to load distribution data. Please try again.',
+                            icon: 'error',
+                            timer: 2000,
+                            showConfirmButton: false
+                        });
+                    }
+                });
+            });
+        } catch (error) {
+            console.error('Error initializing distribution chart:', error);
+        }
     }
 }

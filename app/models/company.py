@@ -30,22 +30,43 @@ class Company(db.Model):
         self.status = status
         self.company_metadata = metadata or {}
         
+        # Initialize status history for new companies
+        if 'status_history' not in self.company_metadata:
+            self.company_metadata['status_history'] = [{
+                'from': None,
+                'to': status,
+                'timestamp': datetime.utcnow().isoformat(),
+                'points_awarded': 0  # Initial status doesn't award points
+            }]
+        
         # Set additional fields if provided
         for key, value in kwargs.items():
             if hasattr(self, key):
                 setattr(self, key, value)
 
-    def update_status(self, new_status):
+    def update_status(self, new_status, points_awarded=0):
         """Update company status and record in metadata"""
+        if new_status == self.status:
+            return False
+            
         old_status = self.status
         self.status = new_status
         
-        # Record status change in metadata
-        status_history = self.company_metadata.get('status_history', [])
+        # Initialize metadata if not exists
+        if not self.company_metadata:
+            self.company_metadata = {}
+        
+        # Initialize status_history if not exists
+        if 'status_history' not in self.company_metadata:
+            self.company_metadata['status_history'] = []
+        
+        # Record status change in metadata with points
+        status_history = self.company_metadata['status_history']
         status_history.append({
             'from': old_status,
             'to': new_status,
-            'timestamp': datetime.utcnow().isoformat()
+            'timestamp': datetime.utcnow().isoformat(),
+            'points_awarded': points_awarded  # Store the actual points awarded
         })
         self.company_metadata['status_history'] = status_history
 
@@ -58,6 +79,11 @@ class Company(db.Model):
     @property
     def status_display(self):
         """Human readable status"""
+        return Company.get_status_display(self.status)
+        
+    @staticmethod
+    def get_status_display(status):
+        """Get human readable status from status code"""
         return {
             'lead': 'Lead Generated',
             'demo_scheduled': 'Demo Scheduled',
@@ -66,7 +92,7 @@ class Company(db.Model):
             'renewed': 'Client Renewed',
             'upgraded': 'Client Upgraded',
             'partner_signup': 'Partner Signup'
-        }.get(self.status, self.status)
+        }.get(status, status)
         
     @property
     def service_display(self):
