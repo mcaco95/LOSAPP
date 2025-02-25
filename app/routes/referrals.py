@@ -1,4 +1,4 @@
-from flask import Blueprint, redirect, request, render_template, flash, url_for
+from flask import Blueprint, redirect, request, render_template, flash, url_for, jsonify
 import json
 from flask_login import login_required, current_user
 import geoip2.database
@@ -6,6 +6,7 @@ from datetime import datetime, timedelta
 from sqlalchemy import desc
 from ..models.link_tracking import GlobalRedirect, LinkClick
 from ..models.user import User
+from ..models.company import Company
 from ..decorators import admin_required
 from .. import db
 from ..forms import RedirectUrlForm
@@ -73,9 +74,83 @@ def handle_referral(unique_link):
         
         db.session.add(click)
         db.session.commit()
+        
+        # Instead of redirecting to the global URL, redirect to our landing page
+        return redirect(url_for('referrals.landing_page', partner_id=user.id))
     
-    # Always redirect to the global redirect URL
+    # If no valid user, redirect to the global redirect URL
     return redirect(redirect_url)
+
+@bp.route('/landing')
+def landing_page():
+    """Display the landing page with the lead form"""
+    partner_id = request.args.get('partner_id')
+    partner_name = None
+    
+    if partner_id:
+        partner = User.query.get(partner_id)
+        if partner:
+            partner_name = partner.name or partner.username
+    
+    return render_template('landing/lead_form.html', 
+                          partner_id=partner_id,
+                          partner_name=partner_name,
+                          form_submitted=False)
+
+@bp.route('/landing/submit', methods=['POST'])
+def submit_lead_form():
+    """Handle lead form submission"""
+    partner_id = request.form.get('partner_id')
+    
+    if not partner_id:
+        flash('Error: Missing partner information', 'danger')
+        return redirect(url_for('referrals.landing_page'))
+    
+    # Get partner
+    partner = User.query.get(partner_id)
+    if not partner:
+        flash('Error: Invalid partner information', 'danger')
+        return redirect(url_for('referrals.landing_page'))
+    
+    # Create new company from form data
+    company = Company(
+        name=request.form.get('company_name'),
+        user_id=partner_id,
+        status='lead',
+        contact_name=request.form.get('contact_name'),
+        email=request.form.get('email'),
+        phone=request.form.get('phone'),
+        service_type=request.form.get('service_interest'),
+        preferred_contact_time=request.form.get('preferred_contact_time'),
+        additional_info=request.form.get('message'),
+        metadata={
+            'form_submission_date': datetime.utcnow().isoformat(),
+            'form_submission_ip': request.remote_addr,
+            'user_agent': request.user_agent.string,
+            'status_history': [{
+                'from': None,
+                'to': 'lead',
+                'timestamp': datetime.utcnow().isoformat()
+            }]
+        }
+    )
+    
+    try:
+        db.session.add(company)
+        db.session.commit()
+        
+        # Award points for lead generation (will be implemented in Phase 2)
+        # PointService.award_points_for_lead(partner_id)
+        
+        # Show success page
+        return render_template('landing/lead_form.html',
+                              partner_id=partner_id,
+                              partner_name=partner.name or partner.username,
+                              form_submitted=True)
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error: Could not save your information. {str(e)}', 'danger')
+        return redirect(url_for('referrals.landing_page', partner_id=partner_id))
 
 @bp.route('/admin/referrals', methods=['GET', 'POST'])
 @login_required

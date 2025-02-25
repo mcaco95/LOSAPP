@@ -52,12 +52,23 @@ class PointConfig(db.Model):
     def initialize_defaults(cls):
         """Initialize default point configurations"""
         defaults = {
-            'click': 1,                    # Basic click
-            'unique_click': 5,             # Unique visitor click
-            'status_completed_form': 10,   # Company completed form
-            'status_meeting_scheduled': 20, # Meeting scheduled
-            'status_sold': 50,             # Deal closed
-            'status_paid': 100             # Commission paid
+            # Basic click points
+            'click': 1,                    # Regular click
+            'unique_click': 1,             # Unique visitor click (changed from 5 to 1 as requested)
+            
+            # Sales cycle points - Updated to match the image
+            'status_lead': 2,              # Lead Generation (referral form completed)
+            'status_demo_scheduled': 5,    # Engagement - Demo scheduled
+            'status_demo_completed': 15,   # Completed - Demo completed
+            'status_client_signed': 50,    # Conversion - Client signed up
+            'status_renewed': 25,          # Retention - Client renewed
+            'status_upgraded': 35,         # Upsell - Client upgrades plan
+            'status_partner_signup': 25,   # Partner Network - Referral partners have a client sign up
+            
+            # Bonus points
+            'bonus_fast_track': 0,         # Fast-Track Bonus (double points if client signs within 30 days)
+            'bonus_high_value': 30,        # High-Value Client Bonus (Professional Plan)
+            'bonus_consistent_closer': 50  # Consistent Closer Bonus (3+ clients in a quarter)
         }
         
         for key, value in defaults.items():

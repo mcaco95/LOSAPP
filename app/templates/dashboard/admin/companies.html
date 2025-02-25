@@ -1,0 +1,711 @@
+{% extends "base.html" %}
+
+{% block title %}Manage Companies - Admin{% endblock %}
+
+{% block extra_css %}
+<style>
+    .status-badge {
+        padding: 6px 12px;
+        border-radius: 30px;
+        font-size: 0.85rem;
+        font-weight: 500;
+    }
+    .status-lead { background-color: #e9f5ff; color: #0d6efd; }
+    .status-demo_scheduled { background-color: #fff3cd; color: #fd7e14; }
+    .status-demo_completed { background-color: #e9f7ef; color: #28a745; }
+    .status-client_signed { background-color: #d1e7dd; color: #198754; }
+    .status-renewed { background-color: #cff4fc; color: #0dcaf0; }
+    .status-upgraded { background-color: #f8d7da; color: #dc3545; }
+    
+    .company-avatar {
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+        color: white;
+        border-radius: 8px;
+    }
+    
+    .timeline {
+        position: relative;
+        padding-left: 30px;
+    }
+    
+    .timeline::before {
+        content: '';
+        position: absolute;
+        left: 10px;
+        top: 0;
+        bottom: 0;
+        width: 2px;
+        background: #e9ecef;
+    }
+    
+    .timeline-item {
+        position: relative;
+        padding-bottom: 15px;
+    }
+    
+    .timeline-item::before {
+        content: '';
+        position: absolute;
+        left: -30px;
+        top: 0;
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background: #0d6efd;
+    }
+    
+    .timeline-date {
+        font-size: 0.8rem;
+        color: #6c757d;
+    }
+    
+    .timeline-content {
+        padding: 10px 15px;
+        background: #f8f9fa;
+        border-radius: 8px;
+    }
+    
+    .filter-card {
+        background: #f8f9fa;
+        border-radius: 10px;
+        padding: 20px;
+        margin-bottom: 20px;
+    }
+    
+    .stats-card {
+        transition: all 0.2s ease;
+    }
+    
+    .stats-card:hover {
+        transform: translateY(-5px);
+    }
+    
+    .progress-thin {
+        height: 6px;
+        border-radius: 3px;
+    }
+    
+    /* Modal fixes specific to this page */
+    .modal {
+        z-index: 9999 !important;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        outline: 0;
+    }
+    
+    .modal-backdrop {
+        z-index: 9998 !important;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+    }
+    
+    .modal-dialog {
+        z-index: 10000 !important;
+        position: relative;
+        margin: 1.75rem auto;
+        pointer-events: auto;
+    }
+    
+    .modal-content {
+        position: relative;
+        background-color: #fff;
+        border-radius: 0.5rem;
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.5);
+        pointer-events: auto;
+    }
+    
+    /* Ensure modals are visible and interactive */
+    .modal.show {
+        display: block !important;
+    }
+    
+    /* Fix for modal buttons */
+    .modal .btn {
+        position: relative;
+        z-index: 10001;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="py-4">
+    <!-- Add CSRF token meta tag for JavaScript use -->
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    
+    <nav aria-label="breadcrumb" class="d-none d-md-inline-block">
+        <ol class="breadcrumb breadcrumb-dark breadcrumb-transparent">
+            <li class="breadcrumb-item"><a href="{{ url_for('main.dashboard') }}">Dashboard</a></li>
+            <li class="breadcrumb-item active">Manage Companies</li>
+        </ol>
+    </nav>
+    
+    <div class="d-flex justify-content-between w-100 flex-wrap">
+        <div class="mb-3 mb-lg-0">
+            <h1 class="h4">Companies Management</h1>
+            <p class="mb-0">Manage all companies and their sales pipeline</p>
+        </div>
+    </div>
+    
+    <!-- Company Details View -->
+    {% if view == 'details' and selected_company %}
+    <div class="row mt-4">
+        <div class="col-12 mb-4">
+            <div class="card border-0 shadow">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">{{ selected_company.name }} Details</h5>
+                    <a href="{{ url_for('main.admin_companies') }}" class="btn btn-sm btn-outline-primary">
+                        <i class="fas fa-arrow-left me-1"></i> Back to Companies
+                    </a>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6 class="fw-bold">Company Information</h6>
+                            <p><strong>Name:</strong> {{ selected_company.name }}</p>
+                            <p><strong>Contact:</strong> {{ selected_company.contact_name }}</p>
+                            <p><strong>Email:</strong> {{ selected_company.email }}</p>
+                            <p><strong>Phone:</strong> {{ selected_company.phone or 'N/A' }}</p>
+                            <p><strong>Service Type:</strong> {{ selected_company.service_display }}</p>
+                            <p><strong>Preferred Contact Time:</strong> {{ selected_company.preferred_contact_time|replace('_', ' ')|title if selected_company.preferred_contact_time else 'N/A' }}</p>
+                            <p><strong>Additional Info:</strong> {{ selected_company.additional_info or 'N/A' }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="fw-bold">Status History</h6>
+                            <div class="timeline">
+                                {% if selected_company.metadata and selected_company.metadata.get('status_history') %}
+                                    {% for status_change in selected_company.metadata.get('status_history') %}
+                                        <div class="timeline-item">
+                                            <div class="timeline-date">
+                                                {{ status_change.get('timestamp', '').split('T')[0] }} 
+                                                {% if 'T' in status_change.get('timestamp', '') %}
+                                                    {{ status_change.get('timestamp', '').split('T')[1][:5] }}
+                                                {% endif %}
+                                            </div>
+                                            <div class="timeline-content">
+                                                <p class="mb-0">
+                                                    {% if status_change.get('from') %}
+                                                        Status changed from <strong>{{ status_change.get('from')|replace('_', ' ')|title }}</strong> to <strong>{{ status_change.get('to')|replace('_', ' ')|title }}</strong>
+                                                    {% else %}
+                                                        Initial status set to <strong>{{ status_change.get('to')|replace('_', ' ')|title }}</strong>
+                                                    {% endif %}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    {% endfor %}
+                                {% else %}
+                                    <p>No status history available</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    
+    <!-- Status Update View -->
+    {% if view == 'status' and selected_company %}
+    <div class="row mt-4">
+        <div class="col-12 mb-4">
+            <div class="card border-0 shadow">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Update Status for {{ selected_company.name }}</h5>
+                    <a href="{{ url_for('main.admin_companies') }}" class="btn btn-sm btn-outline-primary">
+                        <i class="fas fa-arrow-left me-1"></i> Back to Companies
+                    </a>
+                </div>
+                <div class="card-body">
+                    <form action="{{ url_for('main.update_company_status') }}" method="post">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <input type="hidden" name="company_id" value="{{ selected_company.id }}">
+                        <div class="mb-3">
+                            <label class="form-label">Current Status</label>
+                            <input type="text" class="form-control" value="{{ selected_company.status|replace('_', ' ')|title }}" disabled>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">New Status</label>
+                            <select name="status" class="form-select" required>
+                                <option value="">Select new status</option>
+                                <option value="lead" {% if selected_company.status == 'lead' %}selected{% endif %}>Referral form completed</option>
+                                <option value="demo_scheduled" {% if selected_company.status == 'demo_scheduled' %}selected{% endif %}>Demo scheduled</option>
+                                <option value="demo_completed" {% if selected_company.status == 'demo_completed' %}selected{% endif %}>Demo completed</option>
+                                <option value="client_signed" {% if selected_company.status == 'client_signed' %}selected{% endif %}>Client signed up</option>
+                                <option value="renewed" {% if selected_company.status == 'renewed' %}selected{% endif %}>Client renewed</option>
+                                <option value="upgraded" {% if selected_company.status == 'upgraded' %}selected{% endif %}>Client upgraded</option>
+                            </select>
+                        </div>
+                        <div class="mt-3">
+                            <button type="submit" class="btn btn-primary">Update Status</button>
+                            <a href="{{ url_for('main.admin_companies') }}" class="btn btn-secondary">Cancel</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    
+    <!-- Company Statistics -->
+    <div class="row mt-4">
+        <div class="col-12 col-sm-6 col-xl-3 mb-4">
+            <div class="card border-0 shadow stats-card">
+                <div class="card-body">
+                    <div class="d-flex align-items-center justify-content-between mb-3">
+                        <div class="icon-shape icon-shape-primary rounded">
+                            <i class="fas fa-building"></i>
+                        </div>
+                        <div class="text-end">
+                            <h3 class="fw-extrabold mb-1">{{ statistics.total_companies }}</h3>
+                            <p class="text-muted mb-0">Total Companies</p>
+                        </div>
+                    </div>
+                    <div class="progress progress-thin">
+                        <div class="progress-bar bg-primary" role="progressbar" style="width: 100%" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-12 col-sm-6 col-xl-3 mb-4">
+            <div class="card border-0 shadow stats-card">
+                <div class="card-body">
+                    <div class="d-flex align-items-center justify-content-between mb-3">
+                        <div class="icon-shape icon-shape-warning rounded">
+                            <i class="fas fa-calendar-check"></i>
+                        </div>
+                        <div class="text-end">
+                            <h3 class="fw-extrabold mb-1">{{ statistics.by_status.get('demo_scheduled', 0) + statistics.by_status.get('demo_completed', 0) }}</h3>
+                            <p class="text-muted mb-0">Active Demos</p>
+                        </div>
+                    </div>
+                    <div class="progress progress-thin">
+                        {% set active_demos = statistics.by_status.get('demo_scheduled', 0) + statistics.by_status.get('demo_completed', 0) %}
+                        <div class="progress-bar bg-warning" role="progressbar" 
+                             style="width: {% if statistics.total_companies > 0 %}{{ (active_demos / statistics.total_companies * 100)|round }}{% else %}0{% endif %}%" 
+                             aria-valuenow="{{ active_demos }}" 
+                             aria-valuemin="0" 
+                             aria-valuemax="{{ statistics.total_companies }}"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-12 col-sm-6 col-xl-3 mb-4">
+            <div class="card border-0 shadow stats-card">
+                <div class="card-body">
+                    <div class="d-flex align-items-center justify-content-between mb-3">
+                        <div class="icon-shape icon-shape-success rounded">
+                            <i class="fas fa-file-signature"></i>
+                        </div>
+                        <div class="text-end">
+                            <h3 class="fw-extrabold mb-1">{{ statistics.by_status.get('client_signed', 0) }}</h3>
+                            <p class="text-muted mb-0">Signed Clients</p>
+                        </div>
+                    </div>
+                    <div class="progress progress-thin">
+                        <div class="progress-bar bg-success" role="progressbar" 
+                             style="width: {% if statistics.total_companies > 0 %}{{ (statistics.by_status.get('client_signed', 0) / statistics.total_companies * 100)|round }}{% else %}0{% endif %}%" 
+                             aria-valuenow="{{ statistics.by_status.get('client_signed', 0) }}" 
+                             aria-valuemin="0" 
+                             aria-valuemax="{{ statistics.total_companies }}"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-12 col-sm-6 col-xl-3 mb-4">
+            <div class="card border-0 shadow stats-card">
+                <div class="card-body">
+                    <div class="d-flex align-items-center justify-content-between mb-3">
+                        <div class="icon-shape icon-shape-info rounded">
+                            <i class="fas fa-arrow-up"></i>
+                        </div>
+                        <div class="text-end">
+                            <h3 class="fw-extrabold mb-1">{{ statistics.by_status.get('renewed', 0) + statistics.by_status.get('upgraded', 0) }}</h3>
+                            <p class="text-muted mb-0">Renewals & Upgrades</p>
+                        </div>
+                    </div>
+                    <div class="progress progress-thin">
+                        {% set renewals = statistics.by_status.get('renewed', 0) + statistics.by_status.get('upgraded', 0) %}
+                        <div class="progress-bar bg-info" role="progressbar" 
+                             style="width: {% if statistics.total_companies > 0 %}{{ (renewals / statistics.total_companies * 100)|round }}{% else %}0{% endif %}%" 
+                             aria-valuenow="{{ renewals }}" 
+                             aria-valuemin="0" 
+                             aria-valuemax="{{ statistics.total_companies }}"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Filters -->
+    <div class="row">
+        <div class="col-12 mb-4">
+            <div class="card border-0 shadow">
+                <div class="card-header">
+                    <h5 class="mb-0">Filters</h5>
+                </div>
+                <div class="card-body">
+                    <form action="{{ url_for('main.admin_companies') }}" method="get" class="row g-3">
+                        <div class="col-md-4">
+                            <label class="form-label">Status</label>
+                            <select name="status" class="form-select">
+                                <option value="">All Statuses</option>
+                                <option value="lead" {% if current_status == 'lead' %}selected{% endif %}>Referral form completed</option>
+                                <option value="demo_scheduled" {% if current_status == 'demo_scheduled' %}selected{% endif %}>Demo scheduled</option>
+                                <option value="demo_completed" {% if current_status == 'demo_completed' %}selected{% endif %}>Demo completed</option>
+                                <option value="client_signed" {% if current_status == 'client_signed' %}selected{% endif %}>Client signed up</option>
+                                <option value="renewed" {% if current_status == 'renewed' %}selected{% endif %}>Client renewed</option>
+                                <option value="upgraded" {% if current_status == 'upgraded' %}selected{% endif %}>Client upgraded</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Partner</label>
+                            <select name="partner_id" class="form-select">
+                                <option value="">All Partners</option>
+                                {% for partner in partners %}
+                                <option value="{{ partner.id }}" {% if current_partner == partner.id %}selected{% endif %}>
+                                    {{ partner.name or partner.email }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Search</label>
+                            <div class="input-group">
+                                <input type="text" class="form-control" name="search" placeholder="Company name..." value="{{ current_search or '' }}">
+                                <button class="btn btn-primary" type="submit">
+                                    <i class="fas fa-search"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Companies Table -->
+    <div class="row">
+        <div class="col-12 mb-4">
+            <div class="card border-0 shadow">
+                <div class="card-header">
+                    <div class="row align-items-center">
+                        <div class="col">
+                            <h2 class="fs-5 fw-bold mb-0">All Companies</h2>
+                        </div>
+                    </div>
+                </div>
+                <div class="table-responsive">
+                    <table class="table align-items-center table-flush">
+                        <thead class="thead-light">
+                            <tr>
+                                <th class="border-bottom" scope="col">Company</th>
+                                <th class="border-bottom" scope="col">Partner</th>
+                                <th class="border-bottom" scope="col">Contact</th>
+                                <th class="border-bottom" scope="col">Service</th>
+                                <th class="border-bottom" scope="col">Status</th>
+                                <th class="border-bottom" scope="col">Created</th>
+                                <th class="border-bottom" scope="col">Last Updated</th>
+                                <th class="border-bottom" scope="col">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% if companies %}
+                                {% for company in companies %}
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="company-avatar bg-primary me-3">
+                                                <span>{{ company.name[:2].upper() }}</span>
+                                            </div>
+                                            <div class="d-block">
+                                                <span class="fw-bold">{{ company.name }}</span>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span>{{ company.user_name or company.user_email or 'Unknown Partner' }}</span>
+                                    </td>
+                                    <td>
+                                        <div>
+                                            <span class="fw-bold">{{ company.contact_name }}</span><br>
+                                            <span class="small text-gray">{{ company.email }}</span>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="fw-bold text-warning">
+                                            {{ company.service_display }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        {% if company.status == 'lead' %}
+                                            <span class="status-badge status-lead">Referral form completed</span>
+                                        {% elif company.status == 'demo_scheduled' %}
+                                            <span class="status-badge status-demo_scheduled">Demo scheduled</span>
+                                        {% elif company.status == 'demo_completed' %}
+                                            <span class="status-badge status-demo_completed">Demo completed</span>
+                                        {% elif company.status == 'client_signed' %}
+                                            <span class="status-badge status-client_signed">Client signed up</span>
+                                        {% elif company.status == 'renewed' %}
+                                            <span class="status-badge status-renewed">Client renewed</span>
+                                        {% elif company.status == 'upgraded' %}
+                                            <span class="status-badge status-upgraded">Client upgraded</span>
+                                        {% else %}
+                                            <span class="status-badge">{{ company.status|replace('_', ' ')|title }}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <span class="small">{{ company.created_at.split('T')[0] if company.created_at is string else company.created_at }}</span>
+                                    </td>
+                                    <td>
+                                        <span class="small">{{ company.updated_at.split('T')[0] if company.updated_at is string else company.updated_at }}</span>
+                                    </td>
+                                    <td>
+                                        <div class="btn-group mb-1">
+                                            <a href="{{ url_for('main.admin_companies') }}?view=details&company_id={{ company.id }}" class="btn btn-sm btn-primary">Details</a>
+                                            <a href="{{ url_for('main.admin_companies') }}?view=status&company_id={{ company.id }}" class="btn btn-sm btn-warning">Status</a>
+                                            <button class="btn btn-sm btn-danger" onclick="confirmDelete({{ company.id }}, '{{ company.name }}')">Delete</button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            {% else %}
+                                <tr>
+                                    <td colspan="8">
+                                        <div class="text-center py-4">
+                                            <i class="fas fa-building fa-3x text-light mb-3"></i>
+                                            <h5>No companies found</h5>
+                                            <p class="text-muted">No companies match your current filters.</p>
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Top Referrers -->
+    <div class="row">
+        <div class="col-12 mb-4">
+            <div class="card border-0 shadow">
+                <div class="card-header">
+                    <h5 class="mb-0">Top Referral Partners</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table align-items-center table-flush">
+                            <thead class="thead-light">
+                                <tr>
+                                    <th class="border-bottom" scope="col">Partner</th>
+                                    <th class="border-bottom" scope="col">Total Companies</th>
+                                    <th class="border-bottom" scope="col">Performance</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for referrer in statistics.top_referrers %}
+                                <tr>
+                                    <td>
+                                        <span class="fw-bold">{{ referrer.email }}</span>
+                                    </td>
+                                    <td>
+                                        <span>{{ referrer.company_count }}</span>
+                                    </td>
+                                    <td style="width: 30%;">
+                                        <div class="d-flex align-items-center">
+                                            <div class="progress progress-thin flex-grow-1">
+                                                <div class="progress-bar bg-success" role="progressbar" 
+                                                     style="width: {% if statistics.total_companies > 0 %}{{ (referrer.company_count / statistics.total_companies * 100)|round }}{% else %}0{% endif %}%" 
+                                                     aria-valuenow="{{ referrer.company_count }}" 
+                                                     aria-valuemin="0" 
+                                                     aria-valuemax="{{ statistics.total_companies }}"></div>
+                                            </div>
+                                            <span class="ms-2 small text-muted">{{ (referrer.company_count / statistics.total_companies * 100)|round }}%</span>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Add admin-companies-page class to body
+    document.body.classList.add('admin-companies-page');
+    
+    // Initialize tooltips
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl)
+    });
+    
+    // Auto-submit filter form when select changes
+    document.querySelectorAll('.form-select').forEach(select => {
+        select.addEventListener('change', function() {
+            if (this.closest('form') && !this.closest('.modal')) {
+                this.form.submit();
+            }
+        });
+    });
+    
+    document.addEventListener('DOMContentLoaded', function() {
+        // COMPLETELY NEW APPROACH: Replace Bootstrap's modal handling with our own
+        
+        // First, remove any existing modal backdrops
+        document.querySelectorAll('.modal-backdrop').forEach(function(backdrop) {
+            backdrop.remove();
+        });
+        
+        // Remove modal-open class from body if present
+        document.body.classList.remove('modal-open');
+        
+        // Initialize all modals manually
+        var allModals = document.querySelectorAll('.modal');
+        var modalInstances = {};
+        
+        allModals.forEach(function(modal) {
+            // Set high z-index to ensure modals appear on top
+            modal.style.zIndex = '9999';
+            
+            // Find the modal dialog and set its z-index even higher
+            var dialog = modal.querySelector('.modal-dialog');
+            if (dialog) {
+                dialog.style.zIndex = '10000';
+            }
+            
+            // Store modal instance
+            modalInstances[modal.id] = new bootstrap.Modal(modal, {
+                backdrop: 'static',  // Prevent closing when clicking outside
+                keyboard: false      // Prevent closing with Escape key
+            });
+            
+            // Add manual close handlers to all close buttons in this modal
+            var closeButtons = modal.querySelectorAll('[data-bs-dismiss="modal"]');
+            closeButtons.forEach(function(button) {
+                // Remove existing event listeners
+                button.replaceWith(button.cloneNode(true));
+            });
+            
+            // Re-select the buttons after replacing them
+            closeButtons = modal.querySelectorAll('[data-bs-dismiss="modal"]');
+            closeButtons.forEach(function(button) {
+                button.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    modalInstances[modal.id].hide();
+                });
+            });
+        });
+        
+        // Add click handlers to all modal trigger buttons
+        document.querySelectorAll('[data-bs-toggle="modal"]').forEach(function(button) {
+            // Remove existing event listeners
+            var newButton = button.cloneNode(true);
+            button.parentNode.replaceChild(newButton, button);
+            
+            // Add our custom event listener
+            newButton.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                var targetModalId = this.getAttribute('data-bs-target').replace('#', '');
+                if (modalInstances[targetModalId]) {
+                    // Hide any other open modals first
+                    for (var id in modalInstances) {
+                        if (id !== targetModalId) {
+                            modalInstances[id].hide();
+                        }
+                    }
+                    
+                    // Show the target modal
+                    setTimeout(function() {
+                        modalInstances[targetModalId].show();
+                    }, 100);
+                }
+            });
+        });
+        
+        // Add event listeners for modal events
+        allModals.forEach(function(modal) {
+            // When modal is about to be shown
+            modal.addEventListener('show.bs.modal', function() {
+                // Create a backdrop if it doesn't exist
+                if (!document.querySelector('.modal-backdrop')) {
+                    var backdrop = document.createElement('div');
+                    backdrop.className = 'modal-backdrop fade show';
+                    backdrop.style.zIndex = '9998';
+                    document.body.appendChild(backdrop);
+                }
+                
+                // Add modal-open class to body
+                document.body.classList.add('modal-open');
+                
+                // Prevent scrolling on the body
+                document.body.style.overflow = 'hidden';
+                document.body.style.paddingRight = '15px'; // Compensate for scrollbar
+            });
+            
+            // When modal is hidden
+            modal.addEventListener('hidden.bs.modal', function() {
+                // Remove backdrop
+                var backdrop = document.querySelector('.modal-backdrop');
+                if (backdrop) {
+                    backdrop.remove();
+                }
+                
+                // Check if any other modals are open
+                var openModals = document.querySelectorAll('.modal.show');
+                if (openModals.length === 0) {
+                    // No other modals open, restore body
+                    document.body.classList.remove('modal-open');
+                    document.body.style.overflow = '';
+                    document.body.style.paddingRight = '';
+                }
+            });
+        });
+    });
+
+function confirmDelete(companyId, companyName) {
+    if (confirm(`Are you sure you want to delete ${companyName}?`)) {
+        // Create a form and submit it
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = `/dashboard/admin/companies/delete/${companyId}`;
+        
+        // Add CSRF token
+        const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+        const csrfInput = document.createElement('input');
+        csrfInput.type = 'hidden';
+        csrfInput.name = 'csrf_token';
+        csrfInput.value = csrfToken;
+        form.appendChild(csrfInput);
+        
+        document.body.appendChild(form);
+        form.submit();
+    }
+}
+</script>
+{% endblock %} 

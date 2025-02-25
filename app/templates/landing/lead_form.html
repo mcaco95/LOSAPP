@@ -1,0 +1,507 @@
+{% extends "landing/base_landing.html" %}
+
+{% block title %}Welcome to Logistics One Source{% endblock %}
+
+{% block extra_css %}
+<style>
+    :root {
+        --los-red: #C41E3A;
+        --los-blue: #1B365D;
+        --los-light-blue: #2B4C7E;
+    }
+
+    .hero-section {
+        background: linear-gradient(135deg, rgba(27, 54, 93, 0.95), rgba(43, 76, 126, 0.95)), 
+                    url('{{ url_for('static', filename='img/logistics-hero.jpg') }}');
+        background-size: cover;
+        background-position: center;
+        color: white;
+        padding: 120px 0 160px;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .hero-watermark {
+        position: absolute;
+        right: 5%;
+        top: 46.5%;
+        transform: translateY(-50%);
+        width: 47%;
+        height: auto;
+        opacity: 0.3;
+        pointer-events: none;
+        z-index: 1;
+    }
+
+    .hero-content {
+        position: relative;
+        z-index: 2;
+    }
+
+    .hero-section::after {
+        display: none; /* Removing the diagonal line */
+    }
+
+    .form-section {
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+        padding: 40px;
+        margin-top: -60px;
+        position: relative;
+        z-index: 2;
+    }
+
+    .features-section {
+        padding: 80px 0;
+        background: #f8f9fa;
+        position: relative;
+    }
+
+    .feature-card {
+        padding: 30px;
+        border-radius: 15px;
+        background: white;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.05);
+        margin-bottom: 30px;
+        transition: all 0.3s ease;
+        border-top: 4px solid transparent;
+    }
+
+    .feature-card:hover {
+        transform: translateY(-5px);
+        border-top-color: var(--los-red);
+    }
+
+    .feature-icon {
+        width: 60px;
+        height: 60px;
+        background: linear-gradient(45deg, var(--los-blue), var(--los-light-blue));
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 20px;
+    }
+
+    .feature-icon i {
+        color: white;
+        font-size: 24px;
+    }
+
+    .stats-section {
+        padding: 60px 0;
+        background: white;
+        border-bottom: 1px solid rgba(0,0,0,0.05);
+    }
+
+    .stat-card {
+        text-align: center;
+        padding: 20px;
+    }
+
+    .video-section {
+        padding: 80px 0;
+        background: #f8f9fa;
+        position: relative;
+        overflow: hidden;
+        border-top: 1px solid rgba(0,0,0,0.05);
+        border-bottom: 1px solid rgba(0,0,0,0.05);
+    }
+
+    .video-section::before,
+    .video-section::after {
+        display: none; /* Removing the diagonal lines */
+    }
+
+    .video-container {
+        position: relative;
+        width: 100%;
+        max-width: 900px;
+        margin: 0 auto;
+        padding-bottom: 50.25%;
+    }
+
+    .video-container iframe {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        border-radius: 8px;
+        box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+    }
+
+    .referral-badge {
+        background: linear-gradient(45deg, var(--los-red), #E02D4B);
+        color: white;
+        padding: 8px 16px;
+        border-radius: 50px;
+        display: inline-block;
+        margin-bottom: 20px;
+        font-weight: 500;
+        font-size: 0.9rem;
+    }
+
+    .referral-badge i {
+        margin-right: 6px;
+    }
+
+    .stat-number {
+        font-size: 2.5rem;
+        font-weight: 800;
+        color: var(--los-blue);
+        margin-bottom: 10px;
+    }
+
+    .stat-label {
+        color: #6c757d;
+        font-weight: 600;
+    }
+
+    .calendly-inline-widget {
+        height: 700px;
+        margin-top: 20px;
+    }
+
+    .testimonial-section {
+        padding: 80px 0;
+        background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+    }
+
+    .testimonial-card {
+        background: white;
+        padding: 30px;
+        border-radius: 15px;
+        margin: 20px 0;
+        position: relative;
+    }
+
+    .testimonial-card::before {
+        content: '"';
+        position: absolute;
+        top: -20px;
+        left: 20px;
+        font-size: 80px;
+        color: var(--los-red);
+        opacity: 0.1;
+    }
+
+    .client-info {
+        display: flex;
+        align-items: center;
+        margin-top: 20px;
+    }
+
+    .client-image {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        margin-right: 15px;
+    }
+
+    .btn-primary {
+        background: linear-gradient(45deg, var(--los-blue), var(--los-light-blue));
+        border: none;
+    }
+
+    .btn-primary:hover {
+        background: linear-gradient(45deg, var(--los-light-blue), var(--los-blue));
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(27, 54, 93, 0.3);
+    }
+
+    .form-control:focus {
+        border-color: var(--los-blue);
+        box-shadow: 0 0 0 0.2rem rgba(27, 54, 93, 0.15);
+    }
+
+    .form-select:focus {
+        border-color: var(--los-blue);
+        box-shadow: 0 0 0 0.2rem rgba(27, 54, 93, 0.15);
+    }
+
+    /* Adding red accents */
+    .feature-card:nth-child(2) .feature-icon {
+        background: linear-gradient(45deg, var(--los-red), #E02D4B);
+    }
+
+    h2 {
+        color: var(--los-blue);
+    }
+
+    .btn-outline-light:hover {
+        color: var(--los-blue);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero-section">
+    <img src="{{ url_for('static', filename='img/LOS_watermark_red.png') }}" alt="" class="hero-watermark">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-6 hero-content">
+                {% if partner_name %}
+                <div class="referral-badge">
+                    <i class="fas fa-user-check"></i>
+                    Referred by {{ partner_name }}
+                </div>
+                {% endif %}
+                <h1 class="display-4 mb-4">Transform Your Logistics Experience</h1>
+                <p class="lead mb-4">Join the future of logistics management with industry-leading solutions tailored for your business.</p>
+                <a href="#schedule-demo" class="btn btn-light btn-lg me-3">Schedule Demo</a>
+                <a href="#learn-more" class="btn btn-outline-light btn-lg">Learn More</a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Stats Section -->
+<section class="stats-section">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-3">
+                <div class="stat-card">
+                    <div class="stat-number" data-count="500">0</div>
+                    <div class="stat-label">Happy Clients</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-card">
+                    <div class="stat-number" data-count="95">0</div>
+                    <div class="stat-label">Client Retention %</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-card">
+                    <div class="stat-number" data-count="15">0</div>
+                    <div class="stat-label">Years Experience</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-card">
+                    <div class="stat-number" data-count="24">0</div>
+                    <div class="stat-label">Global Locations</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Video Section -->
+<section class="video-section">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-10 text-center">
+                <h2 class="mb-3">See How We're Revolutionizing Logistics</h2>
+                <p class="lead mb-5">Our platform streamlines your entire logistics operation, from start to finish</p>
+                <div class="video-container">
+                    <iframe 
+                        src="https://www.youtube.com/embed/qpXVN39HnCE?rel=0&showinfo=0&autoplay=0" 
+                        title="Logistics One Source Overview"
+                        frameborder="0" 
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                        allowfullscreen>
+                    </iframe>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Form Section -->
+<div class="container" id="schedule-demo">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="form-section">
+                {% if form_submitted %}
+                <div class="text-center mb-4">
+                    <div class="feature-icon mx-auto mb-4">
+                        <i class="fas fa-check"></i>
+                    </div>
+                    <h2>Thank You!</h2>
+                    <p class="lead">We've received your information and will contact you shortly.</p>
+                </div>
+                {% else %}
+                <div class="text-center mb-4">
+                    <h2>Get Started Today</h2>
+                    <p class="lead">Fill out the form below and one of our experts will reach out to discuss your needs.</p>
+                </div>
+
+                <form action="{{ url_for('referrals.submit_lead_form') }}" method="post">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <input type="hidden" name="partner_id" value="{{ partner_id }}">
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-4">
+                            <label class="form-label">Company Name *</label>
+                            <input type="text" class="form-control" name="company_name" required>
+                        </div>
+                        
+                        <div class="col-md-6 mb-4">
+                            <label class="form-label">Contact Name *</label>
+                            <input type="text" class="form-control" name="contact_name" required>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-4">
+                            <label class="form-label">Email Address *</label>
+                            <input type="email" class="form-control" name="email" required>
+                        </div>
+                        
+                        <div class="col-md-6 mb-4">
+                            <label class="form-label">Phone Number</label>
+                            <input type="tel" class="form-control" name="phone">
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label">Service Interest *</label>
+                        <select class="form-select" name="service_interest" required>
+                            <option value="" selected disabled>Select a service</option>
+                            <option value="professional">Professional Service ($3,000/month)</option>
+                            <option value="standard">Standard Service ($500/month)</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label">Additional Information</label>
+                        <textarea class="form-control" name="message" rows="3"></textarea>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label">Preferred Contact Time</label>
+                        <select class="form-select" name="preferred_contact_time">
+                            <option value="morning">Morning (9am - 12pm)</option>
+                            <option value="afternoon">Afternoon (12pm - 5pm)</option>
+                            <option value="evening">Evening (5pm - 8pm)</option>
+                        </select>
+                    </div>
+
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary btn-lg">Get Started</button>
+                    </div>
+                </form>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Features Section -->
+<section class="features-section" id="learn-more">
+    <div class="container">
+        <div class="row">
+            <div class="col-12 text-center mb-5">
+                <h2>Why Choose Logistics One Source?</h2>
+                <p class="lead text-muted">Experience the difference with our comprehensive logistics solutions</p>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-4">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <h4>Industry Expertise</h4>
+                    <p>Benefit from our years of experience and deep industry knowledge in logistics management.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-cogs"></i>
+                    </div>
+                    <h4>Custom Solutions</h4>
+                    <p>Tailored logistics solutions designed specifically for your business needs and goals.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-headset"></i>
+                    </div>
+                    <h4>24/7 Support</h4>
+                    <p>Round-the-clock support to ensure your operations run smoothly at all times.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Testimonial Section -->
+<section class="testimonial-section">
+    <div class="container">
+        <div class="row">
+            <div class="col-12 text-center mb-5">
+                <h2>What Our Clients Say</h2>
+                <p class="lead text-muted">Don't just take our word for it</p>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-6">
+                <div class="testimonial-card">
+                    <p>"Logistics One Source has transformed our supply chain operations. Their expertise and dedication to customer service is unmatched in the industry."</p>
+                    <div class="client-info">
+                        <img src="{{ url_for('static', filename='img/client1.jpg') }}" alt="Client" class="client-image">
+                        <div>
+                            <h5 class="mb-0">John Smith</h5>
+                            <small class="text-muted">CEO, Global Shipping Co.</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="testimonial-card">
+                    <p>"The team's attention to detail and proactive approach has helped us reduce costs and improve efficiency across our entire logistics network."</p>
+                    <div class="client-info">
+                        <img src="{{ url_for('static', filename='img/client2.jpg') }}" alt="Client" class="client-image">
+                        <div>
+                            <h5 class="mb-0">Sarah Johnson</h5>
+                            <small class="text-muted">Operations Director, Tech Solutions Inc.</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://kit.fontawesome.com/your-kit-code.js" crossorigin="anonymous"></script>
+<script>
+    // Animate stats when in view
+    function animateStats() {
+        const stats = document.querySelectorAll('.stat-number');
+        stats.forEach(stat => {
+            const target = parseInt(stat.getAttribute('data-count'));
+            let current = 0;
+            const increment = target / 50;
+            const timer = setInterval(() => {
+                current += increment;
+                stat.textContent = Math.round(current);
+                if (current >= target) {
+                    stat.textContent = target;
+                    clearInterval(timer);
+                }
+            }, 20);
+        });
+    }
+
+    // Run animation when stats section is in view
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                animateStats();
+                observer.unobserve(entry.target);
+            }
+        });
+    });
+
+    observer.observe(document.querySelector('.stats-section'));
+</script>
+{% endblock %} 

@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, redirect, request, url_for, jsonify
+from flask import Blueprint, render_template, redirect, request, url_for, jsonify, flash
 from flask_login import login_required, current_user
 from datetime import datetime, timedelta
 from sqlalchemy import func
@@ -6,6 +6,9 @@ from app.services.points import PointService
 from app.services.company import CompanyService
 from app.services.reward import RewardService
 from app.decorators import admin_required
+from app.models.company import Company
+from app.models.user import User
+from .. import db
 
 main = Blueprint('main', __name__)
 
@@ -176,3 +179,113 @@ def user_companies():
         companies=companies,
         statistics=stats
     )
+
+@main.route('/dashboard/clients')
+@login_required
+def clients():
+    """Display clients page with proper access control"""
+    try:
+        company_service = CompanyService()
+        # Get only client companies (status: client_signed, renewed, upgraded)
+        client_statuses = ['client_signed', 'renewed', 'upgraded']
+        companies = company_service.get_user_companies(
+            user_id=current_user.id,
+            status=client_statuses
+        )
+        
+        # Get statistics for clients
+        stats = {
+            'total_clients': len(companies),
+            'active_clients': len([c for c in companies if c['status'] in ['client_signed', 'renewed']]),
+            'upgraded_clients': len([c for c in companies if c['status'] == 'upgraded'])
+        }
+        
+        return render_template(
+            'dashboard/clients.html',
+            companies=companies,
+            statistics=stats
+        )
+    except Exception as e:
+        flash(f'Error accessing clients: {str(e)}', 'danger')
+        return redirect(url_for('main.dashboard'))
+
+@main.route('/dashboard/admin/companies')
+@login_required
+@admin_required
+def admin_companies():
+    # Get filter parameters
+    status = request.args.get('status')
+    partner_id = request.args.get('partner_id')
+    search = request.args.get('search')
+    
+    # Get companies based on filters
+    companies = CompanyService.search_companies(
+        user_id=partner_id, 
+        status=status,
+        query_string=search
+    )
+    
+    # Get company statistics
+    statistics = CompanyService.get_company_statistics()
+    
+    # Get all partners for dropdown
+    partners = User.query.all()
+    
+    # Check if we need to show a specific view
+    view = request.args.get('view')
+    company_id = request.args.get('company_id')
+    
+    selected_company = None
+    if view and company_id:
+        # Get the specific company details
+        selected_company = CompanyService.get_company_details(company_id)
+    
+    return render_template(
+        'dashboard/admin/companies.html',
+        companies=companies,
+        statistics=statistics,
+        partners=partners,
+        current_status=status,
+        current_partner=int(partner_id) if partner_id and partner_id.isdigit() else None,
+        current_search=search,
+        view=view,
+        selected_company=selected_company
+    )
+
+@main.route('/dashboard/admin/companies/update-status', methods=['POST'])
+@login_required
+@admin_required
+def update_company_status():
+    company_id = request.form.get('company_id')
+    new_status = request.form.get('status')
+    
+    if not company_id or not new_status:
+        flash('Missing required information', 'error')
+        return redirect(url_for('main.admin_companies'))
+    
+    try:
+        CompanyService.update_status(company_id, new_status)
+        flash(f'Company status updated successfully', 'success')
+    except Exception as e:
+        flash(f'Error updating company status: {str(e)}', 'error')
+    
+    return redirect(url_for('main.admin_companies'))
+
+@main.route('/dashboard/admin/companies/delete/<int:company_id>', methods=['POST'])
+@login_required
+@admin_required
+def delete_company(company_id):
+    """Delete a company"""
+    try:
+        company = Company.query.get_or_404(company_id)
+        company_name = company.name
+        
+        db.session.delete(company)
+        db.session.commit()
+        
+        flash(f'Company "{company_name}" has been deleted', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error deleting company: {str(e)}', 'danger')
+    
+    return redirect(url_for('main.admin_companies'))

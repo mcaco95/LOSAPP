@@ -29,12 +29,32 @@ def update_point_config():
     try:
         results = {}
         for key, value in data.items():
-            config = PointService.update_point_value(key, value)
+            # Skip metadata key
+            if key == 'metadata':
+                continue
+                
+            # Get metadata if provided
+            metadata = data.get('metadata')
+            
+            # Update the config
+            config = PointService.update_point_value(key, value, metadata)
             if config:
                 results[key] = config
         return jsonify(results), 200
     except ValueError as e:
         return jsonify({'error': str(e)}), 400
+    except Exception as e:
+        return jsonify({'error': 'Internal server error'}), 500
+
+@bp.route('/points/config/<int:config_id>', methods=['DELETE'])
+@admin_required
+def delete_point_config(config_id):
+    """Delete point configuration"""
+    try:
+        result = PointService.delete_point_config(config_id)
+        if result:
+            return jsonify({'success': True}), 200
+        return jsonify({'error': 'Configuration not found'}), 404
     except Exception as e:
         return jsonify({'error': 'Internal server error'}), 500
 

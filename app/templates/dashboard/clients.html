@@ -1,0 +1,126 @@
+{% extends "base.html" %}
+
+{% block title %}Clients - Logistics One Source{% endblock %}
+
+{% block content %}
+<div class="py-4">
+    <nav aria-label="breadcrumb" class="d-none d-md-inline-block">
+        <ol class="breadcrumb breadcrumb-dark breadcrumb-transparent">
+            <li class="breadcrumb-item"><a href="{{ url_for('main.dashboard') }}">Dashboard</a></li>
+            <li class="breadcrumb-item active">Clients</li>
+        </ol>
+    </nav>
+    
+    <!-- Client Statistics -->
+    <div class="row">
+        <div class="col-12 col-sm-6 col-xl-4 mb-4">
+            <div class="card border-0 shadow">
+                <div class="card-body">
+                    <div class="row d-block d-xl-flex align-items-center">
+                        <div class="col-12 col-xl-5 text-xl-center mb-3 mb-xl-0 d-flex align-items-center justify-content-xl-center">
+                            <div class="icon-shape icon-shape-primary rounded me-4 me-sm-0">
+                                <i class="fas fa-users fa-2x"></i>
+                            </div>
+                        </div>
+                        <div class="col-12 col-xl-7 px-xl-0">
+                            <h2 class="h6 text-gray-400 mb-0">Total Clients</h2>
+                            <h3 class="fw-extrabold mb-2">{{ statistics.total_clients }}</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-sm-6 col-xl-4 mb-4">
+            <div class="card border-0 shadow">
+                <div class="card-body">
+                    <div class="row d-block d-xl-flex align-items-center">
+                        <div class="col-12 col-xl-5 text-xl-center mb-3 mb-xl-0 d-flex align-items-center justify-content-xl-center">
+                            <div class="icon-shape icon-shape-success rounded me-4 me-sm-0">
+                                <i class="fas fa-check-circle fa-2x"></i>
+                            </div>
+                        </div>
+                        <div class="col-12 col-xl-7 px-xl-0">
+                            <h2 class="h6 text-gray-400 mb-0">Active Clients</h2>
+                            <h3 class="fw-extrabold mb-2">{{ statistics.active_clients }}</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-sm-6 col-xl-4 mb-4">
+            <div class="card border-0 shadow">
+                <div class="card-body">
+                    <div class="row d-block d-xl-flex align-items-center">
+                        <div class="col-12 col-xl-5 text-xl-center mb-3 mb-xl-0 d-flex align-items-center justify-content-xl-center">
+                            <div class="icon-shape icon-shape-tertiary rounded me-4 me-sm-0">
+                                <i class="fas fa-arrow-up fa-2x"></i>
+                            </div>
+                        </div>
+                        <div class="col-12 col-xl-7 px-xl-0">
+                            <h2 class="h6 text-gray-400 mb-0">Upgraded Clients</h2>
+                            <h3 class="fw-extrabold mb-2">{{ statistics.upgraded_clients }}</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Client List -->
+    <div class="card border-0 shadow mb-4">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-centered table-nowrap mb-0 rounded">
+                    <thead class="thead-light">
+                        <tr>
+                            <th class="border-0">Company</th>
+                            <th class="border-0">Contact</th>
+                            <th class="border-0">Service Type</th>
+                            <th class="border-0">Status</th>
+                            <th class="border-0">Since</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for company in companies %}
+                        <tr>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <span class="fw-bold">{{ company.name }}</span>
+                                </div>
+                            </td>
+                            <td>
+                                <div>
+                                    <span class="fw-bold">{{ company.contact_name }}</span><br>
+                                    <span class="small text-gray">{{ company.email }}</span>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="fw-bold text-warning">
+                                    {{ company.service_display }}
+                                </span>
+                            </td>
+                            <td>
+                                <span class="badge bg-{{ 'success' if company.status == 'client_signed' else 'primary' }}">
+                                    {{ company.status_display }}
+                                </span>
+                            </td>
+                            <td>
+                                <span class="small text-gray">
+                                    {{ company.created_at.split('T')[0] }}
+                                </span>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="5" class="text-center py-4">
+                                <h6 class="text-gray-500">No clients found</h6>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

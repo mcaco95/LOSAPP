@@ -89,7 +89,15 @@ class CompanyService:
                 query = query.filter_by(status=status)
         
         companies = query.order_by(Company.created_at.desc()).all()
-        return [company.to_dict() for company in companies]
+        result = []
+        for company in companies:
+            company_dict = company.to_dict()
+            # Add user information
+            if company.user:
+                company_dict['user_name'] = company.user.name
+                company_dict['user_email'] = company.user.email
+            result.append(company_dict)
+        return result
 
     @staticmethod
     def get_company_statistics():
@@ -127,7 +135,7 @@ class CompanyService:
     @staticmethod
     def search_companies(query_string, status=None, user_id=None):
         """Search companies with optional filters"""
-        query = Company.query
+        query = Company.query.join(User)
         
         if query_string:
             search = f"%{query_string}%"
@@ -143,4 +151,12 @@ class CompanyService:
             query = query.filter_by(user_id=user_id)
         
         companies = query.order_by(Company.created_at.desc()).all()
-        return [company.to_dict() for company in companies]
+        result = []
+        for company in companies:
+            company_dict = company.to_dict()
+            # Add user information
+            if company.user:
+                company_dict['user_name'] = company.user.name
+                company_dict['user_email'] = company.user.email
+            result.append(company_dict)
+        return result

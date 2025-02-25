@@ -30,6 +30,37 @@
     <!-- Global CSS -->
     <link type="text/css" href="{{ url_for('static', filename='css/global.css') }}" rel="stylesheet">
 
+    <!-- NOTICE: You can use the _analytics.html partial to include production code specific code & trackers -->
+    {# Analytics partial is commented out as the file doesn't exist #}
+    
+    <style>
+        /* Global modal styles - these will be overridden by page-specific styles when needed */
+        .modal-backdrop {
+            z-index: 1040;
+        }
+        .modal {
+            z-index: 1050;
+        }
+        .modal-dialog {
+            margin: 1.75rem auto;
+            z-index: 1050;
+        }
+        .modal-content {
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+        }
+        
+        /* Admin companies page has its own modal styles */
+        body.admin-companies-page .modal {
+            z-index: 9999;
+        }
+        body.admin-companies-page .modal-backdrop {
+            z-index: 9998;
+        }
+        body.admin-companies-page .modal-dialog {
+            z-index: 10000;
+        }
+    </style>
+    
     {% block extra_css %}{% endblock %}
 </head>
 
@@ -78,6 +109,39 @@
 
     <!-- Volt JS -->
     <script src="{{ url_for('static', filename='js/volt.js') }}"></script>
+
+    <script>
+        // Global modal detection
+        document.addEventListener('DOMContentLoaded', function() {
+            // Check if we're on the admin companies page
+            if (window.location.pathname.includes('/dashboard/admin/companies')) {
+                // Modal handling is done in the page-specific JS
+                console.log('Admin companies page detected - using page-specific modal handling');
+            } else {
+                // For other pages, use standard modal fixes
+                var modalBackdrop = document.querySelector('.modal-backdrop');
+                if (modalBackdrop) {
+                    modalBackdrop.style.zIndex = '1040';
+                }
+                
+                var modals = document.querySelectorAll('.modal');
+                modals.forEach(function(modal) {
+                    modal.style.zIndex = '1050';
+                });
+                
+                var closeButtons = document.querySelectorAll('[data-bs-dismiss="modal"]');
+                closeButtons.forEach(function(button) {
+                    button.addEventListener('click', function() {
+                        var modalId = this.closest('.modal').id;
+                        var modalInstance = bootstrap.Modal.getInstance(document.getElementById(modalId));
+                        if (modalInstance) {
+                            modalInstance.hide();
+                        }
+                    });
+                });
+            }
+        });
+    </script>
 
     {% block extra_js %}{% endblock %}
 

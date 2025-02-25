@@ -122,22 +122,29 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Initialize real-time updates
     initializeRealtimeUpdates();
+
+    // Admin Points Management
+    if (document.getElementById('addPointRule')) {
+        initializePointsAdmin();
+    }
 });
 
 // Load points history data
 async function loadPointsData(period) {
     try {
-        const response = await fetch(`/api/v1/points-rewards/points/history?period=${period}`);
+        const response = await fetch(`/dashboard/points/history?period=${period}`);
         if (!response.ok) throw new Error('Failed to load points data');
         
         const data = await response.json();
         
         // Update chart
         const chart = Chartist.instances['.ct-chart-points'];
-        chart.update({
-            labels: data.labels,
-            series: [data.points]
-        });
+        if (chart) {
+            chart.update({
+                labels: Object.keys(data.data),
+                series: [Object.values(data.data)]
+            });
+        }
 
     } catch (error) {
         console.error('Error loading points data:', error);
@@ -211,4 +218,220 @@ function initializeRealtimeUpdates() {
             console.error('Error fetching updates:', error);
         }
     }, 30000);
+}
+
+// Initialize Points Admin functionality
+function initializePointsAdmin() {
+    // Add Point Rule
+    const addRuleModal = document.getElementById('addPointRule');
+    const addRuleForm = addRuleModal.querySelector('form');
+    const addRuleButton = addRuleModal.querySelector('.btn-primary');
+
+    addRuleButton.addEventListener('click', async function() {
+        // Get form values
+        const actionName = addRuleForm.querySelector('#actionName').value;
+        const description = addRuleForm.querySelector('#description').value;
+        const points = parseInt(addRuleForm.querySelector('#points').value);
+        const frequencyLimit = addRuleForm.querySelector('#frequencyLimit').value;
+        const frequencyPeriod = addRuleForm.querySelector('#frequencyPeriod').value;
+        const isActive = addRuleForm.querySelector('#isActive').checked;
+
+        // Generate key from action name
+        const key = actionName.toLowerCase().replace(/\s+/g, '_');
+
+        try {
+            const response = await fetch('/api/v1/points-rewards/points/config', {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    [key]: points,
+                    metadata: {
+                        description: description,
+                        frequency_limit: frequencyLimit || null,
+                        frequency_period: frequencyPeriod,
+                        is_active: isActive
+                    }
+                })
+            });
+
+            if (!response.ok) throw new Error('Failed to add point rule');
+
+            // Show success notification
+            Swal.fire({
+                title: 'Rule Added!',
+                text: 'The point rule has been added successfully.',
+                icon: 'success',
+                timer: 2000,
+                showConfirmButton: false
+            });
+
+            // Reload page to show new rule
+            setTimeout(() => window.location.reload(), 2000);
+
+        } catch (error) {
+            Swal.fire({
+                title: 'Error!',
+                text: 'Failed to add point rule. Please try again.',
+                icon: 'error'
+            });
+        }
+    });
+
+    // Edit Point Rule
+    const editRuleModal = document.getElementById('editPointRule');
+    if (editRuleModal) {
+        editRuleModal.addEventListener('show.bs.modal', function(event) {
+            const button = event.relatedTarget;
+            const ruleId = button.dataset.ruleId;
+            
+            // Find rule data from the table
+            const ruleRow = document.querySelector(`tr[data-rule-id="${ruleId}"]`);
+            if (!ruleRow) return;
+            
+            const actionName = ruleRow.querySelector('.fw-bold').textContent;
+            const description = ruleRow.querySelector('.small.text-gray').textContent;
+            const points = ruleRow.querySelector('td:nth-child(2)').textContent;
+            const frequencyText = ruleRow.querySelector('td:nth-child(3)').textContent;
+            const isActive = ruleRow.querySelector('.badge.bg-success') !== null;
+            
+            // Parse frequency limit
+            let frequencyLimit = '';
+            let frequencyPeriod = 'day';
+            if (frequencyText !== 'No limit') {
+                const match = frequencyText.match(/(\d+) per (\w+)/);
+                if (match) {
+                    frequencyLimit = match[1];
+                    frequencyPeriod = match[2];
+                }
+            }
+            
+            // Set form values
+            const form = editRuleModal.querySelector('form');
+            form.querySelector('#editRuleId').value = ruleId;
+            form.querySelector('#editActionName').value = actionName;
+            form.querySelector('#editDescription').value = description;
+            form.querySelector('#editPoints').value = points;
+            form.querySelector('#editFrequencyLimit').value = frequencyLimit;
+            form.querySelector('#editFrequencyPeriod').value = frequencyPeriod;
+            form.querySelector('#editIsActive').checked = isActive;
+        });
+        
+        // Handle edit submission
+        const editButton = editRuleModal.querySelector('.btn-primary');
+        editButton.addEventListener('click', async function() {
+            const form = editRuleModal.querySelector('form');
+            const ruleId = form.querySelector('#editRuleId').value;
+            const actionName = form.querySelector('#editActionName').value;
+            const description = form.querySelector('#editDescription').value;
+            const points = parseInt(form.querySelector('#editPoints').value);
+            const frequencyLimit = form.querySelector('#editFrequencyLimit').value;
+            const frequencyPeriod = form.querySelector('#editFrequencyPeriod').value;
+            const isActive = form.querySelector('#editIsActive').checked;
+            
+            // Find the key from the table
+            const ruleRow = document.querySelector(`tr[data-rule-id="${ruleId}"]`);
+            if (!ruleRow) return;
+            
+            const key = ruleRow.dataset.ruleKey;
+            
+            try {
+                const response = await fetch('/api/v1/points-rewards/points/config', {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        [key]: points,
+                        metadata: {
+                            description: description,
+                            frequency_limit: frequencyLimit || null,
+                            frequency_period: frequencyPeriod,
+                            is_active: isActive
+                        }
+                    })
+                });
+                
+                if (!response.ok) throw new Error('Failed to update point rule');
+                
+                // Show success notification
+                Swal.fire({
+                    title: 'Rule Updated!',
+                    text: 'The point rule has been updated successfully.',
+                    icon: 'success',
+                    timer: 2000,
+                    showConfirmButton: false
+                });
+                
+                // Reload page to show updated rule
+                setTimeout(() => window.location.reload(), 2000);
+                
+            } catch (error) {
+                Swal.fire({
+                    title: 'Error!',
+                    text: 'Failed to update point rule. Please try again.',
+                    icon: 'error'
+                });
+            }
+        });
+    }
+    
+    // Delete Point Rule
+    const deleteRuleModal = document.getElementById('deletePointRule');
+    if (deleteRuleModal) {
+        deleteRuleModal.addEventListener('show.bs.modal', function(event) {
+            const button = event.relatedTarget;
+            const ruleId = button.dataset.ruleId;
+            deleteRuleModal.dataset.ruleId = ruleId;
+        });
+        
+        // Handle delete submission
+        const deleteButton = deleteRuleModal.querySelector('.btn-danger');
+        deleteButton.addEventListener('click', async function() {
+            const ruleId = deleteRuleModal.dataset.ruleId;
+            
+            try {
+                const response = await fetch(`/api/v1/points-rewards/points/config/${ruleId}`, {
+                    method: 'DELETE'
+                });
+                
+                if (!response.ok) throw new Error('Failed to delete point rule');
+                
+                // Show success notification
+                Swal.fire({
+                    title: 'Rule Deleted!',
+                    text: 'The point rule has been deleted successfully.',
+                    icon: 'success',
+                    timer: 2000,
+                    showConfirmButton: false
+                });
+                
+                // Reload page to update rule list
+                setTimeout(() => window.location.reload(), 2000);
+                
+            } catch (error) {
+                Swal.fire({
+                    title: 'Error!',
+                    text: 'Failed to delete point rule. Please try again.',
+                    icon: 'error'
+                });
+            }
+        });
+    }
+    
+    // Initialize Points Distribution Chart
+    if (document.querySelector('.ct-chart-distribution')) {
+        const distributionData = JSON.parse(document.getElementById('distributionData').textContent);
+        
+        new Chartist.Bar('.ct-chart-distribution', {
+            labels: distributionData.labels,
+            series: [distributionData.series]
+        }, {
+            distributeSeries: true,
+            plugins: [
+                Chartist.plugins.tooltip()
+            ]
+        });
+    }
 }

@@ -43,7 +43,7 @@
                     </thead>
                     <tbody>
                         {% for rule in point_rules %}
-                        <tr>
+                        <tr data-rule-id="{{ rule.id }}" data-rule-key="{{ rule.key }}">
                             <td>
                                 <div class="d-flex align-items-center">
                                     <div class="icon-shape icon-sm me-3 bg-gray-800 rounded-circle">
@@ -116,6 +116,10 @@
                 </div>
                 <div class="card-body">
                     <div class="ct-chart-distribution height-400"></div>
+                    <!-- Hidden distribution data for chart -->
+                    <script type="application/json" id="distributionData">
+                        {{ distribution_data|tojson|safe }}
+                    </script>
                 </div>
             </div>
         </div>
@@ -177,7 +181,7 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <form>
+                <form id="addRuleForm">
                     <div class="mb-3">
                         <label for="actionName" class="form-label">Action Name</label>
                         <input type="text" class="form-control" id="actionName" placeholder="e.g., Complete Profile">
@@ -227,7 +231,7 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <form>
+                <form id="editRuleForm">
                     <input type="hidden" id="editRuleId">
                     <div class="mb-3">
                         <label for="editActionName" class="form-label">Action Name</label>

@@ -38,9 +38,68 @@ class PointService:
         if points > 0:
             reason = f"Company status changed to {new_status}"
             company.user.add_points(points, reason)
+            
+            # Check for bonus points
+            bonus_points = PointService.calculate_bonus_points(company, new_status)
+            if bonus_points > 0:
+                company.user.add_points(bonus_points, f"Bonus points for {new_status}")
+                points += bonus_points
+                
             db.session.commit()
             return points
         return 0
+        
+    @staticmethod
+    def calculate_bonus_points(company, new_status):
+        """Calculate bonus points based on various criteria"""
+        total_bonus = 0
+        
+        # Fast-Track Bonus - Double points if client signs up within 30 days of demo
+        if new_status == 'client_signed':
+            # Check if there's a demo_completed status in history
+            status_history = company.company_metadata.get('status_history', [])
+            demo_completed_entry = next((entry for entry in status_history if entry.get('to') == 'demo_completed'), None)
+            
+            if demo_completed_entry:
+                demo_date = datetime.fromisoformat(demo_completed_entry.get('timestamp'))
+                days_since_demo = (datetime.utcnow() - demo_date).days
+                
+                if days_since_demo <= 30:
+                    # Get the base points for client_signed
+                    base_points = PointConfig.get_status_points('client_signed')
+                    # Get the multiplier from config (default to 2x if not set)
+                    multiplier = PointConfig.get_value('bonus_fast_track', 1)
+                    fast_track_bonus = base_points * multiplier
+                    total_bonus += fast_track_bonus
+        
+        # High-Value Client Bonus - Extra points for Professional Plan
+        if new_status == 'client_signed' and company.service_type == 'professional':
+            high_value_bonus = PointConfig.get_value('bonus_high_value', 30)
+            total_bonus += high_value_bonus
+        
+        # Consistent Closer Bonus - Extra points for 3+ clients in a quarter
+        if new_status == 'client_signed':
+            # Get the user
+            user = company.user
+            
+            # Calculate the start of the current quarter
+            now = datetime.utcnow()
+            current_quarter_start = datetime(now.year, ((now.month - 1) // 3) * 3 + 1, 1)
+            
+            # Count client signups in this quarter
+            from ..models.company import Company
+            quarter_signups = Company.query.filter(
+                Company.user_id == user.id,
+                Company.status == 'client_signed',
+                Company.updated_at >= current_quarter_start
+            ).count()
+            
+            # If this is the 3rd or more signup this quarter, award bonus
+            if quarter_signups >= 3:
+                consistent_closer_bonus = PointConfig.get_value('bonus_consistent_closer', 50)
+                total_bonus += consistent_closer_bonus
+        
+        return total_bonus
 
     @staticmethod
     def get_user_points_summary(user_id):
@@ -94,12 +153,24 @@ class PointService:
             return False
 
     @staticmethod
-    def update_point_value(key, value):
+    def update_point_value(key, value, metadata=None):
         """Update point value for a specific action"""
         try:
-            config = PointConfig.set_value(key, value)
+            config = PointConfig.query.filter_by(key=key).first()
+            if config:
+                config.value = value
+                if metadata:
+                    if not config.config_metadata:
+                        config.config_metadata = {}
+                    config.config_metadata.update(metadata)
+            else:
+                config = PointConfig(key=key, value=value, metadata=metadata)
+                db.session.add(config)
+            
+            db.session.commit()
             return config.to_dict()
         except Exception as e:
+            db.session.rollback()
             print(f"Error updating point value: {str(e)}")
             return None
 
@@ -273,37 +344,46 @@ class PointService:
 
     @staticmethod
     def get_points_distribution():
-        """Get points distribution data for visualization"""
+        """Get points distribution data for charts"""
         try:
-            users = User.query.all()
-            distribution = {}
+            # Get all point configurations
+            configs = PointConfig.get_all_configs()
             
-            # Create point ranges (0-100, 101-500, 501-1000, 1001-5000, 5000+)
-            ranges = [
-                (0, 100, '0-100'),
-                (101, 500, '101-500'),
-                (501, 1000, '501-1000'),
-                (1001, 5000, '1001-5000'),
-                (5001, float('inf'), '5000+')
-            ]
+            # Get action names for better labels
+            action_names = {}
+            for key in configs.keys():
+                config = PointConfig.query.filter_by(key=key).first()
+                if config:
+                    # Try to get a friendly name from metadata
+                    metadata = config.config_metadata or {}
+                    action_names[key] = metadata.get('name', key.replace('_', ' ').title())
             
-            # Initialize ranges
-            for _, _, label in ranges:
-                distribution[label] = 0
+            # Format data for chart
+            labels = []
+            series = []
+            
+            for key, points in configs.items():
+                # Skip zero-value configs
+                if points <= 0:
+                    continue
+                    
+                # Use friendly name if available
+                label = action_names.get(key, key.replace('_', ' ').title())
                 
-            # Count users in each range
-            for user in users:
-                for start, end, label in ranges:
-                    if start <= user.points <= end:
-                        distribution[label] += 1
-                        break
+                # Truncate long labels
+                if len(label) > 15:
+                    label = label[:12] + '...'
+                    
+                labels.append(label)
+                series.append(points)
             
             return {
-                'labels': list(distribution.keys()),
-                'data': list(distribution.values())
+                'labels': labels,
+                'series': series
             }
         except Exception as e:
-            raise ValueError(f"Error getting points distribution: {str(e)}")
+            print(f"Error getting points distribution: {str(e)}")
+            return {'labels': [], 'series': []}
 
     @staticmethod
     def get_point_rules():
@@ -322,21 +402,45 @@ class PointService:
                     'name': 'Unique Click',
                     'description': 'Points awarded for first-time visitor clicks'
                 },
-                'status_completed_form': {
-                    'name': 'Form Completion',
-                    'description': 'Points awarded when a company completes the form'
+                'status_lead': {
+                    'name': 'Lead Generation',
+                    'description': 'Referral form completed'
                 },
-                'status_meeting_scheduled': {
-                    'name': 'Meeting Scheduled',
-                    'description': 'Points awarded when a meeting is scheduled'
+                'status_demo_scheduled': {
+                    'name': 'Engagement',
+                    'description': 'Demo scheduled'
                 },
-                'status_sold': {
-                    'name': 'Deal Closed',
-                    'description': 'Points awarded when a deal is closed'
+                'status_demo_completed': {
+                    'name': 'Completed',
+                    'description': 'Demo completed'
                 },
-                'status_paid': {
-                    'name': 'Commission Paid',
-                    'description': 'Points awarded when commission is paid'
+                'status_client_signed': {
+                    'name': 'Conversion',
+                    'description': 'Client signed up'
+                },
+                'status_renewed': {
+                    'name': 'Retention',
+                    'description': 'Client renewed'
+                },
+                'status_upgraded': {
+                    'name': 'Upsell',
+                    'description': 'Referral client upgrades plan'
+                },
+                'status_partner_signup': {
+                    'name': 'Partner Network',
+                    'description': 'Referral partners have a client sign up'
+                },
+                'bonus_fast_track': {
+                    'name': 'Fast-Track Bonus Multiplier',
+                    'description': 'Multiplier for client signing within 30 days of demo (0 = disabled)'
+                },
+                'bonus_high_value': {
+                    'name': 'High-Value Client Bonus',
+                    'description': 'Extra points for Professional Plan clients'
+                },
+                'bonus_consistent_closer': {
+                    'name': 'Consistent Closer Bonus',
+                    'description': 'Extra points for 3+ clients in a quarter'
                 }
             }
 
@@ -359,6 +463,7 @@ class PointService:
 
                 rule = {
                     'id': config.id,
+                    'key': key,
                     'action_name': info['name'],
                     'description': info['description'],
                     'points': points,
@@ -371,3 +476,19 @@ class PointService:
             return rules
         except Exception as e:
             raise ValueError(f"Error getting point rules: {str(e)}")
+
+    @staticmethod
+    def delete_point_config(config_id):
+        """Delete a point configuration"""
+        try:
+            config = PointConfig.query.get(config_id)
+            if not config:
+                return False
+                
+            db.session.delete(config)
+            db.session.commit()
+            return True
+        except Exception as e:
+            db.session.rollback()
+            print(f"Error deleting point config: {str(e)}")
+            return False
