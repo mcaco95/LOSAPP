@@ -9,20 +9,22 @@ from app.decorators import admin_required
 from app.models.company import Company
 from app.models.user import User
 from .. import db
-from ..models.point_transaction import PointTransaction
 
 main = Blueprint('main', __name__)
 
 @main.route('/')
 def index():
     if current_user.is_authenticated:
+        print(f"User authenticated: {current_user.email}")
+        print(f"Is admin: {current_user.is_admin}")
+        print(f"User ID: {current_user.id}")
         return redirect(url_for('main.dashboard'))
     return redirect(url_for('auth.login'))
 
 @main.route('/dashboard')
 @login_required
 def dashboard():
-    if current_user.email == 'simon@logisticsonesource.com':
+    if current_user.is_admin:
         return redirect(url_for('main.admin_dashboard'))
     return redirect(url_for('main.user_dashboard'))
 
@@ -75,16 +77,32 @@ def admin_dashboard():
         company_service = CompanyService()
         
         # Get system metrics
-        metrics = point_service.get_system_metrics()
+        try:
+            metrics = point_service.get_system_metrics()
+        except Exception as e:
+            print(f"Error getting metrics: {str(e)}")
+            metrics = {'total_users': 0, 'total_points': 0, 'user_growth': 0, 'points_growth': 0}
         
         # Get recent activity
-        recent_activity = point_service.get_recent_activity()
+        try:
+            recent_activity = point_service.get_recent_activity()
+        except Exception as e:
+            print(f"Error getting recent activity: {str(e)}")
+            recent_activity = []
         
         # Get status changes history
-        status_changes = company_service.get_status_changes_history()
+        try:
+            status_changes = company_service.get_status_changes_history()
+        except Exception as e:
+            print(f"Error getting status changes: {str(e)}")
+            status_changes = []
         
         # Get top performers
-        top_performers = point_service.get_top_users(limit=5)
+        try:
+            top_performers = point_service.get_top_users(limit=5)
+        except Exception as e:
+            print(f"Error getting top performers: {str(e)}")
+            top_performers = []
         
         return render_template(
             'dashboard/admin/index.html',
@@ -94,78 +112,35 @@ def admin_dashboard():
             top_performers=top_performers
         )
     except Exception as e:
-        flash(f'Error loading dashboard: {str(e)}', 'error')
-        return redirect(url_for('main.index'))
+        print(f"Critical error in admin_dashboard: {str(e)}")
+        flash('Error loading dashboard. Some features may be unavailable.', 'error')
+        return render_template(
+            'dashboard/admin/index.html',
+            metrics={'total_users': 0, 'total_points': 0, 'user_growth': 0, 'points_growth': 0},
+            recent_activity=[],
+            status_changes=[],
+            top_performers=[]
+        )
 
 @main.route('/dashboard/admin/points')
 @login_required
 @admin_required
 def admin_points():
-    """Admin points management dashboard"""
-    # Get pagination parameters
-    page = request.args.get('page', 1, type=int)
-    per_page = 20
+    point_service = PointService()
     
-    # Get filter parameters
-    activity_type = request.args.get('activity_type')
-    user_id = request.args.get('user_id', type=int)
-    date_range = request.args.get('date_range', 'month')
+    # Get point rules
+    point_rules = point_service.get_point_rules()
     
-    # Build query
-    query = PointTransaction.query
+    # Get points distribution data
+    distribution_data = point_service.get_points_distribution()
     
-    # Apply filters
-    if activity_type:
-        query = query.filter_by(activity_type=activity_type)
-    if user_id:
-        query = query.filter_by(user_id=user_id)
-        
-    # Apply date filter
-    now = datetime.utcnow()
-    if date_range == 'today':
-        start_date = now.replace(hour=0, minute=0, second=0, microsecond=0)
-    elif date_range == 'week':
-        start_date = now - timedelta(days=7)
-    elif date_range == 'month':
-        start_date = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
-    elif date_range == 'year':
-        start_date = now.replace(month=1, day=1, hour=0, minute=0, second=0, microsecond=0)
-    else:
-        start_date = None
-        
-    if start_date:
-        query = query.filter(PointTransaction.timestamp >= start_date)
-    
-    # Order by most recent first
-    query = query.order_by(PointTransaction.timestamp.desc())
-    
-    # Get paginated results
-    pagination = query.paginate(page=page, per_page=per_page, error_out=False)
-    transactions = pagination.items
-    
-    # Get statistics
-    total_points = db.session.query(db.func.sum(PointTransaction.amount)).scalar() or 0
-    active_users = User.query.filter(User.points > 0).count()
-    
-    # Calculate points this month
-    first_of_month = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
-    points_this_month = db.session.query(
-        db.func.sum(PointTransaction.amount)
-    ).filter(
-        PointTransaction.timestamp >= first_of_month
-    ).scalar() or 0
-    
-    # Get all users for filter dropdown
-    users = User.query.all()
-    
-    return render_template(
-        'dashboard/admin/points.html',
-        transactions=transactions,
-        pagination=pagination,
-        total_points=total_points,
-        active_users=active_users,
-        points_this_month=points_this_month,
-        users=users
+    # Get top earners
+    top_earners = point_service.get_top_users(limit=5)
+
+    return render_template('dashboard/admin/points.html',
+        point_rules=point_rules,
+        distribution_data=distribution_data,
+        top_earners=top_earners
     )
 
 @main.route('/dashboard/admin/rewards')

@@ -1,14 +1,14 @@
 from datetime import datetime, timedelta
 from ..models.point_config import PointConfig
 from ..models.user import User
-from ..models.point_transaction import PointTransaction
 from .. import db
+from sqlalchemy.sql import text
 
 class PointService:
     """Service for handling point-related operations"""
 
     @staticmethod
-    def award_points_for_click(user_id, is_unique=False, click_id=None):
+    def award_points_for_click(user_id, is_unique=False):
         """Award points for a click action"""
         user = User.query.get(user_id)
         if not user:
@@ -19,20 +19,8 @@ class PointService:
         
         if points > 0:
             reason = f"{'Unique ' if is_unique else ''}Click reward"
-            
-            # Create transaction with click details
-            transaction = PointTransaction.create_transaction(
-                user=user,
-                amount=points,
-                reason=reason,
-                activity_type='click',
-                reference_id=click_id,
-                metadata={
-                    'is_unique': is_unique,
-                    'click_id': click_id
-                }
-            )
-            
+            user.add_points(points, reason)
+            db.session.commit()
             return points
         return 0
 
@@ -61,51 +49,32 @@ class PointService:
             elif new_status == 'renewed':
                 message = f"{company.name} has renewed their service!"
             elif new_status == 'upgraded':
-                message = f"{company.name} has upgraded their service!"
+                message = f"{company.name} has upgraded their plan!"
             else:
-                message = f"{company.name} status changed to {new_status}"
-
-            # Calculate any bonus points
+                message = f"Status changed to {Company.get_status_display(new_status)}"
+            
+            # Include company information in metadata
+            metadata = {
+                'company_id': company_id,
+                'company_name': company.name,
+                'status': new_status,
+                'status_display': Company.get_status_display(new_status)
+            }
+            
+            # Award points with the friendly message
+            company.user.add_points(points, message, metadata=metadata)
+            
+            # Check for bonus points
             bonus_points = PointService.calculate_bonus_points(company, new_status)
-            total_points = points + bonus_points
-
-            # Create transaction for status change
-            transaction = PointTransaction.create_transaction(
-                user=company.user,
-                amount=points,
-                reason=message,
-                activity_type='status_change',
-                reference_id=company_id,
-                metadata={
-                    'company_id': company_id,
-                    'company_name': company.name,
-                    'old_status': company.status,
-                    'new_status': new_status,
-                    'base_points': points,
-                    'bonus_points': bonus_points
-                }
-            )
-
-            # If there are bonus points, create a separate transaction
             if bonus_points > 0:
-                bonus_message = f"Bonus points for {company.name} status change to {new_status}"
-                bonus_transaction = PointTransaction.create_transaction(
-                    user=company.user,
-                    amount=bonus_points,
-                    reason=bonus_message,
-                    activity_type='status_bonus',
-                    reference_id=company_id,
-                    metadata={
-                        'company_id': company_id,
-                        'company_name': company.name,
-                        'status': new_status,
-                        'bonus_type': 'status_change'
-                    }
-                )
-
-            return total_points
+                bonus_message = f"Bonus points awarded for {company.name}!"
+                company.user.add_points(bonus_points, bonus_message, metadata=metadata)
+                points += bonus_points
+                
+            db.session.commit()
+            return points
         return 0
-
+        
     @staticmethod
     def calculate_bonus_points(company, new_status):
         """Calculate bonus points based on various criteria"""
@@ -160,31 +129,77 @@ class PointService:
 
     @staticmethod
     def get_user_points_summary(user_id):
-        """Get summary of user's points and recent activity"""
-        user = User.query.get(user_id)
-        if not user:
-            raise ValueError(f"User {user_id} not found")
+        """Get summary of user's points"""
+        try:
+            user = User.query.get(user_id)
+            if not user:
+                raise ValueError(f"User {user_id} not found")
 
-        # Get recent transactions
-        recent_transactions = PointTransaction.get_user_transactions(user_id, limit=5)
-        
-        # Group points by activity type
-        points_by_type = {}
-        for transaction in PointTransaction.get_user_transactions(user_id):
-            activity_type = transaction.activity_type
-            if activity_type not in points_by_type:
-                points_by_type[activity_type] = 0
-            points_by_type[activity_type] += transaction.amount
+            # Query point_transaction table
+            query = """
+                SELECT 
+                    amount,
+                    reason,
+                    timestamp,
+                    balance_after,
+                    transaction_metadata
+                FROM point_transaction
+                WHERE user_id = :user_id
+                ORDER BY timestamp DESC
+            """
+            
+            result = db.session.execute(text(query), {'user_id': user_id})
+            transactions = list(result)
+            
+            # Calculate monthly change
+            now = datetime.utcnow()
+            start_of_month = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+            
+            current_month_points = sum(
+                tx.amount for tx in transactions 
+                if tx.timestamp >= start_of_month
+            )
+            
+            # If there are points this month, calculate percentage change
+            monthly_change = 0
+            if user.points > 0:
+                monthly_change = (current_month_points / user.points) * 100
+            
+            # Calculate points by category
+            points_by_category = {}
+            for tx in transactions:
+                category = tx.reason or 'Other'
+                if category not in points_by_category:
+                    points_by_category[category] = 0
+                points_by_category[category] += tx.amount
+            
+            # Get recent activity (last 5 transactions)
+            recent_activity = []
+            for tx in transactions[:5]:
+                activity = {
+                    'amount': tx.amount,
+                    'reason': tx.reason,
+                    'timestamp': tx.timestamp.isoformat(),
+                    'balance_after': tx.balance_after,
+                    'metadata': tx.transaction_metadata
+                }
+                recent_activity.append(activity)
+            
+            summary = {
+                'total_points': user.points,
+                'points_by_category': points_by_category,
+                'recent_activity': recent_activity,
+                'available_rewards': [r.to_dict() for r in user.get_available_rewards()],
+                'monthly_change': round(monthly_change, 1)
+            }
 
-        return {
-            'total_points': user.points,
-            'points_by_type': points_by_type,
-            'recent_activity': [t.to_dict() for t in recent_transactions]
-        }
+            return summary
+        except Exception as e:
+            raise ValueError(f"Error getting user points summary: {str(e)}")
 
     @staticmethod
     def initialize_point_system():
-        """Initialize the points system with default values"""
+        """Initialize or update point system configurations"""
         try:
             PointConfig.initialize_defaults()
             return True
@@ -260,13 +275,26 @@ class PointService:
             user = User.query.get(user_id)
             if not user:
                 raise ValueError(f"User {user_id} not found")
-                
-            history = user.get_points_history()
+            
+            # Query point_transaction table
+            query = """
+                SELECT 
+                    amount,
+                    timestamp,
+                    reason,
+                    balance_after,
+                    transaction_metadata
+                FROM point_transaction
+                WHERE user_id = :user_id
+                ORDER BY timestamp ASC
+            """
+            
+            result = db.session.execute(text(query), {'user_id': user_id})
             
             # Group transactions by period
             grouped_history = {}
-            for entry in history:
-                timestamp = datetime.fromisoformat(entry['timestamp'])
+            for row in result:
+                timestamp = row.timestamp
                 if period == 'day':
                     key = timestamp.date().isoformat()
                 elif period == 'week':
@@ -276,7 +304,7 @@ class PointService:
                     
                 if key not in grouped_history:
                     grouped_history[key] = 0
-                grouped_history[key] += entry['amount']
+                grouped_history[key] += row.amount
                 
             return {
                 'period': period,
@@ -321,19 +349,23 @@ class PointService:
             start_of_month = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
             start_of_last_month = (start_of_month.replace(day=1) - timedelta(days=1)).replace(day=1)
             
-            # Points growth
-            current_month_points = 0
-            last_month_points = 0
+            # Query points from point_transaction table
+            query = """
+                SELECT 
+                    SUM(CASE WHEN timestamp >= :start_of_month THEN amount ELSE 0 END) as current_month_points,
+                    SUM(CASE WHEN timestamp >= :start_of_last_month AND timestamp < :start_of_month THEN amount ELSE 0 END) as last_month_points
+                FROM point_transaction
+            """
             
-            for user in users:
-                history = user.get_points_history()
-                for entry in history:
-                    entry_date = datetime.fromisoformat(entry['timestamp'])
-                    if entry_date >= start_of_month:
-                        current_month_points += entry['amount']
-                    elif start_of_last_month <= entry_date < start_of_month:
-                        last_month_points += entry['amount']
+            result = db.session.execute(text(query), {
+                'start_of_month': start_of_month,
+                'start_of_last_month': start_of_last_month
+            }).first()
             
+            current_month_points = result.current_month_points or 0
+            last_month_points = result.last_month_points or 0
+            
+            # Calculate points growth
             points_growth = (
                 ((current_month_points - last_month_points) / last_month_points * 100)
                 if last_month_points > 0 else 0
@@ -360,28 +392,58 @@ class PointService:
 
     @staticmethod
     def get_recent_activity(limit=None):
-        """Get recent point transactions across all users"""
-        query = PointTransaction.query.order_by(PointTransaction.timestamp.desc())
-        if limit:
-            query = query.limit(limit)
-        
-        transactions = query.all()
-        activities = []
-        
-        for transaction in transactions:
-            activity = {
-                'user': {
-                    'id': transaction.user_id,
-                    'name': transaction.user.name or transaction.user.email,
-                    'profile_picture': transaction.user.profile_picture
-                },
-                'points': transaction.amount,
-                'timestamp': transaction.timestamp,
-                'message': transaction.reason
-            }
-            activities.append(activity)
+        """Get recent points transactions across all users"""
+        try:
+            # Query point_transaction table directly
+            query = """
+                SELECT 
+                    pt.id,
+                    pt.user_id,
+                    u.username,
+                    u.profile_picture,
+                    pt.amount,
+                    pt.reason,
+                    pt.timestamp,
+                    pt.transaction_metadata
+                FROM point_transaction pt
+                JOIN "user" u ON pt.user_id = u.id
+                ORDER BY pt.timestamp DESC
+            """
+            if limit:
+                query += f" LIMIT {limit}"
             
-        return activities
+            result = db.session.execute(query)
+            recent = []
+            
+            for row in result:
+                entry = {
+                    'user': row.username,
+                    'profile_picture': row.profile_picture,
+                    'amount': row.amount,
+                    'timestamp': row.timestamp.isoformat(),
+                    'metadata': row.transaction_metadata,
+                    'message': row.reason
+                }
+                
+                # Format message based on metadata if needed
+                metadata = row.transaction_metadata
+                if metadata and 'company_id' in metadata:
+                    # This is a company status change
+                    company_name = metadata.get('company_name', 'Unknown Company')
+                    status = metadata.get('status')
+                    
+                    # Use the pre-formatted message from award_points_for_status
+                    entry['message'] = row.reason
+                else:
+                    # This is a click reward or other activity
+                    entry['message'] = row.reason
+                
+                recent.append(entry)
+            
+            return recent
+            
+        except Exception as e:
+            raise ValueError(f"Error getting recent activity: {str(e)}")
 
     @staticmethod
     def get_points_distribution(period='all'):

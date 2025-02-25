@@ -5,6 +5,8 @@ import secrets
 import uuid
 from sqlalchemy.dialects.postgresql import JSONB
 from .. import db, login_manager
+import json
+from sqlalchemy import text
 
 class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -54,11 +56,11 @@ class User(UserMixin, db.Model):
         db.session.commit()
 
     def add_points(self, amount, reason=None, metadata=None):
-        """Add points to user's balance and record in metadata"""
+        """Add points to user's balance and record in both JSONB and point_transaction table"""
         if not self.points_history:
             self.points_history = {'transactions': []}
         
-        # Record point transaction
+        # Record point transaction in JSONB
         transaction = {
             'amount': amount,
             'reason': reason,
@@ -72,7 +74,32 @@ class User(UserMixin, db.Model):
         
         self.points_history['transactions'].append(transaction)
         
+        # Add points to user's balance
         self.points += amount
+
+        # Record in point_transaction table
+        timestamp = datetime.utcnow()
+        activity_type = metadata.get('status', 'other') if metadata else 'other'
+        reference_id = metadata.get('company_id', None) if metadata else None
+
+        insert_query = text("""
+            INSERT INTO point_transaction 
+            (user_id, amount, reason, timestamp, activity_type, reference_id, balance_after, transaction_metadata)
+            VALUES 
+            (:user_id, :amount, :reason, :timestamp, :activity_type, :reference_id, :balance_after, cast(:metadata as jsonb))
+        """)
+        
+        db.session.execute(insert_query, {
+            'user_id': self.id,
+            'amount': amount,
+            'reason': reason,
+            'timestamp': timestamp,
+            'activity_type': activity_type,
+            'reference_id': reference_id,
+            'balance_after': self.points,
+            'metadata': json.dumps(metadata) if metadata else '{}'
+        })
+        
         db.session.commit()
         return self.points
 

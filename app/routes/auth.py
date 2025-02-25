@@ -11,6 +11,7 @@ bp = Blueprint('auth', __name__)
 @bp.route('/login', methods=['GET', 'POST'])
 def login():
     if current_user.is_authenticated:
+        print("User already authenticated, redirecting to dashboard")
         return redirect(url_for('main.dashboard'))
     
     form = LoginForm()
@@ -19,11 +20,17 @@ def login():
         password = form.password.data
         user = User.query.filter_by(email=email).first()
         
+        print(f"Login attempt for email: {email}")
+        print(f"User found: {user is not None}")
+        if user:
+            print(f"Is admin: {user.is_admin}")
+        
         if user is None or not user.check_password(password):
             flash('Invalid email or password')
             return redirect(url_for('auth.login'))
         
         login_user(user, remember=form.remember.data)
+        print(f"Login successful for {email}, is_admin: {user.is_admin}")
         next_page = request.args.get('next')
         if not next_page or urlparse(next_page).netloc != '':
             next_page = url_for('main.dashboard')

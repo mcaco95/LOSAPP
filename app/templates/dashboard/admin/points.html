@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Points Management - Admin{% endblock %}
+{% block title %}Points Management{% endblock %}
 
 {% block extra_css %}
     <link type="text/css" href="{{ url_for('static', filename='css/points-rewards.css') }}" rel="stylesheet">
@@ -212,218 +212,320 @@
 
 {% block content %}
 <div class="py-4">
-    <nav aria-label="breadcrumb" class="d-none d-md-inline-block">
-        <ol class="breadcrumb breadcrumb-dark breadcrumb-transparent">
-            <li class="breadcrumb-item"><a href="{{ url_for('main.admin_dashboard') }}">Admin</a></li>
-            <li class="breadcrumb-item active">Points Management</li>
-        </ol>
-    </nav>
-
-    <!-- Points Overview Cards -->
-    <div class="row">
-        <div class="col-12 col-sm-6 col-xl-4 mb-4">
-            <div class="card border-0 shadow">
-                <div class="card-body">
-                    <div class="row d-block d-xl-flex align-items-center">
-                        <div class="col-12 col-xl-5 text-xl-center mb-3 mb-xl-0 d-flex align-items-center justify-content-xl-center">
-                            <div class="icon-shape icon-shape-primary rounded me-4 me-sm-0">
-                                <i class="fas fa-coins fa-2x"></i>
-                            </div>
-                        </div>
-                        <div class="col-12 col-xl-7 px-xl-0">
-                            <h2 class="h6 text-gray-400 mb-0">Total Points Awarded</h2>
-                            <h3 class="fw-extrabold mb-2">{{ total_points }}</h3>
-                        </div>
-                    </div>
-                </div>
-            </div>
+    <div class="d-flex justify-content-between w-100 flex-wrap">
+        <div class="mb-3 mb-lg-0">
+            <h1 class="h4">Points Management</h1>
+            <p class="mb-0">Configure point values and rules for user actions</p>
         </div>
-        <div class="col-12 col-sm-6 col-xl-4 mb-4">
-            <div class="card border-0 shadow">
-                <div class="card-body">
-                    <div class="row d-block d-xl-flex align-items-center">
-                        <div class="col-12 col-xl-5 text-xl-center mb-3 mb-xl-0 d-flex align-items-center justify-content-xl-center">
-                            <div class="icon-shape icon-shape-secondary rounded me-4 me-sm-0">
-                                <i class="fas fa-users fa-2x"></i>
-                            </div>
-                        </div>
-                        <div class="col-12 col-xl-7 px-xl-0">
-                            <h2 class="h6 text-gray-400 mb-0">Active Users</h2>
-                            <h3 class="fw-extrabold mb-2">{{ active_users }}</h3>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-12 col-sm-6 col-xl-4 mb-4">
-            <div class="card border-0 shadow">
-                <div class="card-body">
-                    <div class="row d-block d-xl-flex align-items-center">
-                        <div class="col-12 col-xl-5 text-xl-center mb-3 mb-xl-0 d-flex align-items-center justify-content-xl-center">
-                            <div class="icon-shape icon-shape-tertiary rounded me-4 me-sm-0">
-                                <i class="fas fa-chart-line fa-2x"></i>
-                            </div>
-                        </div>
-                        <div class="col-12 col-xl-7 px-xl-0">
-                            <h2 class="h6 text-gray-400 mb-0">Points This Month</h2>
-                            <h3 class="fw-extrabold mb-2">{{ points_this_month }}</h3>
-                        </div>
-                    </div>
-                </div>
-            </div>
+        <div>
+            <a href="#" class="btn btn-sm btn-gray-800 d-inline-flex align-items-center" data-bs-toggle="modal" data-bs-target="#addPointRule">
+                <svg class="icon icon-xs me-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                </svg>
+                Add Rule
+            </a>
         </div>
     </div>
 
-    <!-- Point Transactions Table -->
+    <!-- Point Rules Table -->
     <div class="card border-0 shadow mb-4">
-        <div class="card-header">
-            <div class="row align-items-center">
-                <div class="col">
-                    <h2 class="fs-5 fw-bold mb-0">Point Transactions</h2>
-                </div>
-                <div class="col text-end">
-                    <div class="btn-group">
-                        <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#addPointRule">
-                            <i class="fas fa-plus"></i> Add Point Rule
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
         <div class="card-body">
-            <!-- Filters -->
-            <div class="row mb-4">
-                <div class="col-12 col-lg-4 mb-3 mb-lg-0">
-                    <select class="form-select" id="activityTypeFilter">
-                        <option value="">All Activity Types</option>
-                        <option value="click">Clicks</option>
-                        <option value="status_change">Status Changes</option>
-                        <option value="status_bonus">Status Bonuses</option>
-                    </select>
-                </div>
-                <div class="col-12 col-lg-4 mb-3 mb-lg-0">
-                    <select class="form-select" id="userFilter">
-                        <option value="">All Users</option>
-                        {% for user in users %}
-                        <option value="{{ user.id }}">{{ user.name or user.email }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-                <div class="col-12 col-lg-4">
-                    <select class="form-select" id="dateRangeFilter">
-                        <option value="today">Today</option>
-                        <option value="week">This Week</option>
-                        <option value="month" selected>This Month</option>
-                        <option value="year">This Year</option>
-                        <option value="all">All Time</option>
-                    </select>
-                </div>
-            </div>
-
-            <!-- Transactions Table -->
             <div class="table-responsive">
                 <table class="table table-centered table-nowrap mb-0 rounded">
                     <thead class="thead-light">
                         <tr>
-                            <th class="border-0">User</th>
-                            <th class="border-0">Activity</th>
+                            <th class="border-0 rounded-start">Action</th>
                             <th class="border-0">Points</th>
-                            <th class="border-0">Type</th>
-                            <th class="border-0">Date</th>
-                            <th class="border-0">Details</th>
+                            <th class="border-0">Frequency Limit</th>
+                            <th class="border-0">Status</th>
+                            <th class="border-0 rounded-end">Actions</th>
                         </tr>
                     </thead>
-                    <tbody id="transactionsTable">
-                        {% for transaction in transactions %}
-                        <tr>
+                    <tbody>
+                        {% for rule in point_rules %}
+                        <tr data-rule-id="{{ rule.id }}" data-rule-key="{{ rule.key }}">
                             <td>
                                 <div class="d-flex align-items-center">
-                                    {% if transaction.user.profile_picture %}
-                                    <img src="{{ transaction.user.profile_picture }}" class="avatar rounded-circle me-3">
-                                    {% endif %}
+                                    <div class="icon-shape icon-sm me-3 bg-gray-800 rounded-circle">
+                                        {% if 'lead' in rule.key %}
+                                        <svg class="icon icon-xs text-white" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                                            <path d="M8 9a3 3 0 100-6 3 3 0 000 6zM8 11a6 6 0 016 6H2a6 6 0 016-6z"></path>
+                                        </svg>
+                                        {% elif 'demo' in rule.key %}
+                                        <svg class="icon icon-xs text-white" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                                            <path d="M2 6a2 2 0 012-2h6a2 2 0 012 2v8a2 2 0 01-2 2H4a2 2 0 01-2-2V6zM14.553 7.106A1 1 0 0014 8v4a1 1 0 00.553.894l2 1A1 1 0 0018 13V7a1 1 0 00-1.447-.894l-2 1z"></path>
+                                        </svg>
+                                        {% elif 'client_signed' in rule.key %}
+                                        <svg class="icon icon-xs text-white" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                                        </svg>
+                                        {% elif 'renewed' in rule.key %}
+                                        <svg class="icon icon-xs text-white" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                                            <path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clip-rule="evenodd"></path>
+                                        </svg>
+                                        {% elif 'upgraded' in rule.key %}
+                                        <svg class="icon icon-xs text-white" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                                            <path fill-rule="evenodd" d="M12 7a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0V8.414l-4.293 4.293a1 1 0 01-1.414 0L8 10.414l-4.293 4.293a1 1 0 01-1.414-1.414l5-5a1 1 0 011.414 0L11 10.586 14.586 7H12z" clip-rule="evenodd"></path>
+                                        </svg>
+                                        {% elif 'partner' in rule.key %}
+                                        <svg class="icon icon-xs text-white" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                                            <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 12.094A5.973 5.973 0 004 15v3H1v-3a3 3 0 013.75-2.906z"></path>
+                                        </svg>
+                                        {% elif 'bonus' in rule.key %}
+                                        <svg class="icon icon-xs text-white" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
+                                        </svg>
+                                        {% elif 'click' in rule.key %}
+                                        <svg class="icon icon-xs text-white" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                                            <path fill-rule="evenodd" d="M6.672 1.911a1 1 0 10-1.932.518l.259.966a1 1 0 001.932-.518l-.26-.966zM2.429 4.74a1 1 0 10-.517 1.932l.966.259a1 1 0 00.517-1.932l-.966-.26zm8.814-.569a1 1 0 00-1.415-1.414l-.707.707a1 1 0 101.415 1.415l.707-.708zm-7.071 7.072l.707-.707A1 1 0 003.465 9.12l-.708.707a1 1 0 001.415 1.415zm3.2-5.171a1 1 0 00-1.3 1.3l4 10a1 1 0 001.823.075l1.38-2.759 3.018 3.02a1 1 0 001.414-1.415l-3.019-3.02 2.76-1.379a1 1 0 00-.076-1.822l-10-4z" clip-rule="evenodd"></path>
+                                        </svg>
+                                        {% else %}
+                                        <svg class="icon icon-xs text-white" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                                            <path fill-rule="evenodd" d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z" clip-rule="evenodd"></path>
+                                        </svg>
+                                        {% endif %}
+                                    </div>
                                     <div class="d-block">
-                                        <span class="fw-bold">{{ transaction.user.name or transaction.user.email }}</span>
+                                        <span class="fw-bold">{{ rule.name }}</span>
+                                        <div class="small text-gray">{{ rule.description }}</div>
                                     </div>
                                 </div>
                             </td>
-                            <td>{{ transaction.reason }}</td>
+                            <td>{{ rule.points }}</td>
                             <td>
-                                <span class="text-success">+{{ transaction.amount }}</span>
+                                {% if rule.frequency_limit %}
+                                    {{ rule.frequency_limit }} per {{ rule.frequency_period }}
+                                {% else %}
+                                    No limit
+                                {% endif %}
                             </td>
                             <td>
-                                <span class="badge bg-primary">{{ transaction.activity_type }}</span>
+                                <span class="badge bg-{{ 'success' if rule.is_active else 'danger' }}">
+                                    {{ 'Active' if rule.is_active else 'Inactive' }}
+                                </span>
                             </td>
-                            <td>{{ transaction.timestamp.strftime('%Y-%m-%d %H:%M') }}</td>
                             <td>
-                                <button class="btn btn-sm btn-secondary" 
-                                        onclick="showTransactionDetails('{{ transaction.id }}')">
-                                    <i class="fas fa-info-circle"></i>
-                                </button>
+                                <div class="btn-group">
+                                    <button class="btn btn-link text-dark dropdown-toggle dropdown-toggle-split m-0 p-0" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                        <span class="icon icon-sm">
+                                            <span class="fas fa-ellipsis-h icon-dark"></span>
+                                        </span>
+                                    </button>
+                                    <div class="dropdown-menu py-0">
+                                        <a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#editPointRule" data-rule-id="{{ rule.id }}">
+                                            <span class="fas fa-edit me-2"></span>Edit
+                                        </a>
+                                        <a class="dropdown-item text-danger rounded-bottom" href="#" data-bs-toggle="modal" data-bs-target="#deletePointRule" data-rule-id="{{ rule.id }}">
+                                            <span class="fas fa-trash-alt me-2"></span>Delete
+                                        </a>
+                                    </div>
+                                </div>
                             </td>
                         </tr>
                         {% endfor %}
                     </tbody>
                 </table>
             </div>
-
-            <!-- Pagination -->
-            <div class="mt-3">
-                {{ pagination.links | safe }}
-            </div>
         </div>
     </div>
-</div>
 
-<!-- Transaction Details Modal -->
-<div class="modal fade" id="transactionDetails" tabindex="-1" role="dialog">
-    <div class="modal-dialog modal-dialog-centered" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Transaction Details</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+    <!-- Point Distribution Stats -->
+    <div class="row">
+        <div class="col-12 col-xl-8">
+            <div class="card border-0 shadow">
+                <div class="card-header">
+                    <div class="row align-items-center">
+                        <div class="col">
+                            <h2 class="fs-5 fw-bold mb-0">Points Distribution</h2>
+                        </div>
+                        <div class="col text-end">
+                            <div class="btn-group">
+                                <button class="btn btn-sm btn-gray-800 active" data-period="week">Week</button>
+                                <button class="btn btn-sm btn-gray-800" data-period="month">Month</button>
+                                <button class="btn btn-sm btn-gray-800" data-period="year">Year</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="ct-chart-distribution height-400"></div>
+                    <!-- Hidden distribution data for chart -->
+                    <script type="application/json" id="distributionData">
+                        {{ distribution_data|tojson|safe }}
+                    </script>
+                    <!-- Debug output -->
+                    <div class="d-none">
+                        <pre id="debug-distribution-data">{{ distribution_data|tojson(indent=2)|safe }}</pre>
+                    </div>
+                </div>
             </div>
-            <div class="modal-body">
-                <div id="transactionDetailsContent"></div>
+        </div>
+
+        <div class="col-12 col-xl-4">
+            <div class="card border-0 shadow">
+                <div class="card-header">
+                    <div class="row align-items-center">
+                        <div class="col">
+                            <h2 class="fs-5 fw-bold mb-0">Top Point Earners</h2>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <ul class="list-group list-group-flush list my--3">
+                        {% for user in top_earners %}
+                        <li class="list-group-item px-0">
+                            <div class="row align-items-center">
+                                <div class="col-auto">
+                                    <div class="avatar">
+                                        {% if user.profile_picture %}
+                                            <img class="avatar rounded-circle" src="{{ url_for('static', filename=user.profile_picture) }}" alt="{{ user.username }}">
+                                        {% else %}
+                                            <div class="avatar-name rounded-circle bg-gray-800">
+                                                <span>{{ user.username[0] }}</span>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="col-auto ms--2">
+                                    <h4 class="h6 mb-0">
+                                        <a href="#">{{ user.username }}</a>
+                                    </h4>
+                                    <div class="d-flex align-items-center">
+                                        <small class="text-success fw-bold">{{ user.points }} points</small>
+                                    </div>
+                                </div>
+                                <div class="col text-end">
+                                    <a href="#" class="btn btn-sm btn-secondary d-inline-flex align-items-center">
+                                        View
+                                    </a>
+                                </div>
+                            </div>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
             </div>
         </div>
     </div>
 </div>
 
 <!-- Add Point Rule Modal -->
-<div class="modal fade" id="addPointRule" tabindex="-1" role="dialog">
+<div class="modal fade" id="addPointRule" tabindex="-1" role="dialog" aria-labelledby="addPointRuleLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered" role="document">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Add Point Rule</h5>
+                <h2 class="h6 modal-title" id="addPointRuleLabel">Add Point Rule</h2>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <form id="pointRuleForm">
+                <form id="addRuleForm">
                     <div class="mb-3">
-                        <label class="form-label">Activity Type</label>
-                        <select class="form-select" name="activity_type" required>
-                            <option value="click">Click</option>
-                            <option value="unique_click">Unique Click</option>
-                            <option value="status_lead">Lead Generation</option>
-                            <option value="status_demo_scheduled">Demo Scheduled</option>
-                            <option value="status_demo_completed">Demo Completed</option>
-                            <option value="status_client_signed">Client Signed</option>
-                            <option value="status_renewed">Client Renewed</option>
-                            <option value="status_upgraded">Client Upgraded</option>
-                        </select>
+                        <label for="actionName" class="form-label">Action Name</label>
+                        <input type="text" class="form-control" id="actionName" placeholder="e.g., Complete Profile">
                     </div>
                     <div class="mb-3">
-                        <label class="form-label">Points</label>
-                        <input type="number" class="form-control" name="points" required min="0">
+                        <label for="description" class="form-label">Description</label>
+                        <textarea class="form-control" id="description" rows="2" placeholder="Describe when points are awarded"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="points" class="form-label">Points</label>
+                        <input type="number" class="form-control" id="points" min="0">
+                    </div>
+                    <div class="mb-3">
+                        <label for="frequencyLimit" class="form-label">Frequency Limit</label>
+                        <div class="input-group">
+                            <input type="number" class="form-control" id="frequencyLimit" min="0">
+                            <select class="form-select" id="frequencyPeriod">
+                                <option value="day">per day</option>
+                                <option value="week">per week</option>
+                                <option value="month">per month</option>
+                                <option value="year">per year</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="isActive" checked>
+                            <label class="form-check-label" for="isActive">Active</label>
+                        </div>
                     </div>
                 </form>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-primary" onclick="savePointRule()">Save Rule</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary">Add Rule</button>
             </div>
         </div>
     </div>
 </div>
 
+<!-- Edit Point Rule Modal -->
+<div class="modal fade" id="editPointRule" tabindex="-1" role="dialog" aria-labelledby="editPointRuleLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="h6 modal-title" id="editPointRuleLabel">Edit Point Rule</h2>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editRuleForm">
+                    <input type="hidden" id="editRuleId">
+                    <div class="mb-3">
+                        <label for="editActionName" class="form-label">Action Name</label>
+                        <input type="text" class="form-control" id="editActionName">
+                    </div>
+                    <div class="mb-3">
+                        <label for="editDescription" class="form-label">Description</label>
+                        <textarea class="form-control" id="editDescription" rows="2"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editPoints" class="form-label">Points</label>
+                        <input type="number" class="form-control" id="editPoints" min="0">
+                    </div>
+                    <div class="mb-3">
+                        <label for="editFrequencyLimit" class="form-label">Frequency Limit</label>
+                        <div class="input-group">
+                            <input type="number" class="form-control" id="editFrequencyLimit" min="0">
+                            <select class="form-select" id="editFrequencyPeriod">
+                                <option value="day">per day</option>
+                                <option value="week">per week</option>
+                                <option value="month">per month</option>
+                                <option value="year">per year</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="editIsActive">
+                            <label class="form-check-label" for="editIsActive">Active</label>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary">Save Changes</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Point Rule Modal -->
+<div class="modal fade" id="deletePointRule" tabindex="-1" role="dialog" aria-labelledby="deletePointRuleLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="h6 modal-title" id="deletePointRuleLabel">Delete Point Rule</h2>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete this point rule? This action cannot be undone.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger">Delete Rule</button>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}
