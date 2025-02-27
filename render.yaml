@@ -5,6 +5,7 @@ services:
     buildCommand: pip install -r requirements.txt
     startCommand: >
       flask db upgrade &&
+      flask reset-admin-password &&
       gunicorn "app:create_app()"
     envVars:
       - key: PYTHON_VERSION

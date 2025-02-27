@@ -110,4 +110,18 @@ def create_app():
             
             print('Points and rewards system initialization complete')
 
+        @app.cli.command('reset-admin-password')
+        def reset_admin_password():
+            """Reset the admin user's password."""
+            from .models.user import User
+            admin_email = 'simon@logisticsonesource.com'
+            admin = User.query.filter_by(email=admin_email).first()
+            
+            if admin:
+                admin.set_password('admin123')  # Temporary password
+                db.session.commit()
+                print(f'Reset password for admin user {admin_email} to: admin123')
+            else:
+                print(f'Admin user {admin_email} not found')
+
         return app
