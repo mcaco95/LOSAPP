@@ -5,7 +5,7 @@ from flask_login import current_user, login_user
 from sqlalchemy.orm.exc import NoResultFound
 from .models.oauth import OAuth
 from .models.user import User
-from . import db, oauth_client
+from . import db
 
 # Create a blueprint for Google OAuth
 google_bp = None
