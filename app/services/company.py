@@ -44,7 +44,7 @@ class CompanyService:
             raise ValueError(f"Error creating company: {str(e)}")
 
     @staticmethod
-    def update_status(company_id, new_status, metadata=None):
+    def update_status(company_id, new_status, metadata=None, notes=None):
         """Update company status and award points"""
         company = Company.query.get(company_id)
         if not company:
@@ -89,7 +89,19 @@ class CompanyService:
                 company.company_metadata = {}
             for key, value in metadata.items():
                 company.company_metadata[key] = value
-            db.session.commit()
+        
+        # Add notes if provided
+        if notes:
+            if not company.company_metadata:
+                company.company_metadata = {}
+            if 'notes' not in company.company_metadata:
+                company.company_metadata['notes'] = notes
+            else:
+                # Append new notes to existing notes
+                company.company_metadata['notes'] += f"\n\n{datetime.now().strftime('%Y-%m-%d %H:%M')} - Status changed to {new_status}:\n{notes}"
+        
+        # Save changes
+        db.session.commit()
         
         return {
             'success': True,

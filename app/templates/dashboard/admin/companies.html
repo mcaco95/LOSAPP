@@ -476,8 +476,8 @@
                                     </td>
                                     <td>
                                         <div class="btn-group mb-1">
-                                            <a href="{{ url_for('main.admin_companies') }}?view=details&company_id={{ company.id }}" class="btn btn-sm btn-primary">Details</a>
-                                            <a href="{{ url_for('main.admin_companies') }}?view=status&company_id={{ company.id }}" class="btn btn-sm btn-warning">Status</a>
+                                            <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#companyDetailsModal" data-company-id="{{ company.id }}">Details</button>
+                                            <button type="button" class="btn btn-sm btn-warning" data-bs-toggle="modal" data-bs-target="#companyStatusModal" data-company-id="{{ company.id }}" data-company-name="{{ company.name }}" data-company-status="{{ company.status }}">Status</button>
                                             <button class="btn btn-sm btn-danger" onclick="confirmDelete({{ company.id }}, '{{ company.name }}')">Delete</button>
                                         </div>
                                     </td>
@@ -549,6 +549,118 @@
         </div>
     </div>
 </div>
+
+<!-- Company Details Modal -->
+<div class="modal fade" id="companyDetailsModal" tabindex="-1" role="dialog" aria-labelledby="companyDetailsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="companyDetailsModalLabel">Company Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6 class="fw-bold">Company Information</h6>
+                        <div class="mb-3">
+                            <label class="form-label">Company Name</label>
+                            <p id="detailsCompanyName" class="form-control-static">Loading...</p>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Contact Name</label>
+                            <p id="detailsContactName" class="form-control-static">Loading...</p>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Email</label>
+                            <p id="detailsEmail" class="form-control-static">Loading...</p>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Phone</label>
+                            <p id="detailsPhone" class="form-control-static">Loading...</p>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <h6 class="fw-bold">Service Information</h6>
+                        <div class="mb-3">
+                            <label class="form-label">Service Type</label>
+                            <p id="detailsServiceType" class="form-control-static">Loading...</p>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Status</label>
+                            <p id="detailsStatus" class="form-control-static">Loading...</p>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Created</label>
+                            <p id="detailsCreated" class="form-control-static">Loading...</p>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Last Updated</label>
+                            <p id="detailsUpdated" class="form-control-static">Loading...</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row mt-3">
+                    <div class="col-12">
+                        <h6 class="fw-bold">Notes</h6>
+                        <div id="detailsNotes" class="p-3 bg-light rounded">
+                            <p class="mb-0">Loading notes...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" id="editCompanyBtn">Edit Company</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Company Status Modal -->
+<div class="modal fade" id="companyStatusModal" tabindex="-1" role="dialog" aria-labelledby="companyStatusModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="companyStatusModalLabel">Update Company Status</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="updateStatusForm" method="POST">
+                    <input type="hidden" id="statusCompanyId" name="company_id">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    
+                    <div class="mb-3">
+                        <label for="companyName" class="form-label">Company</label>
+                        <input type="text" class="form-control" id="statusCompanyName" readonly>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="companyStatus" class="form-label">Status</label>
+                        <select class="form-select" id="companyStatus" name="status">
+                            <option value="lead">Referral form completed</option>
+                            <option value="demo_scheduled">Demo scheduled</option>
+                            <option value="demo_completed">Demo completed</option>
+                            <option value="client_signed">Client signed up</option>
+                            <option value="renewed">Client renewed</option>
+                            <option value="upgraded">Client upgraded</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="statusNotes" class="form-label">Notes</label>
+                        <textarea class="form-control" id="statusNotes" name="notes" rows="3" placeholder="Add notes about this status change..."></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="saveStatusBtn">Save Changes</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 {% endblock %}
 
 {% block extra_js %}
@@ -572,120 +684,251 @@
     });
     
     document.addEventListener('DOMContentLoaded', function() {
-        // COMPLETELY NEW APPROACH: Replace Bootstrap's modal handling with our own
-        
-        // First, remove any existing modal backdrops
-        document.querySelectorAll('.modal-backdrop').forEach(function(backdrop) {
-            backdrop.remove();
-        });
-        
-        // Remove modal-open class from body if present
-        document.body.classList.remove('modal-open');
-        
-        // Initialize all modals manually
-        var allModals = document.querySelectorAll('.modal');
-        var modalInstances = {};
-        
-        allModals.forEach(function(modal) {
-            // Set high z-index to ensure modals appear on top
-            modal.style.zIndex = '9999';
+        // Use ModalUtils if available, otherwise use our custom modal handling
+        if (window.ModalUtils) {
+            window.ModalUtils.cleanupModalArtifacts();
+        } else {
+            // COMPLETELY NEW APPROACH: Replace Bootstrap's modal handling with our own
             
-            // Find the modal dialog and set its z-index even higher
-            var dialog = modal.querySelector('.modal-dialog');
-            if (dialog) {
-                dialog.style.zIndex = '10000';
-            }
-            
-            // Store modal instance
-            modalInstances[modal.id] = new bootstrap.Modal(modal, {
-                backdrop: 'static',  // Prevent closing when clicking outside
-                keyboard: false      // Prevent closing with Escape key
+            // First, remove any existing modal backdrops
+            document.querySelectorAll('.modal-backdrop').forEach(function(backdrop) {
+                backdrop.remove();
             });
             
-            // Add manual close handlers to all close buttons in this modal
-            var closeButtons = modal.querySelectorAll('[data-bs-dismiss="modal"]');
-            closeButtons.forEach(function(button) {
-                // Remove existing event listeners
-                button.replaceWith(button.cloneNode(true));
-            });
+            // Remove modal-open class from body if present
+            document.body.classList.remove('modal-open');
             
-            // Re-select the buttons after replacing them
-            closeButtons = modal.querySelectorAll('[data-bs-dismiss="modal"]');
-            closeButtons.forEach(function(button) {
-                button.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    modalInstances[modal.id].hide();
+            // Initialize all modals manually
+            var allModals = document.querySelectorAll('.modal');
+            var modalInstances = {};
+            
+            allModals.forEach(function(modal) {
+                // Set high z-index to ensure modals appear on top
+                modal.style.zIndex = '9999';
+                
+                // Find the modal dialog and set its z-index even higher
+                var dialog = modal.querySelector('.modal-dialog');
+                if (dialog) {
+                    dialog.style.zIndex = '10000';
+                }
+                
+                // Store modal instance
+                modalInstances[modal.id] = new bootstrap.Modal(modal, {
+                    backdrop: 'static',  // Prevent closing when clicking outside
+                    keyboard: false      // Prevent closing with Escape key
+                });
+                
+                // Add manual close handlers to all close buttons in this modal
+                var closeButtons = modal.querySelectorAll('[data-bs-dismiss="modal"]');
+                closeButtons.forEach(function(button) {
+                    // Remove existing event listeners
+                    button.replaceWith(button.cloneNode(true));
+                });
+                
+                // Re-select the buttons after replacing them
+                closeButtons = modal.querySelectorAll('[data-bs-dismiss="modal"]');
+                closeButtons.forEach(function(button) {
+                    button.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        modalInstances[modal.id].hide();
+                    });
                 });
             });
-        });
-        
-        // Add click handlers to all modal trigger buttons
-        document.querySelectorAll('[data-bs-toggle="modal"]').forEach(function(button) {
-            // Remove existing event listeners
-            var newButton = button.cloneNode(true);
-            button.parentNode.replaceChild(newButton, button);
             
-            // Add our custom event listener
-            newButton.addEventListener('click', function(e) {
-                e.preventDefault();
-                e.stopPropagation();
+            // Add click handlers to all modal trigger buttons
+            document.querySelectorAll('[data-bs-toggle="modal"]').forEach(function(button) {
+                // Remove existing event listeners
+                var newButton = button.cloneNode(true);
+                button.parentNode.replaceChild(newButton, button);
                 
-                var targetModalId = this.getAttribute('data-bs-target').replace('#', '');
-                if (modalInstances[targetModalId]) {
-                    // Hide any other open modals first
-                    for (var id in modalInstances) {
-                        if (id !== targetModalId) {
-                            modalInstances[id].hide();
+                // Add our custom event listener
+                newButton.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    
+                    var targetModalId = this.getAttribute('data-bs-target').replace('#', '');
+                    if (modalInstances[targetModalId]) {
+                        // Hide any other open modals first
+                        for (var id in modalInstances) {
+                            if (id !== targetModalId) {
+                                modalInstances[id].hide();
+                            }
                         }
+                        
+                        // Show the target modal
+                        setTimeout(function() {
+                            modalInstances[targetModalId].show();
+                        }, 100);
+                    }
+                });
+            });
+            
+            // Add event listeners for modal events
+            allModals.forEach(function(modal) {
+                // When modal is about to be shown
+                modal.addEventListener('show.bs.modal', function() {
+                    // Create a backdrop if it doesn't exist
+                    if (!document.querySelector('.modal-backdrop')) {
+                        var backdrop = document.createElement('div');
+                        backdrop.className = 'modal-backdrop fade show';
+                        backdrop.style.zIndex = '9998';
+                        document.body.appendChild(backdrop);
                     }
                     
-                    // Show the target modal
-                    setTimeout(function() {
-                        modalInstances[targetModalId].show();
-                    }, 100);
-                }
+                    // Add modal-open class to body
+                    document.body.classList.add('modal-open');
+                    
+                    // Prevent scrolling on the body
+                    document.body.style.overflow = 'hidden';
+                    document.body.style.paddingRight = '15px'; // Compensate for scrollbar
+                });
+                
+                // When modal is hidden
+                modal.addEventListener('hidden.bs.modal', function() {
+                    // Remove backdrop
+                    var backdrop = document.querySelector('.modal-backdrop');
+                    if (backdrop) {
+                        backdrop.remove();
+                    }
+                    
+                    // Check if any other modals are open
+                    var openModals = document.querySelectorAll('.modal.show');
+                    if (openModals.length === 0) {
+                        // No other modals open, restore body
+                        document.body.classList.remove('modal-open');
+                        document.body.style.overflow = '';
+                        document.body.style.paddingRight = '';
+                    }
+                });
             });
-        });
+        }
         
-        // Add event listeners for modal events
-        allModals.forEach(function(modal) {
-            // When modal is about to be shown
-            modal.addEventListener('show.bs.modal', function() {
-                // Create a backdrop if it doesn't exist
-                if (!document.querySelector('.modal-backdrop')) {
-                    var backdrop = document.createElement('div');
-                    backdrop.className = 'modal-backdrop fade show';
-                    backdrop.style.zIndex = '9998';
-                    document.body.appendChild(backdrop);
-                }
+        // Handle Company Details Modal
+        var companyDetailsModal = document.getElementById('companyDetailsModal');
+        if (companyDetailsModal) {
+            companyDetailsModal.addEventListener('show.bs.modal', function(event) {
+                var button = event.relatedTarget;
+                var companyId = button.getAttribute('data-company-id');
                 
-                // Add modal-open class to body
-                document.body.classList.add('modal-open');
+                // Update modal title
+                document.getElementById('companyDetailsModalLabel').textContent = 'Company Details';
                 
-                // Prevent scrolling on the body
-                document.body.style.overflow = 'hidden';
-                document.body.style.paddingRight = '15px'; // Compensate for scrollbar
+                // Fetch company details via AJAX
+                fetch(`/api/v1/company/${companyId}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            var company = data.company;
+                            
+                            // Update modal content with company details
+                            document.getElementById('detailsCompanyName').textContent = company.name;
+                            document.getElementById('detailsContactName').textContent = company.contact_name || 'N/A';
+                            document.getElementById('detailsEmail').textContent = company.email || 'N/A';
+                            document.getElementById('detailsPhone').textContent = company.phone || 'N/A';
+                            document.getElementById('detailsServiceType').textContent = company.service_display || 'N/A';
+                            
+                            // Format status for display
+                            var status = company.status || 'N/A';
+                            status = status.replace(/_/g, ' ');
+                            status = status.charAt(0).toUpperCase() + status.slice(1);
+                            document.getElementById('detailsStatus').textContent = status;
+                            
+                            document.getElementById('detailsCreated').textContent = company.created_at || 'N/A';
+                            document.getElementById('detailsUpdated').textContent = company.updated_at || 'N/A';
+                            
+                            // Update notes
+                            if (company.notes) {
+                                document.getElementById('detailsNotes').innerHTML = `<p class="mb-0">${company.notes}</p>`;
+                            } else {
+                                document.getElementById('detailsNotes').innerHTML = '<p class="text-muted mb-0">No notes available.</p>';
+                            }
+                            
+                            // Set up edit button
+                            document.getElementById('editCompanyBtn').onclick = function() {
+                                window.location.href = `/dashboard/admin/companies/edit/${companyId}`;
+                            };
+                        } else {
+                            // Show error message
+                            alert('Error loading company details: ' + (data.message || 'Unknown error'));
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error fetching company details:', error);
+                        alert('Error loading company details. Please try again.');
+                    });
             });
-            
-            // When modal is hidden
-            modal.addEventListener('hidden.bs.modal', function() {
-                // Remove backdrop
-                var backdrop = document.querySelector('.modal-backdrop');
-                if (backdrop) {
-                    backdrop.remove();
+        }
+        
+        // Handle Company Status Modal
+        var companyStatusModal = document.getElementById('companyStatusModal');
+        if (companyStatusModal) {
+            companyStatusModal.addEventListener('show.bs.modal', function(event) {
+                var button = event.relatedTarget;
+                var companyId = button.getAttribute('data-company-id');
+                var companyName = button.getAttribute('data-company-name');
+                var currentStatus = button.getAttribute('data-company-status');
+                
+                // Update form fields
+                document.getElementById('statusCompanyId').value = companyId;
+                document.getElementById('statusCompanyName').value = companyName;
+                
+                // Set current status in dropdown
+                var statusSelect = document.getElementById('companyStatus');
+                for (var i = 0; i < statusSelect.options.length; i++) {
+                    if (statusSelect.options[i].value === currentStatus) {
+                        statusSelect.selectedIndex = i;
+                        break;
+                    }
                 }
                 
-                // Check if any other modals are open
-                var openModals = document.querySelectorAll('.modal.show');
-                if (openModals.length === 0) {
-                    // No other modals open, restore body
-                    document.body.classList.remove('modal-open');
-                    document.body.style.overflow = '';
-                    document.body.style.paddingRight = '';
-                }
+                // Clear notes field
+                document.getElementById('statusNotes').value = '';
+                
+                // Set up save button
+                document.getElementById('saveStatusBtn').onclick = function() {
+                    // Get form data
+                    var formData = new FormData(document.getElementById('updateStatusForm'));
+                    
+                    // Send AJAX request to update status
+                    fetch('/api/v1/company/' + companyId + '/status', {
+                        method: 'PUT',
+                        body: JSON.stringify({
+                            status: document.getElementById('companyStatus').value,
+                            metadata: {
+                                notes: document.getElementById('statusNotes').value
+                            }
+                        }),
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'Content-Type': 'application/json',
+                            'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            // Close modal
+                            var modal = bootstrap.Modal.getInstance(companyStatusModal);
+                            modal.hide();
+                            
+                            // Show success message
+                            alert('Company status updated successfully!');
+                            
+                            // Reload page to show updated status
+                            window.location.reload();
+                        } else {
+                            // Show error message
+                            alert('Error updating company status: ' + (data.message || 'Unknown error'));
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error updating company status:', error);
+                        alert('Error updating company status. Please try again.');
+                    });
+                };
             });
-        });
+        }
     });
 
 function confirmDelete(companyId, companyName) {

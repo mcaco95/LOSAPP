@@ -36,28 +36,29 @@
     <style>
         /* Global modal styles - these will be overridden by page-specific styles when needed */
         .modal-backdrop {
-            z-index: 1040;
+            z-index: 1040 !important;
         }
         .modal {
-            z-index: 1050;
+            z-index: 1050 !important;
         }
         .modal-dialog {
             margin: 1.75rem auto;
-            z-index: 1050;
+            z-index: 1050 !important;
         }
         .modal-content {
             box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+            z-index: 1051 !important;
         }
         
         /* Admin companies page has its own modal styles */
         body.admin-companies-page .modal {
-            z-index: 9999;
+            z-index: 9999 !important;
         }
         body.admin-companies-page .modal-backdrop {
-            z-index: 9998;
+            z-index: 9998 !important;
         }
         body.admin-companies-page .modal-dialog {
-            z-index: 10000;
+            z-index: 10000 !important;
         }
     </style>
     
@@ -107,47 +108,16 @@
     <!-- Simplebar -->
     <script src="https://cdn.jsdelivr.net/npm/simplebar@5.3.4/dist/simplebar.min.js"></script>
 
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+
     <!-- Volt JS -->
     <script src="{{ url_for('static', filename='js/volt.js') }}"></script>
 
-    <script>
-        // Global modal detection
-        document.addEventListener('DOMContentLoaded', function() {
-            // Check if we're on the admin companies page
-            if (window.location.pathname.includes('/dashboard/admin/companies')) {
-                // Modal handling is done in the page-specific JS
-                console.log('Admin companies page detected - using page-specific modal handling');
-            } else {
-                // For other pages, use standard modal fixes
-                var modalBackdrop = document.querySelector('.modal-backdrop');
-                if (modalBackdrop) {
-                    modalBackdrop.style.zIndex = '1040';
-                }
-                
-                var modals = document.querySelectorAll('.modal');
-                modals.forEach(function(modal) {
-                    modal.style.zIndex = '1050';
-                });
-                
-                var closeButtons = document.querySelectorAll('[data-bs-dismiss="modal"]');
-                closeButtons.forEach(function(button) {
-                    button.addEventListener('click', function() {
-                        var modalId = this.closest('.modal').id;
-                        var modalInstance = bootstrap.Modal.getInstance(document.getElementById(modalId));
-                        if (modalInstance) {
-                            modalInstance.hide();
-                        }
-                    });
-                });
-            }
-        });
-    </script>
+    <!-- Modal Utils -->
+    <script src="{{ url_for('static', filename='js/utils/modal-utils.js') }}"></script>
 
     {% block extra_js %}{% endblock %}
-
-    <div class="los-watermark">
-        <img src="{{ url_for('static', filename='img/LOS_watermark_red.png') }}" alt="LOS Watermark">
-    </div>
 </body>
 
 </html>

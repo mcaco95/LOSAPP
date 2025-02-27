@@ -4,10 +4,39 @@
 
 {% block extra_css %}
     <link type="text/css" href="{{ url_for('static', filename='css/points-rewards.css') }}" rel="stylesheet">
+    <style>
+        /* Ensure modals appear on top and backdrop is properly handled */
+        .modal-backdrop {
+            z-index: 1040 !important;
+        }
+        .modal {
+            z-index: 1050 !important;
+        }
+        .modal-dialog {
+            z-index: 1050 !important;
+        }
+        .modal-content {
+            z-index: 1051 !important;
+        }
+    </style>
 {% endblock %}
 
 {% block extra_js %}
     <script src="{{ url_for('static', filename='js/points-rewards.js') }}"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Ensure any lingering modal artifacts are cleaned up
+            if (window.ModalUtils) {
+                window.ModalUtils.cleanupModalArtifacts();
+            }
+            
+            // Initialize tooltips if needed
+            const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            tooltipTriggerList.forEach(function(tooltipTriggerEl) {
+                new bootstrap.Tooltip(tooltipTriggerEl);
+            });
+        });
+    </script>
 {% endblock %}
 
 {% block content %}

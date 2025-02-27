@@ -26,31 +26,10 @@
     color: #ffffff;
 }
 
-/* Watermark */
-.los-watermark {
-    position: fixed;
-    bottom: 0;
-    right: 0;
-    width: 1250px;
-    height: 1250px;
-    overflow: hidden;
-    z-index: -1;
-    pointer-events: none;
-}
+/* Watermark styles removed */
 
-.los-watermark img {
-    opacity: 0.7;
-    width: 2000px;
-    height: auto;
-    position: absolute;
-    bottom: 0;
-    right: 0;
-    transform-origin: bottom right;
-    transform: translate(50%, 50%);
-}
-
-/* Ensure content stays above watermark */
+/* Content z-index adjusted to ensure proper modal display */
 .content {
     position: relative;
-    z-index: 1;
+    z-index: auto; /* Changed from z-index: 1 to avoid any potential stacking issues */
 }

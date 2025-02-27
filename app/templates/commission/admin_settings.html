@@ -3,71 +3,111 @@
 {% block title %}Commission Settings{% endblock %}
 
 {% block content %}
-<div class="container-fluid">
+<div class="container-fluid py-3">
     <div class="row">
         <div class="col-12">
-            <div class="card">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <h5 class="card-title mb-0">Commission Settings</h5>
-                    <div>
-                        <a href="{{ url_for('commission.admin_partners') }}" class="btn btn-sm btn-outline-primary">Partners</a>
-                        <a href="{{ url_for('commission.admin_commissions') }}" class="btn btn-sm btn-outline-primary">Commissions</a>
+            <div class="card shadow-sm">
+                <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
+                    <h5 class="card-title mb-0 fw-bold">
+                        <i class="fas fa-percentage me-2 text-primary"></i>Commission Settings
+                    </h5>
+                    <div class="btn-group">
+                        <a href="{{ url_for('commission.admin_partners') }}" class="btn btn-outline-primary">
+                            <i class="fas fa-users me-1"></i> Partners
+                        </a>
+                        <a href="{{ url_for('commission.admin_commissions') }}" class="btn btn-outline-primary">
+                            <i class="fas fa-money-bill-wave me-1"></i> Commissions
+                        </a>
                     </div>
                 </div>
                 <div class="card-body">
                     <form action="{{ url_for('commission.admin_settings') }}" method="post">
                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                         
-                        <div class="row mb-4">
+                        <div class="row g-4 mb-4">
                             <div class="col-md-6">
-                                <div class="card border">
-                                    <div class="card-header bg-primary text-white">
-                                        <h5 class="card-title mb-0">Direct Commission Rates</h5>
+                                <div class="card border-0 shadow-sm h-100">
+                                    <div class="card-header bg-primary bg-gradient text-white">
+                                        <h5 class="card-title mb-0">
+                                            <i class="fas fa-chart-line me-2"></i>Direct Commission Rates
+                                        </h5>
                                     </div>
-                                    <div class="card-body">
-                                        <div class="mb-3">
-                                            <label for="first_2_years_rate" class="form-label">First 2 Years Rate</label>
+                                    <div class="card-body p-4">
+                                        <div class="mb-4">
+                                            <label for="first_2_years_rate" class="form-label fw-bold">First 2 Years Rate</label>
                                             <div class="input-group">
-                                                <input type="number" step="0.01" min="0" max="1" class="form-control" id="first_2_years_rate" name="first_2_years_rate" value="{{ settings.first_2_years_rate }}" required>
-                                                <span class="input-group-text">%</span>
+                                                <input type="number" step="0.01" min="0" max="1" class="form-control form-control-lg" 
+                                                    id="first_2_years_rate" name="first_2_years_rate" 
+                                                    value="{{ settings.first_2_years_rate }}" required>
+                                                <span class="input-group-text bg-primary text-white">%</span>
                                             </div>
-                                            <div class="form-text">Commission rate for the first 2 years (24 months). Current value: {{ (settings.first_2_years_rate * 100)|round(1) }}%</div>
+                                            <div class="form-text">
+                                                <div class="d-flex align-items-center mt-2">
+                                                    <i class="fas fa-info-circle text-primary me-2"></i>
+                                                    <span>Commission rate for the first 2 years (24 months).</span>
+                                                </div>
+                                                <div class="mt-2">
+                                                    <span class="badge bg-primary">Current value: {{ (settings.first_2_years_rate * 100)|round(1) }}%</span>
+                                                </div>
+                                            </div>
                                         </div>
                                         
                                         <div class="mb-3">
-                                            <label for="after_2_years_rate" class="form-label">After 2 Years Rate</label>
+                                            <label for="after_2_years_rate" class="form-label fw-bold">After 2 Years Rate</label>
                                             <div class="input-group">
-                                                <input type="number" step="0.01" min="0" max="1" class="form-control" id="after_2_years_rate" name="after_2_years_rate" value="{{ settings.after_2_years_rate }}" required>
-                                                <span class="input-group-text">%</span>
+                                                <input type="number" step="0.01" min="0" max="1" class="form-control form-control-lg" 
+                                                    id="after_2_years_rate" name="after_2_years_rate" 
+                                                    value="{{ settings.after_2_years_rate }}" required>
+                                                <span class="input-group-text bg-primary text-white">%</span>
                                             </div>
-                                            <div class="form-text">Commission rate after 2 years (month 25+). Current value: {{ (settings.after_2_years_rate * 100)|round(1) }}%</div>
+                                            <div class="form-text">
+                                                <div class="d-flex align-items-center mt-2">
+                                                    <i class="fas fa-info-circle text-primary me-2"></i>
+                                                    <span>Commission rate after 2 years (month 25+).</span>
+                                                </div>
+                                                <div class="mt-2">
+                                                    <span class="badge bg-primary">Current value: {{ (settings.after_2_years_rate * 100)|round(1) }}%</span>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
                             
                             <div class="col-md-6">
-                                <div class="card border">
-                                    <div class="card-header bg-info text-white">
-                                        <h5 class="card-title mb-0">Network Commission Rates</h5>
+                                <div class="card border-0 shadow-sm h-100">
+                                    <div class="card-header bg-info bg-gradient text-white">
+                                        <h5 class="card-title mb-0">
+                                            <i class="fas fa-network-wired me-2"></i>Network Commission Rates
+                                        </h5>
                                     </div>
-                                    <div class="card-body">
-                                        <div class="mb-3">
-                                            <label for="network_commission_rate" class="form-label">Network Commission Rate</label>
+                                    <div class="card-body p-4">
+                                        <div class="mb-4">
+                                            <label for="network_commission_rate" class="form-label fw-bold">Network Commission Rate</label>
                                             <div class="input-group">
-                                                <input type="number" step="0.01" min="0" max="1" class="form-control" id="network_commission_rate" name="network_commission_rate" value="{{ settings.network_commission_rate }}" required>
-                                                <span class="input-group-text">%</span>
+                                                <input type="number" step="0.01" min="0" max="1" class="form-control form-control-lg" 
+                                                    id="network_commission_rate" name="network_commission_rate" 
+                                                    value="{{ settings.network_commission_rate }}" required>
+                                                <span class="input-group-text bg-info text-white">%</span>
                                             </div>
-                                            <div class="form-text">Commission rate for partners on their network's sales. Current value: {{ (settings.network_commission_rate * 100)|round(1) }}%</div>
+                                            <div class="form-text">
+                                                <div class="d-flex align-items-center mt-2">
+                                                    <i class="fas fa-info-circle text-info me-2"></i>
+                                                    <span>Commission rate for partners on their network's sales.</span>
+                                                </div>
+                                                <div class="mt-2">
+                                                    <span class="badge bg-info">Current value: {{ (settings.network_commission_rate * 100)|round(1) }}%</span>
+                                                </div>
+                                            </div>
                                         </div>
                                         
-                                        <div class="alert alert-info mt-3">
+                                        <div class="alert alert-info bg-light border-info mt-4">
                                             <div class="d-flex">
                                                 <div class="flex-shrink-0">
-                                                    <i class="fas fa-info-circle fa-lg mt-1"></i>
+                                                    <i class="fas fa-info-circle fa-2x text-info mt-1"></i>
                                                 </div>
                                                 <div class="flex-grow-1 ms-3">
-                                                    <h5 class="alert-heading">Network Commission</h5>
+                                                    <h5 class="alert-heading text-info">Network Commission</h5>
                                                     <p class="mb-0">Partners earn this percentage on sales made by users they've referred to the partner program.</p>
                                                 </div>
                                             </div>
@@ -79,36 +119,60 @@
                         
                         <div class="row mb-4">
                             <div class="col-12">
-                                <div class="card border">
-                                    <div class="card-header bg-secondary text-white">
-                                        <h5 class="card-title mb-0">Commission Structure Overview</h5>
+                                <div class="card border-0 shadow-sm">
+                                    <div class="card-header bg-secondary bg-gradient text-white">
+                                        <h5 class="card-title mb-0">
+                                            <i class="fas fa-table me-2"></i>Commission Structure Overview
+                                        </h5>
                                     </div>
-                                    <div class="card-body">
+                                    <div class="card-body p-0">
                                         <div class="table-responsive">
-                                            <table class="table table-bordered">
+                                            <table class="table table-striped table-hover mb-0">
                                                 <thead class="table-light">
                                                     <tr>
-                                                        <th>Service Type</th>
-                                                        <th>Base Price</th>
-                                                        <th>First 2 Years</th>
-                                                        <th>After 2 Years</th>
-                                                        <th>Network Commission</th>
+                                                        <th class="py-3">Service Type</th>
+                                                        <th class="py-3">Base Price</th>
+                                                        <th class="py-3">First 2 Years</th>
+                                                        <th class="py-3">After 2 Years</th>
+                                                        <th class="py-3">Network Commission</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody>
                                                     <tr>
-                                                        <td>Standard</td>
-                                                        <td>$500/month</td>
-                                                        <td>${{ (500 * settings.first_2_years_rate)|round(2) }} ({{ (settings.first_2_years_rate * 100)|round(1) }}%)</td>
-                                                        <td>${{ (500 * settings.after_2_years_rate)|round(2) }} ({{ (settings.after_2_years_rate * 100)|round(1) }}%)</td>
-                                                        <td>${{ (500 * settings.network_commission_rate)|round(2) }} ({{ (settings.network_commission_rate * 100)|round(1) }}%)</td>
+                                                        <td class="py-3">
+                                                            <span class="badge bg-light text-dark border border-secondary">Standard</span>
+                                                        </td>
+                                                        <td class="py-3 fw-bold">$500/month</td>
+                                                        <td class="py-3">
+                                                            <span class="text-success fw-bold">${{ (500 * settings.first_2_years_rate)|round(2) }}</span>
+                                                            <span class="badge bg-primary">{{ (settings.first_2_years_rate * 100)|round(1) }}%</span>
+                                                        </td>
+                                                        <td class="py-3">
+                                                            <span class="text-success fw-bold">${{ (500 * settings.after_2_years_rate)|round(2) }}</span>
+                                                            <span class="badge bg-primary">{{ (settings.after_2_years_rate * 100)|round(1) }}%</span>
+                                                        </td>
+                                                        <td class="py-3">
+                                                            <span class="text-success fw-bold">${{ (500 * settings.network_commission_rate)|round(2) }}</span>
+                                                            <span class="badge bg-info">{{ (settings.network_commission_rate * 100)|round(1) }}%</span>
+                                                        </td>
                                                     </tr>
                                                     <tr>
-                                                        <td>Professional</td>
-                                                        <td>$3,000/month</td>
-                                                        <td>${{ (3000 * settings.first_2_years_rate)|round(2) }} ({{ (settings.first_2_years_rate * 100)|round(1) }}%)</td>
-                                                        <td>${{ (3000 * settings.after_2_years_rate)|round(2) }} ({{ (settings.after_2_years_rate * 100)|round(1) }}%)</td>
-                                                        <td>${{ (3000 * settings.network_commission_rate)|round(2) }} ({{ (settings.network_commission_rate * 100)|round(1) }}%)</td>
+                                                        <td class="py-3">
+                                                            <span class="badge bg-light text-dark border border-secondary">Professional</span>
+                                                        </td>
+                                                        <td class="py-3 fw-bold">$3,000/month</td>
+                                                        <td class="py-3">
+                                                            <span class="text-success fw-bold">${{ (3000 * settings.first_2_years_rate)|round(2) }}</span>
+                                                            <span class="badge bg-primary">{{ (settings.first_2_years_rate * 100)|round(1) }}%</span>
+                                                        </td>
+                                                        <td class="py-3">
+                                                            <span class="text-success fw-bold">${{ (3000 * settings.after_2_years_rate)|round(2) }}</span>
+                                                            <span class="badge bg-primary">{{ (settings.after_2_years_rate * 100)|round(1) }}%</span>
+                                                        </td>
+                                                        <td class="py-3">
+                                                            <span class="text-success fw-bold">${{ (3000 * settings.network_commission_rate)|round(2) }}</span>
+                                                            <span class="badge bg-info">{{ (settings.network_commission_rate * 100)|round(1) }}%</span>
+                                                        </td>
                                                     </tr>
                                                 </tbody>
                                             </table>
@@ -119,7 +183,9 @@
                         </div>
                         
                         <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                            <button type="submit" class="btn btn-primary">Save Settings</button>
+                            <button type="submit" class="btn btn-primary btn-lg px-5">
+                                <i class="fas fa-save me-2"></i>Save Settings
+                            </button>
                         </div>
                     </form>
                 </div>
@@ -135,12 +201,36 @@
         // Format percentage inputs
         const percentInputs = document.querySelectorAll('input[type="number"]');
         percentInputs.forEach(input => {
+            // Format display value on load
+            formatPercentDisplay(input);
+            
+            // Add event listeners
             input.addEventListener('change', function() {
                 // Ensure value is between 0 and 1
                 if (this.value < 0) this.value = 0;
                 if (this.value > 1) this.value = 1;
+                formatPercentDisplay(this);
+            });
+            
+            input.addEventListener('focus', function() {
+                this.select(); // Select all text when focused
             });
         });
+        
+        function formatPercentDisplay(input) {
+            // Add visual feedback based on value
+            const value = parseFloat(input.value);
+            const parentCard = input.closest('.card');
+            
+            if (value > 0.5) {
+                input.classList.add('border-success');
+            } else if (value > 0.1) {
+                input.classList.add('border-primary');
+                input.classList.remove('border-success');
+            } else {
+                input.classList.remove('border-success', 'border-primary');
+            }
+        }
     });
 </script>
 {% endblock %} 

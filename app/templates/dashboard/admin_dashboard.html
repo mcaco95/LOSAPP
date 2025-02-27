@@ -54,6 +54,7 @@
                             <th class="border-0">User</th>
                             <th class="border-0">Points</th>
                             <th class="border-0">Reason</th>
+                            <th class="border-0">Details</th>
                             <th class="border-0">Type</th>
                             <th class="border-0">Balance</th>
                             <th class="border-0">Date</th>
@@ -67,8 +68,46 @@
                                 <span class="text-{{ 'success' if tx.amount > 0 else 'danger' }}">
                                     {{ '+' if tx.amount > 0 else '' }}{{ tx.amount }}
                                 </span>
+                                {% if tx.transaction_metadata and tx.transaction_metadata.bonus_points %}
+                                <br>
+                                <small class="text-success">
+                                    (includes {{ tx.transaction_metadata.bonus_points }} bonus)
+                                </small>
+                                {% endif %}
                             </td>
                             <td>{{ tx.reason }}</td>
+                            <td>
+                                {% if tx.transaction_metadata %}
+                                    {% if tx.transaction_metadata.company_name %}
+                                        <strong>Company:</strong> {{ tx.transaction_metadata.company_name }}<br>
+                                    {% endif %}
+                                    {% if tx.transaction_metadata.status_display %}
+                                        <strong>Status:</strong> {{ tx.transaction_metadata.status_display }}<br>
+                                    {% endif %}
+                                    {% if tx.transaction_metadata.bonus_breakdown %}
+                                        <div class="mt-1">
+                                            <strong>Bonuses:</strong>
+                                            <ul class="list-unstyled mb-0 small">
+                                                {% if tx.transaction_metadata.bonus_breakdown.fast_track %}
+                                                    <li class="text-success">
+                                                        <i class="fas fa-bolt"></i> Fast-Track: +{{ tx.transaction_metadata.bonus_breakdown.fast_track }}
+                                                    </li>
+                                                {% endif %}
+                                                {% if tx.transaction_metadata.bonus_breakdown.high_value %}
+                                                    <li class="text-success">
+                                                        <i class="fas fa-star"></i> High-Value: +{{ tx.transaction_metadata.bonus_breakdown.high_value }}
+                                                    </li>
+                                                {% endif %}
+                                                {% if tx.transaction_metadata.bonus_breakdown.consistent_closer %}
+                                                    <li class="text-success">
+                                                        <i class="fas fa-trophy"></i> Consistent Closer: +{{ tx.transaction_metadata.bonus_breakdown.consistent_closer }}
+                                                    </li>
+                                                {% endif %}
+                                            </ul>
+                                        </div>
+                                    {% endif %}
+                                {% endif %}
+                            </td>
                             <td>
                                 <span class="badge bg-{{ 'primary' if tx.activity_type == 'status_change' else 'info' }}">
                                     {{ tx.activity_type }}
@@ -79,7 +118,7 @@
                         </tr>
                         {% else %}
                         <tr>
-                            <td colspan="6" class="text-center">No transactions found</td>
+                            <td colspan="7" class="text-center">No transactions found</td>
                         </tr>
                         {% endfor %}
                     </tbody>

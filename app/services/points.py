@@ -53,32 +53,33 @@ class PointService:
             else:
                 message = f"Status changed to {Company.get_status_display(new_status)}"
             
-            # Include company information in metadata
+            # Calculate bonus points
+            bonus_points, bonus_breakdown = PointService.calculate_bonus_points(company, new_status)
+            total_points = points + bonus_points
+            
+            # Include company information and bonus breakdown in metadata
             metadata = {
                 'company_id': company_id,
                 'company_name': company.name,
                 'status': new_status,
-                'status_display': Company.get_status_display(new_status)
+                'status_display': Company.get_status_display(new_status),
+                'base_points': points,
+                'bonus_points': bonus_points,
+                'bonus_breakdown': bonus_breakdown if bonus_breakdown else None
             }
             
             # Award points with the friendly message
-            company.user.add_points(points, message, metadata=metadata)
+            company.user.add_points(total_points, message, metadata=metadata)
             
-            # Check for bonus points
-            bonus_points = PointService.calculate_bonus_points(company, new_status)
-            if bonus_points > 0:
-                bonus_message = f"Bonus points awarded for {company.name}!"
-                company.user.add_points(bonus_points, bonus_message, metadata=metadata)
-                points += bonus_points
-                
             db.session.commit()
-            return points
+            return total_points
         return 0
         
     @staticmethod
     def calculate_bonus_points(company, new_status):
         """Calculate bonus points based on various criteria"""
         total_bonus = 0
+        bonus_breakdown = {}
         
         # Fast-Track Bonus - Double points if client signs up within 30 days of demo
         if new_status == 'client_signed':
@@ -97,11 +98,13 @@ class PointService:
                     multiplier = PointConfig.get_value('bonus_fast_track', 1)
                     fast_track_bonus = base_points * multiplier
                     total_bonus += fast_track_bonus
+                    bonus_breakdown['fast_track'] = fast_track_bonus
         
         # High-Value Client Bonus - Extra points for Professional Plan
         if new_status == 'client_signed' and company.service_type == 'professional':
             high_value_bonus = PointConfig.get_value('bonus_high_value', 30)
             total_bonus += high_value_bonus
+            bonus_breakdown['high_value'] = high_value_bonus
         
         # Consistent Closer Bonus - Extra points for 3+ clients in a quarter
         if new_status == 'client_signed':
@@ -124,8 +127,9 @@ class PointService:
             if quarter_signups >= 3:
                 consistent_closer_bonus = PointConfig.get_value('bonus_consistent_closer', 50)
                 total_bonus += consistent_closer_bonus
+                bonus_breakdown['consistent_closer'] = consistent_closer_bonus
         
-        return total_bonus
+        return total_bonus, bonus_breakdown
 
     @staticmethod
     def get_user_points_summary(user_id):

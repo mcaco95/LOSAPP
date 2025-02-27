@@ -2,6 +2,58 @@
 
 {% block title %}Manage Commissions{% endblock %}
 
+{% block extra_css %}
+<style>
+    /* Commission admin page specific modal styles */
+    .modal-backdrop {
+        z-index: 1040 !important;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+    }
+    
+    .modal {
+        z-index: 1050 !important;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        outline: 0;
+    }
+    
+    .modal-dialog {
+        z-index: 1050 !important;
+        position: relative;
+        margin: 1.75rem auto;
+        pointer-events: auto;
+    }
+    
+    .modal-content {
+        z-index: 1051 !important;
+        position: relative;
+        background-color: #fff;
+        border-radius: 0.5rem;
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.5);
+        pointer-events: auto;
+    }
+    
+    /* Ensure modals are visible and interactive */
+    .modal.show {
+        display: block !important;
+    }
+    
+    /* Fix for modal buttons */
+    .modal .btn {
+        position: relative;
+        z-index: 1052 !important;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="container-fluid">
     <div class="row">
@@ -218,8 +270,17 @@
 
                     <div class="mt-4">
                         <h6>Commission Distribution</h6>
-                        <div class="chart">
-                            <canvas id="commissionChart" width="100%" height="250"></canvas>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="chart-container" style="position: relative; height: 250px; width: 100%;">
+                                    <canvas id="commissionChart"></canvas>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="chart-container" style="position: relative; height: 250px; width: 100%;">
+                                    <canvas id="partnerCommissionChart"></canvas>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -422,10 +483,14 @@
 </div>
 {% endblock %}
 
-{% block scripts %}
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% block extra_js %}
 <script>
     document.addEventListener("DOMContentLoaded", function() {
+        // Ensure any lingering modal artifacts are cleaned up
+        if (window.ModalUtils) {
+            window.ModalUtils.cleanupModalArtifacts();
+        }
+        
         // Initialize tooltips
         var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
         var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
@@ -462,37 +527,187 @@
                 }
             }
         });
-        
-        // Commission chart
-        var ctx = document.getElementById('commissionChart').getContext('2d');
-        var commissionChart = new Chart(ctx, {
-            type: 'pie',
-            data: {
-                labels: ['Paid', 'Pending', 'Cancelled'],
-                datasets: [{
-                    data: [
-                        {{ commissions|selectattr('status', 'equalto', 'paid')|map(attribute='amount')|sum }},
-                        {{ commissions|selectattr('status', 'equalto', 'pending')|map(attribute='amount')|sum }},
-                        {{ commissions|selectattr('status', 'equalto', 'cancelled')|map(attribute='amount')|sum }}
-                    ],
-                    backgroundColor: [
-                        '#28a745',
-                        '#ffc107',
-                        '#dc3545'
-                    ],
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        position: 'bottom'
+
+        try {
+            // Chart initialization with error handling
+            const canvas = document.getElementById('commissionChart');
+            if (!canvas) {
+                console.error('Commission chart canvas not found');
+                return;
+            }
+
+            const ctx = canvas.getContext('2d');
+            if (!ctx) {
+                console.error('Could not get 2D context for commission chart');
+                return;
+            }
+
+            const paidAmount = {{ commissions|selectattr('status', 'equalto', 'paid')|map(attribute='amount')|sum }};
+            const pendingAmount = {{ commissions|selectattr('status', 'equalto', 'pending')|map(attribute='amount')|sum }};
+            const cancelledAmount = {{ commissions|selectattr('status', 'equalto', 'cancelled')|map(attribute='amount')|sum }};
+
+            console.log('Chart data:', { paidAmount, pendingAmount, cancelledAmount });
+
+            const chart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Paid', 'Pending', 'Cancelled'],
+                    datasets: [{
+                        data: [paidAmount, pendingAmount, cancelledAmount],
+                        backgroundColor: [
+                            '#28a745',  // Success green
+                            '#ffc107',  // Warning yellow
+                            '#dc3545'   // Danger red
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                padding: 20,
+                                font: {
+                                    size: 12
+                                }
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const value = context.raw;
+                                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                    const percentage = total > 0 ? Math.round((value / total) * 100) : 0;
+                                    return `$${value.toFixed(2)} (${percentage}%)`;
+                                }
+                            }
+                        }
+                    },
+                    cutout: '60%'
+                }
+            });
+
+            console.log('Chart initialized successfully');
+
+            // Initialize Partner Commission Bar Chart
+            const partnerCanvas = document.getElementById('partnerCommissionChart');
+            if (!partnerCanvas) {
+                console.error('Partner commission chart canvas not found');
+                return;
+            }
+
+            const partnerCtx = partnerCanvas.getContext('2d');
+            if (!partnerCtx) {
+                console.error('Could not get 2D context for partner commission chart');
+                return;
+            }
+
+            // Process commission data by partner
+            const partnerData = {};
+            {% for commission in commissions %}
+            const partner = "{{ commission.partner.user.name or commission.partner.user.username }}";
+            if (!partnerData[partner]) {
+                partnerData[partner] = {
+                    paid: 0,
+                    pending: 0,
+                    cancelled: 0
+                };
+            }
+            const amount = {{ commission.amount }};
+            const status = "{{ commission.status }}";
+            partnerData[partner][status] += amount;
+            {% endfor %}
+
+            // Convert partner data into chart format
+            const partners = Object.keys(partnerData);
+            const paidData = partners.map(p => partnerData[p].paid);
+            const pendingData = partners.map(p => partnerData[p].pending);
+            const cancelledData = partners.map(p => partnerData[p].cancelled);
+
+            const partnerChart = new Chart(partnerCtx, {
+                type: 'bar',
+                data: {
+                    labels: partners,
+                    datasets: [
+                        {
+                            label: 'Paid',
+                            data: paidData,
+                            backgroundColor: '#28a745',
+                            borderColor: '#28a745',
+                            borderWidth: 1
+                        },
+                        {
+                            label: 'Pending',
+                            data: pendingData,
+                            backgroundColor: '#ffc107',
+                            borderColor: '#ffc107',
+                            borderWidth: 1
+                        },
+                        {
+                            label: 'Cancelled',
+                            data: cancelledData,
+                            backgroundColor: '#dc3545',
+                            borderColor: '#dc3545',
+                            borderWidth: 1
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Commission by Partner',
+                            font: {
+                                size: 14
+                            }
+                        },
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                padding: 20,
+                                font: {
+                                    size: 12
+                                }
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return `${context.dataset.label}: $${context.raw.toFixed(2)}`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            stacked: true,
+                            ticks: {
+                                maxRotation: 45,
+                                minRotation: 45
+                            }
+                        },
+                        y: {
+                            stacked: true,
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return '$' + value.toFixed(2);
+                                }
+                            }
+                        }
                     }
                 }
-            }
-        });
+            });
+
+            console.log('Partner chart initialized successfully');
+        } catch (error) {
+            console.error('Error initializing commission chart:', error);
+        }
         
         // Mark Paid Modal
         var markPaidModal = document.getElementById('markPaidModal');

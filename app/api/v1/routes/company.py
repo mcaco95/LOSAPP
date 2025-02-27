@@ -105,3 +105,65 @@ def get_user_companies():
         return jsonify(companies), 200
     except Exception as e:
         return jsonify({'error': 'Internal server error'}), 500
+
+# New API endpoints for modal functionality
+
+@bp.route('/<int:company_id>', methods=['GET'])
+@login_required
+@admin_required
+def get_company_details(company_id):
+    """Get company details for modal display"""
+    try:
+        company = CompanyService.get_company_details(company_id)
+        return jsonify({
+            'success': True,
+            'company': company
+        }), 200
+    except ValueError as e:
+        return jsonify({
+            'success': False,
+            'message': str(e)
+        }), 404
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'message': 'Internal server error'
+        }), 500
+
+@bp.route('/<int:company_id>/status', methods=['PUT'])
+@login_required
+@admin_required
+def update_status(company_id):
+    """Update company status from modal"""
+    try:
+        data = request.get_json()
+        if not data or 'status' not in data:
+            return jsonify({
+                'success': False,
+                'message': 'Status is required'
+            }), 400
+            
+        notes = None
+        if 'metadata' in data and 'notes' in data['metadata']:
+            notes = data['metadata']['notes']
+            
+        CompanyService.update_status(
+            company_id=company_id,
+            new_status=data['status'],
+            notes=notes
+        )
+        
+        return jsonify({
+            'success': True,
+            'message': 'Company status updated successfully'
+        }), 200
+    except ValueError as e:
+        return jsonify({
+            'success': False,
+            'message': str(e)
+        }), 400
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'message': 'Internal server error'
+        }), 500
