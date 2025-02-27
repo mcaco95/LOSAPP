@@ -1,20 +1,19 @@
-from app import create_app, db
+from flask import Flask
+from app import db
 from app.models.user import User
-from werkzeug.security import generate_password_hash
 
-app = create_app()
+app = Flask(__name__)
+app.config.from_object('app.config.Config')
+db.init_app(app)
 
-def reset_user_password(email, new_password):
-    with app.app_context():
-        user = User.query.filter_by(email=email).first()
-        if user:
-            user.password_hash = generate_password_hash(new_password, method='sha256')
-            db.session.commit()
-            print(f"Password updated successfully for {email}")
-        else:
-            print(f"User with email {email} not found")
-
-if __name__ == "__main__":
-    email = input("Enter email: ")
-    password = input("Enter new password: ")
-    reset_user_password(email, password) 
+with app.app_context():
+    admin_email = 'simon@logisticsonesource.com'
+    admin = User.query.filter_by(email=admin_email).first()
+    
+    if admin:
+        # Update the password hash directly in the database
+        admin.password_hash = 'pbkdf2:sha256:600000$dummysalt$6b4e903b2e028dfd1ce748388a262e4bb6c0e2768b42f46c8d069dcf936efb99'  # This is 'admin123'
+        db.session.commit()
+        print(f'Reset password for admin user {admin_email} to: admin123')
+    else:
+        print(f'Admin user {admin_email} not found') 
