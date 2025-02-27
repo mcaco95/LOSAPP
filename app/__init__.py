@@ -31,11 +31,12 @@ def create_app():
 
     with app.app_context():
         # Import models and routes
-        from .models import user, link_tracking, company, point_config, reward, oauth
+        from .models import user, link_tracking, company, point_config, reward, oauth, commission_partner, commission
         from .routes import auth
         from .routes import main
         from .routes import referrals
         from .routes.users import users
+        from .routes import commission
         from .api.v1 import bp as api_v1_bp
         
         # Initialize OAuth
@@ -47,7 +48,23 @@ def create_app():
         app.register_blueprint(main.main)
         app.register_blueprint(users)
         app.register_blueprint(referrals.bp)
+        app.register_blueprint(commission.bp)
         app.register_blueprint(api_v1_bp)
+        
+        # Add context processors
+        @app.context_processor
+        def utility_processor():
+            from flask_login import current_user
+            from .models.commission_partner import CommissionPartner
+            
+            def is_commission_partner():
+                if not current_user.is_authenticated:
+                    return False
+                return CommissionPartner.query.filter_by(user_id=current_user.id).first() is not None
+            
+            return {
+                'is_commission_partner': is_commission_partner
+            }
 
         # Add CLI commands
         @app.cli.command('setup-admin')

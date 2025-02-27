@@ -252,11 +252,18 @@ def admin_companies():
     partner_id = request.args.get('partner_id')
     search = request.args.get('search')
     
+    # Convert partner_id to integer if it's not None
+    if partner_id:
+        try:
+            partner_id = int(partner_id)
+        except ValueError:
+            partner_id = None
+    
     # Get companies based on filters
     companies = CompanyService.search_companies(
-        user_id=partner_id, 
+        query_string=search,
         status=status,
-        query_string=search
+        user_id=partner_id
     )
     
     # Get company statistics
@@ -280,10 +287,10 @@ def admin_companies():
         statistics=statistics,
         partners=partners,
         current_status=status,
-        current_partner=int(partner_id) if partner_id and partner_id.isdigit() else None,
+        current_partner=partner_id,
         current_search=search,
-        view=view,
-        selected_company=selected_company
+        selected_company=selected_company,
+        view=view
     )
 
 @main.route('/dashboard/admin/companies/update-status', methods=['POST'])

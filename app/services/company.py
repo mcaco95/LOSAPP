@@ -49,43 +49,55 @@ class CompanyService:
         company = Company.query.get(company_id)
         if not company:
             raise ValueError(f"Company {company_id} not found")
-
-        # Don't update if status hasn't changed
-        if company.status == new_status:
+            
+        if new_status == company.status:
             return {
-                'company': company.to_dict(),
-                'old_status': company.status,
-                'new_status': new_status,
-                'points_awarded': 0
+                'success': False,
+                'message': f"Company already has status {new_status}",
+                'company': company.to_dict()
             }
-
+        
         old_status = company.status
+        
+        # Update status in company model
+        status_updated = company.update_status(new_status)
+        if not status_updated:
+            return {
+                'success': False,
+                'message': f"Failed to update company status to {new_status}",
+                'company': company.to_dict()
+            }
+        
+        # Award points for status change
+        points_awarded = 0
+        try:
+            points_awarded = PointService.award_points_for_status(company_id, new_status)
+        except Exception as e:
+            print(f"Error awarding points: {str(e)}")
+        
+        # Process commission if applicable
+        commission_result = None
+        try:
+            from .commission import CommissionService
+            commission_result = CommissionService.process_company_status_change(company_id, new_status)
+        except Exception as e:
+            print(f"Error processing commission: {str(e)}")
         
         # Update metadata if provided
         if metadata:
             if not company.company_metadata:
                 company.company_metadata = {}
-            company.company_metadata.update(metadata)
-
-        try:
-            # Award points for status change first
-            points_awarded = PointService.award_points_for_status(company_id, new_status)
-            
-            # Update status and record in history with the awarded points
-            company.update_status(new_status, points_awarded)
-            
-            # Commit the transaction
+            for key, value in metadata.items():
+                company.company_metadata[key] = value
             db.session.commit()
-            
-            return {
-                'company': company.to_dict(),
-                'old_status': old_status,
-                'new_status': new_status,
-                'points_awarded': points_awarded
-            }
-        except Exception as e:
-            db.session.rollback()
-            raise ValueError(f"Error updating company status: {str(e)}")
+        
+        return {
+            'success': True,
+            'message': f"Company status updated from {old_status} to {new_status}",
+            'points_awarded': points_awarded,
+            'commission_created': commission_result.to_dict() if commission_result else None,
+            'company': company.to_dict()
+        }
 
     @staticmethod
     def get_company_details(company_id):
@@ -171,10 +183,10 @@ class CompanyService:
             if isinstance(status, list):
                 query = query.filter(Company.status.in_(status))
             else:
-                query = query.filter_by(status=status)
+                query = query.filter(Company.status == status)
         
         if user_id:
-            query = query.filter_by(user_id=user_id)
+            query = query.filter(Company.user_id == user_id)
         
         companies = query.order_by(Company.created_at.desc()).all()
         result = []

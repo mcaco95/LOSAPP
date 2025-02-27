@@ -1,0 +1,159 @@
+{% extends "base.html" %}
+
+{% block title %}Become a Commission Partner{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Become a Commission Partner</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-4">
+                                <h4>Partner Program Benefits</h4>
+                                <ul class="list-group list-group-flush mt-3">
+                                    <li class="list-group-item d-flex align-items-center">
+                                        <i class="align-middle me-2 fas fa-fw fa-percentage"></i>
+                                        <span>Earn 20% commission on initial sign-ups</span>
+                                    </li>
+                                    <li class="list-group-item d-flex align-items-center">
+                                        <i class="align-middle me-2 fas fa-fw fa-sync-alt"></i>
+                                        <span>Earn 2.5% recurring commission on monthly payments</span>
+                                    </li>
+                                    <li class="list-group-item d-flex align-items-center">
+                                        <i class="align-middle me-2 fas fa-fw fa-network-wired"></i>
+                                        <span>Build your own network of partners</span>
+                                    </li>
+                                    <li class="list-group-item d-flex align-items-center">
+                                        <i class="align-middle me-2 fas fa-fw fa-chart-line"></i>
+                                        <span>Track your earnings in real-time</span>
+                                    </li>
+                                    <li class="list-group-item d-flex align-items-center">
+                                        <i class="align-middle me-2 fas fa-fw fa-money-bill-wave"></i>
+                                        <span>Monthly commission payouts</span>
+                                    </li>
+                                </ul>
+                            </div>
+
+                            <div class="mb-4">
+                                <h4>Commission Structure</h4>
+                                <div class="table-responsive">
+                                    <table class="table table-bordered mt-3">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th>Service Type</th>
+                                                <th>Initial Commission</th>
+                                                <th>Recurring Commission</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td>Standard ($500/mo)</td>
+                                                <td>20% ($100)</td>
+                                                <td>2.5% ($12.50/mo)</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Professional ($3,000/mo)</td>
+                                                <td>20% ($600)</td>
+                                                <td>2.5% ($75/mo)</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="card border">
+                                <div class="card-header bg-primary text-white">
+                                    <h5 class="card-title mb-0">Register as a Partner</h5>
+                                </div>
+                                <div class="card-body">
+                                    <form action="{{ url_for('commission.register_partner') }}" method="post">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                        <div class="mb-3">
+                                            <label class="form-label">Your Information</label>
+                                            <div class="input-group">
+                                                <span class="input-group-text">
+                                                    <i class="align-middle fas fa-fw fa-user"></i>
+                                                </span>
+                                                <input type="text" class="form-control" value="{{ current_user.name or current_user.username }}" disabled>
+                                            </div>
+                                        </div>
+                                        <div class="mb-3">
+                                            <div class="input-group">
+                                                <span class="input-group-text">
+                                                    <i class="align-middle fas fa-fw fa-envelope"></i>
+                                                </span>
+                                                <input type="text" class="form-control" value="{{ current_user.email }}" disabled>
+                                            </div>
+                                        </div>
+
+                                        <div class="mb-3">
+                                            <label class="form-label">Referrer Code (Optional)</label>
+                                            <div class="input-group">
+                                                <span class="input-group-text">
+                                                    <i class="align-middle fas fa-fw fa-link"></i>
+                                                </span>
+                                                <input type="text" class="form-control" name="referrer_code" placeholder="Enter referrer code if you have one" value="{{ referrer_code or '' }}">
+                                            </div>
+                                            <div class="form-text">If someone referred you to our partner program, enter their code here.</div>
+                                        </div>
+
+                                        <div class="mb-3 form-check">
+                                            <input type="checkbox" class="form-check-input" id="terms" required>
+                                            <label class="form-check-label" for="terms">I agree to the <a href="#" data-bs-toggle="modal" data-bs-target="#termsModal">Terms and Conditions</a></label>
+                                        </div>
+
+                                        <div class="d-grid gap-2">
+                                            <button type="submit" class="btn btn-primary">Register as Partner</button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Terms and Conditions Modal -->
+<div class="modal fade" id="termsModal" tabindex="-1" aria-labelledby="termsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="termsModalLabel">Commission Partner Terms and Conditions</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <h5>1. Commission Structure</h5>
+                <p>Partners earn 20% commission on initial sign-ups and 2.5% recurring commission on monthly payments. Commissions are calculated based on the service type selected by the client.</p>
+                
+                <h5>2. Payment Terms</h5>
+                <p>Commissions are paid monthly, on the 15th of each month, for all commissions marked as "paid" in the previous month. A minimum payout threshold of $50 applies.</p>
+                
+                <h5>3. Referral Network</h5>
+                <p>Partners can refer other partners to the program. When your referred partners generate commissions, you do not receive a percentage of their earnings.</p>
+                
+                <h5>4. Commission Eligibility</h5>
+                <p>Commissions are only earned when a referred client signs up for a paid plan. Commissions are not earned for free trials or demo bookings.</p>
+                
+                <h5>5. Termination</h5>
+                <p>We reserve the right to terminate any partner account for violations of these terms, including but not limited to fraudulent activity, misrepresentation, or spam.</p>
+                
+                <h5>6. Changes to Terms</h5>
+                <p>We may modify these terms at any time. Partners will be notified of any changes via email.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

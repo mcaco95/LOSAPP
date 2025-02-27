@@ -1,0 +1,267 @@
+{% extends "base.html" %}
+
+{% block title %}Commission Partner Dashboard{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">Commission Partner Dashboard</h5>
+                    <div>
+                        <a href="{{ url_for('commission.commissions') }}" class="btn btn-sm btn-primary">View All Commissions</a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <!-- Summary Cards -->
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="card bg-primary text-white">
+                                <div class="card-body py-4">
+                                    <div class="d-flex align-items-center">
+                                        <i class="align-middle me-3 fas fa-fw fa-dollar-sign fa-3x"></i>
+                                        <div>
+                                            <h5 class="card-title mb-0">Total Earned</h5>
+                                            <h2 class="mt-2 mb-0">${{ "%.2f"|format(summary.total_earned) }}</h2>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card bg-success text-white">
+                                <div class="card-body py-4">
+                                    <div class="d-flex align-items-center">
+                                        <i class="align-middle me-3 fas fa-fw fa-check-circle fa-3x"></i>
+                                        <div>
+                                            <h5 class="card-title mb-0">Paid Commissions</h5>
+                                            <h2 class="mt-2 mb-0">${{ "%.2f"|format(summary.total_paid) }}</h2>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card bg-warning text-white">
+                                <div class="card-body py-4">
+                                    <div class="d-flex align-items-center">
+                                        <i class="align-middle me-3 fas fa-fw fa-clock fa-3x"></i>
+                                        <div>
+                                            <h5 class="card-title mb-0">Pending Commissions</h5>
+                                            <h2 class="mt-2 mb-0">${{ "%.2f"|format(summary.total_pending) }}</h2>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row mt-4">
+                        <!-- Recent Commissions -->
+                        <div class="col-md-8">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5 class="card-title mb-0">Recent Commissions</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="table-responsive">
+                                        <table class="table table-striped">
+                                            <thead>
+                                                <tr>
+                                                    <th>Company</th>
+                                                    <th>Service</th>
+                                                    <th>Amount</th>
+                                                    <th>Status</th>
+                                                    <th>Date</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {% for commission in summary.recent_commissions %}
+                                                <tr>
+                                                    <td>{{ commission.company_name }}</td>
+                                                    <td>
+                                                        {% if commission.service_type == 'professional' %}
+                                                            <span class="badge bg-primary">Professional</span>
+                                                        {% else %}
+                                                            <span class="badge bg-secondary">Standard</span>
+                                                        {% endif %}
+                                                        {% if commission.is_initial_month %}
+                                                            <span class="badge bg-info">Initial</span>
+                                                        {% else %}
+                                                            <span class="badge bg-light text-dark">Month {{ commission.month_number }}</span>
+                                                        {% endif %}
+                                                    </td>
+                                                    <td>${{ "%.2f"|format(commission.amount) }}</td>
+                                                    <td>
+                                                        {% if commission.status == 'pending' %}
+                                                            <span class="badge bg-warning">Pending</span>
+                                                        {% elif commission.status == 'paid' %}
+                                                            <span class="badge bg-success">Paid</span>
+                                                        {% else %}
+                                                            <span class="badge bg-danger">Cancelled</span>
+                                                        {% endif %}
+                                                    </td>
+                                                    <td>{{ commission.created_at.split('T')[0] }}</td>
+                                                </tr>
+                                                {% else %}
+                                                <tr>
+                                                    <td colspan="5" class="text-center">No commissions yet</td>
+                                                </tr>
+                                                {% endfor %}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Commission Breakdown -->
+                        <div class="col-md-4">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5 class="card-title mb-0">Commission Breakdown</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="chart">
+                                        <canvas id="commissionChart" width="100%" height="250"></canvas>
+                                    </div>
+                                    <div class="mt-4">
+                                        <div class="d-flex justify-content-between mb-2">
+                                            <div>Professional Plan</div>
+                                            <div>${{ "%.2f"|format(summary.by_service_type.professional) }}</div>
+                                        </div>
+                                        <div class="progress mb-3">
+                                            <div class="progress-bar bg-primary" role="progressbar" 
+                                                style="width: {{ (summary.by_service_type.professional / summary.total_earned * 100) if summary.total_earned > 0 else 0 }}%" 
+                                                aria-valuenow="{{ summary.by_service_type.professional }}" 
+                                                aria-valuemin="0" 
+                                                aria-valuemax="{{ summary.total_earned }}"></div>
+                                        </div>
+                                        <div class="d-flex justify-content-between mb-2">
+                                            <div>Standard Plan</div>
+                                            <div>${{ "%.2f"|format(summary.by_service_type.standard) }}</div>
+                                        </div>
+                                        <div class="progress">
+                                            <div class="progress-bar bg-secondary" role="progressbar" 
+                                                style="width: {{ (summary.by_service_type.standard / summary.total_earned * 100) if summary.total_earned > 0 else 0 }}%" 
+                                                aria-valuenow="{{ summary.by_service_type.standard }}" 
+                                                aria-valuemin="0" 
+                                                aria-valuemax="{{ summary.total_earned }}"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Partner Network -->
+                    <div class="row mt-4">
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="card-header d-flex justify-content-between align-items-center">
+                                    <h5 class="card-title mb-0">Your Partner Network</h5>
+                                    <div>
+                                        <a href="{{ url_for('commission.partners') }}" class="btn btn-sm btn-outline-primary">View Network</a>
+                                    </div>
+                                </div>
+                                <div class="card-body">
+                                    {% if network %}
+                                    <div class="table-responsive">
+                                        <table class="table table-striped">
+                                            <thead>
+                                                <tr>
+                                                    <th>Partner</th>
+                                                    <th>Joined</th>
+                                                    <th>Active Companies</th>
+                                                    <th>Total Commissions</th>
+                                                    <th>Status</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {% for partner in network %}
+                                                <tr>
+                                                    <td>{{ partner.user }}</td>
+                                                    <td>{{ partner.created_at.split('T')[0] }}</td>
+                                                    <td>{{ partner.active_companies }}</td>
+                                                    <td>${{ "%.2f"|format(partner.total_commissions) }}</td>
+                                                    <td>
+                                                        {% if partner.is_active %}
+                                                            <span class="badge bg-success">Active</span>
+                                                        {% else %}
+                                                            <span class="badge bg-danger">Inactive</span>
+                                                        {% endif %}
+                                                    </td>
+                                                </tr>
+                                                {% endfor %}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    {% else %}
+                                    <div class="text-center py-4">
+                                        <i class="align-middle fas fa-fw fa-users fa-3x mb-3 text-muted"></i>
+                                        <h5>You haven't referred any partners yet</h5>
+                                        <p class="text-muted">Share your unique referral code to invite others to the partner program.</p>
+                                        <div class="input-group mb-3 mt-4" style="max-width: 500px; margin: 0 auto;">
+                                            <input type="text" class="form-control" id="partnerLink" value="{{ current_user.unique_link }}" readonly>
+                                            <button class="btn btn-outline-primary" type="button" onclick="copyPartnerLink()">Copy</button>
+                                        </div>
+                                        <p class="text-muted mt-2">Partners can enter this code during registration or on the partner sign-up page.</p>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        // Commission breakdown chart
+        var ctx = document.getElementById('commissionChart').getContext('2d');
+        var commissionChart = new Chart(ctx, {
+            type: 'pie',
+            data: {
+                labels: ['Professional', 'Standard'],
+                datasets: [{
+                    data: [
+                        {{ summary.by_service_type.professional }}, 
+                        {{ summary.by_service_type.standard }}
+                    ],
+                    backgroundColor: [
+                        '#3b7ddd',
+                        '#6c757d'
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    }
+                }
+            }
+        });
+    });
+
+    function copyPartnerLink() {
+        var copyText = document.getElementById("partnerLink");
+        copyText.select();
+        copyText.setSelectionRange(0, 99999);
+        navigator.clipboard.writeText(copyText.value);
+        
+        // Show a tooltip or notification
+        alert("Partner link copied to clipboard!");
+    }
+</script>
+{% endblock %} 

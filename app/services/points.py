@@ -661,3 +661,28 @@ class PointService:
             db.session.rollback()
             print(f"Error deleting point config: {str(e)}")
             return False
+
+    @staticmethod
+    def award_points_for_partner_signup(user_id, referred_user_id):
+        """Award points for referring a new commission partner"""
+        user = User.query.get(user_id)
+        if not user:
+            raise ValueError(f"User {user_id} not found")
+
+        referred_user = User.query.get(referred_user_id)
+        if not referred_user:
+            raise ValueError(f"Referred user {referred_user_id} not found")
+
+        # Get point value from configuration
+        points = PointConfig.get_value('status_partner_signup', 25)  # Default to 25 if not configured
+        
+        if points > 0:
+            reason = f"Commission partner signup: {referred_user.name or referred_user.email}"
+            metadata = {
+                'status': 'partner_signup',
+                'referred_user_id': referred_user_id
+            }
+            user.add_points(points, reason, metadata)
+            db.session.commit()
+            return points
+        return 0
