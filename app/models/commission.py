@@ -62,7 +62,7 @@ class Commission(db.Model):
     
     @classmethod
     def calculate_commission(cls, partner_id, company_id, service_type, is_initial_month=True, month_number=1):
-        """Calculate commission amount based on service type and month"""
+        """Calculate commission amount based on service type and month number"""
         from ..models.commission_partner import CommissionPartner
         
         partner = CommissionPartner.query.get(partner_id)
@@ -75,13 +75,30 @@ class Commission(db.Model):
         else:  # standard
             base_amount = 500.0   # $500/month for Standard
         
-        # Get commission rate
-        rate = partner.get_commission_rate(service_type, is_initial_month)
+        # Get commission rate based on month number
+        rate = partner.get_commission_rate(service_type, month_number)
         
         # Calculate commission amount
         commission_amount = base_amount * rate
         
         return commission_amount
+    
+    @property
+    def is_network_commission(self):
+        """Check if this is a network commission (from referred partner)"""
+        if self.commission_metadata and 'network_commission' in self.commission_metadata:
+            return self.commission_metadata['network_commission']
+        return False
+    
+    @property
+    def commission_type_display(self):
+        """Get a display string for the commission type"""
+        if self.is_network_commission:
+            return "Network Commission (2.5%)"
+        elif self.month_number <= 24:
+            return f"Direct Commission - Year {(self.month_number-1)//12 + 1} (10%)"
+        else:
+            return f"Direct Commission - Year {(self.month_number-1)//12 + 1} (2.5%)"
     
     def to_dict(self):
         """Convert commission to dictionary"""
@@ -97,5 +114,7 @@ class Commission(db.Model):
             'status': self.status,
             'created_at': self.created_at.isoformat() if self.created_at else None,
             'paid_at': self.paid_at.isoformat() if self.paid_at else None,
-            'metadata': self.commission_metadata
+            'metadata': self.commission_metadata,
+            'commission_type': self.commission_type_display,
+            'is_network_commission': self.is_network_commission
         } 

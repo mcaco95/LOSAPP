@@ -96,15 +96,29 @@ def dashboard():
 @login_required
 def commissions():
     """View commission details"""
-    # Check if user is a partner
+    # Check if user has any commissions
+    # First, check if user is a partner
     partner = CommissionPartner.query.filter_by(user_id=current_user.id).first()
-    if not partner:
-        flash('You need to register as a commission partner first.', 'warning')
-        return redirect(url_for('commission.partners'))
     
-    # Get all commissions for this partner
-    status_filter = request.args.get('status')
-    commissions_list = Commission.get_partner_commissions(partner.id, status_filter)
+    if partner:
+        # Get all commissions for this partner
+        status_filter = request.args.get('status')
+        commissions_list = Commission.get_partner_commissions(partner.id, status_filter)
+    else:
+        # Check if user has any temporary partner records for commissions
+        temp_partner = CommissionPartner.query.filter_by(
+            user_id=current_user.id
+        ).filter(
+            CommissionPartner.partner_metadata.contains({'temporary': True})
+        ).first()
+        
+        if temp_partner:
+            # Get commissions for the temporary partner
+            status_filter = request.args.get('status')
+            commissions_list = Commission.get_partner_commissions(temp_partner.id, status_filter)
+        else:
+            # No commissions found
+            commissions_list = []
     
     return render_template('commission/commissions.html', 
                           commissions=commissions_list,
@@ -152,6 +166,53 @@ def cancel_commission(commission_id):
     commission.cancel(reason)
     flash(f'Commission #{commission_id} cancelled.', 'success')
     return redirect(url_for('commission.admin_commissions'))
+
+@bp.route('/admin/settings', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def admin_settings():
+    """Admin view for commission settings"""
+    from ..models.commission_settings import CommissionSettings
+    
+    # Initialize default settings if they don't exist
+    CommissionSettings.initialize_default_settings()
+    
+    # Get current settings
+    commission_settings = {
+        'first_2_years_rate': CommissionSettings.get_value('first_2_years_rate', 0.10),
+        'after_2_years_rate': CommissionSettings.get_value('after_2_years_rate', 0.025),
+        'network_commission_rate': CommissionSettings.get_value('network_commission_rate', 0.025)
+    }
+    
+    # If form is submitted, update the settings
+    if request.method == 'POST':
+        try:
+            # Get values from form
+            first_2_years = float(request.form.get('first_2_years_rate', 0.10))
+            after_2_years = float(request.form.get('after_2_years_rate', 0.025))
+            network_rate = float(request.form.get('network_commission_rate', 0.025))
+            
+            # Validate rates (must be between 0 and 1)
+            if not (0 <= first_2_years <= 1 and 0 <= after_2_years <= 1 and 0 <= network_rate <= 1):
+                raise ValueError("Commission rates must be between 0 and 1 (0% to 100%)")
+            
+            # Store settings in database
+            CommissionSettings.set_value('first_2_years_rate', first_2_years)
+            CommissionSettings.set_value('after_2_years_rate', after_2_years)
+            CommissionSettings.set_value('network_commission_rate', network_rate)
+            
+            flash('Commission settings updated successfully!', 'success')
+            
+            # Update the displayed settings
+            commission_settings = {
+                'first_2_years_rate': first_2_years,
+                'after_2_years_rate': after_2_years,
+                'network_commission_rate': network_rate
+            }
+        except ValueError as e:
+            flash(f'Error updating settings: {str(e)}', 'danger')
+    
+    return render_template('commission/admin_settings.html', settings=commission_settings)
 
 # API Routes
 @bp.route('/api/network')

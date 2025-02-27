@@ -5,6 +5,7 @@ from ..models.commission import Commission
 from ..models.user import User
 from ..models.company import Company
 from .. import db
+from ..models.commission_settings import CommissionSettings
 
 class CommissionService:
     """Service for handling commission-related operations"""
@@ -158,26 +159,71 @@ class CommissionService:
         if not company:
             raise ValueError(f"Company {company_id} not found")
         
-        # Check if the user is a commission partner
+        # Get the user who referred this company
         user = User.query.get(company.user_id)
-        partner = CommissionPartner.query.filter_by(user_id=user.id).first()
-        
-        if not partner:
-            # User is not a commission partner, nothing to do
+        if not user:
             return None
-        
+            
+        commissions_created = []
+            
         # Handle different status changes
         if new_status == 'client_signed':
-            # Client has signed up, create initial commission
+            # Create commission for the referring user (whether they're a partner or not)
             service_type = company.service_type or 'standard'
+            
+            # Check if user is a commission partner
+            partner = CommissionPartner.query.filter_by(user_id=user.id).first()
+            
+            if not partner:
+                # User is not a partner, create a temporary partner record for this user
+                partner = CommissionPartner(
+                    user_id=user.id,
+                    commission_tier='standard',
+                    metadata={'temporary': True, 'created_for_commission': True}
+                )
+                
+                db.session.add(partner)
+                db.session.commit()
+            
+            # Create direct commission for the partner (10% for first 2 years)
             commission = CommissionService.create_commission(
                 partner_id=partner.id,
                 company_id=company.id,
                 service_type=service_type,
-                is_initial_month=True,
+                is_initial_month=False,  # Not used anymore
                 month_number=1
             )
-            return commission
+            commissions_created.append(commission)
+            
+            # If this user was referred by another partner, create a network commission (2.5%)
+            if partner.referrer_id:
+                referrer_partner = CommissionPartner.query.get(partner.referrer_id)
+                if referrer_partner and referrer_partner.is_active:
+                    # Get base service price
+                    if service_type == 'professional':
+                        base_amount = 3000.0  # $3,000/month for Professional
+                    else:  # standard
+                        base_amount = 500.0   # $500/month for Standard
+                        
+                    # Create network commission for referrer (always 2.5%)
+                    network_rate = CommissionSettings.get_value('network_commission_rate', 0.025)
+                    
+                    referrer_commission = Commission(
+                        partner_id=referrer_partner.id,
+                        company_id=company.id,
+                        amount=base_amount * network_rate,
+                        service_type=service_type,
+                        is_initial_month=False,
+                        month_number=1,
+                        status='pending',
+                        metadata={'network_commission': True, 'referred_partner_id': partner.id}
+                    )
+                    
+                    db.session.add(referrer_commission)
+                    db.session.commit()
+                    commissions_created.append(referrer_commission)
+            
+            return commissions_created
         
         return None
     
@@ -203,30 +249,67 @@ class CommissionService:
             # Check if commission for this month already exists
             existing_commission = Commission.query.filter_by(
                 company_id=company.id,
-                month_number=months_active,
-                is_initial_month=False
+                month_number=months_active
             ).first()
             
             if existing_commission:
                 continue
             
-            # Check if the user is a commission partner
+            # Get the user who referred this company
             user = User.query.get(company.user_id)
+            if not user:
+                continue
+                
+            # Find or create a partner record for this user
             partner = CommissionPartner.query.filter_by(user_id=user.id).first()
             
             if not partner:
-                continue
+                # Create a temporary partner record
+                partner = CommissionPartner(
+                    user_id=user.id,
+                    commission_tier='standard',
+                    metadata={'temporary': True, 'created_for_commission': True}
+                )
+                db.session.add(partner)
+                db.session.commit()
             
-            # Create recurring commission
+            # Create recurring commission with appropriate month number
             service_type = company.service_type or 'standard'
             commission = CommissionService.create_commission(
                 partner_id=partner.id,
                 company_id=company.id,
                 service_type=service_type,
-                is_initial_month=False,
+                is_initial_month=False,  # Not used anymore
                 month_number=months_active
             )
-            
             commissions_created.append(commission)
+            
+            # If this user was referred by another partner, create a network commission (2.5%)
+            if partner.referrer_id:
+                referrer_partner = CommissionPartner.query.get(partner.referrer_id)
+                if referrer_partner and referrer_partner.is_active:
+                    # Get base service price
+                    if service_type == 'professional':
+                        base_amount = 3000.0  # $3,000/month for Professional
+                    else:  # standard
+                        base_amount = 500.0   # $500/month for Standard
+                    
+                    # Create network commission for referrer (always 2.5%)
+                    network_rate = CommissionSettings.get_value('network_commission_rate', 0.025)
+                    
+                    referrer_commission = Commission(
+                        partner_id=referrer_partner.id,
+                        company_id=company.id,
+                        amount=base_amount * network_rate,
+                        service_type=service_type,
+                        is_initial_month=False,
+                        month_number=months_active,
+                        status='pending',
+                        metadata={'network_commission': True, 'referred_partner_id': partner.id}
+                    )
+                    
+                    db.session.add(referrer_commission)
+                    db.session.commit()
+                    commissions_created.append(referrer_commission)
         
         return commissions_created 

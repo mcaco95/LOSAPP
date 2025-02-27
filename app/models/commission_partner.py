@@ -1,6 +1,7 @@
 from datetime import datetime
 from sqlalchemy.dialects.postgresql import JSONB
 from .. import db
+from .commission_settings import CommissionSettings
 
 class CommissionPartner(db.Model):
     """Model for tracking commission partners and their hierarchical relationships"""
@@ -36,20 +37,24 @@ class CommissionPartner(db.Model):
         """Get count of active partners directly referred by this partner"""
         return self.referred_partners.filter_by(is_active=True).count()
     
-    def get_commission_rate(self, service_type, is_initial_month=False):
-        """Get commission rate based on service type and month"""
+    def get_commission_rate(self, service_type, month_number=1):
+        """Get commission rate based on service type and month number"""
         # Check if partner has custom rates
         if self.custom_rates and self.partner_metadata and 'custom_rates' in self.partner_metadata:
             custom_rates = self.partner_metadata['custom_rates']
-            key = f"{service_type}_{'initial' if is_initial_month else 'recurring'}"
+            if month_number <= 24:  # First 2 years
+                key = f"{service_type}_first_2_years"
+            else:  # After 2 years
+                key = f"{service_type}_after_2_years"
+                
             if key in custom_rates:
                 return custom_rates[key]
         
-        # Default rates
-        if service_type == 'professional':
-            return 0.20 if is_initial_month else 0.025  # 20% initial, 2.5% recurring
-        else:  # standard
-            return 0.20 if is_initial_month else 0.025  # 20% initial, 2.5% recurring
+        # Get rates from settings
+        if month_number <= 24:  # First 2 years
+            return CommissionSettings.get_value('first_2_years_rate', 0.10)
+        else:  # After 2 years
+            return CommissionSettings.get_value('after_2_years_rate', 0.025)
     
     def to_dict(self):
         """Convert partner to dictionary"""

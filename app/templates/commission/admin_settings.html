@@ -1,0 +1,146 @@
+{% extends "base.html" %}
+
+{% block title %}Commission Settings{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">Commission Settings</h5>
+                    <div>
+                        <a href="{{ url_for('commission.admin_partners') }}" class="btn btn-sm btn-outline-primary">Partners</a>
+                        <a href="{{ url_for('commission.admin_commissions') }}" class="btn btn-sm btn-outline-primary">Commissions</a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <form action="{{ url_for('commission.admin_settings') }}" method="post">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <div class="card border">
+                                    <div class="card-header bg-primary text-white">
+                                        <h5 class="card-title mb-0">Direct Commission Rates</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="mb-3">
+                                            <label for="first_2_years_rate" class="form-label">First 2 Years Rate</label>
+                                            <div class="input-group">
+                                                <input type="number" step="0.01" min="0" max="1" class="form-control" id="first_2_years_rate" name="first_2_years_rate" value="{{ settings.first_2_years_rate }}" required>
+                                                <span class="input-group-text">%</span>
+                                            </div>
+                                            <div class="form-text">Commission rate for the first 2 years (24 months). Current value: {{ (settings.first_2_years_rate * 100)|round(1) }}%</div>
+                                        </div>
+                                        
+                                        <div class="mb-3">
+                                            <label for="after_2_years_rate" class="form-label">After 2 Years Rate</label>
+                                            <div class="input-group">
+                                                <input type="number" step="0.01" min="0" max="1" class="form-control" id="after_2_years_rate" name="after_2_years_rate" value="{{ settings.after_2_years_rate }}" required>
+                                                <span class="input-group-text">%</span>
+                                            </div>
+                                            <div class="form-text">Commission rate after 2 years (month 25+). Current value: {{ (settings.after_2_years_rate * 100)|round(1) }}%</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <div class="card border">
+                                    <div class="card-header bg-info text-white">
+                                        <h5 class="card-title mb-0">Network Commission Rates</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="mb-3">
+                                            <label for="network_commission_rate" class="form-label">Network Commission Rate</label>
+                                            <div class="input-group">
+                                                <input type="number" step="0.01" min="0" max="1" class="form-control" id="network_commission_rate" name="network_commission_rate" value="{{ settings.network_commission_rate }}" required>
+                                                <span class="input-group-text">%</span>
+                                            </div>
+                                            <div class="form-text">Commission rate for partners on their network's sales. Current value: {{ (settings.network_commission_rate * 100)|round(1) }}%</div>
+                                        </div>
+                                        
+                                        <div class="alert alert-info mt-3">
+                                            <div class="d-flex">
+                                                <div class="flex-shrink-0">
+                                                    <i class="fas fa-info-circle fa-lg mt-1"></i>
+                                                </div>
+                                                <div class="flex-grow-1 ms-3">
+                                                    <h5 class="alert-heading">Network Commission</h5>
+                                                    <p class="mb-0">Partners earn this percentage on sales made by users they've referred to the partner program.</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <div class="card border">
+                                    <div class="card-header bg-secondary text-white">
+                                        <h5 class="card-title mb-0">Commission Structure Overview</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="table-responsive">
+                                            <table class="table table-bordered">
+                                                <thead class="table-light">
+                                                    <tr>
+                                                        <th>Service Type</th>
+                                                        <th>Base Price</th>
+                                                        <th>First 2 Years</th>
+                                                        <th>After 2 Years</th>
+                                                        <th>Network Commission</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <tr>
+                                                        <td>Standard</td>
+                                                        <td>$500/month</td>
+                                                        <td>${{ (500 * settings.first_2_years_rate)|round(2) }} ({{ (settings.first_2_years_rate * 100)|round(1) }}%)</td>
+                                                        <td>${{ (500 * settings.after_2_years_rate)|round(2) }} ({{ (settings.after_2_years_rate * 100)|round(1) }}%)</td>
+                                                        <td>${{ (500 * settings.network_commission_rate)|round(2) }} ({{ (settings.network_commission_rate * 100)|round(1) }}%)</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>Professional</td>
+                                                        <td>$3,000/month</td>
+                                                        <td>${{ (3000 * settings.first_2_years_rate)|round(2) }} ({{ (settings.first_2_years_rate * 100)|round(1) }}%)</td>
+                                                        <td>${{ (3000 * settings.after_2_years_rate)|round(2) }} ({{ (settings.after_2_years_rate * 100)|round(1) }}%)</td>
+                                                        <td>${{ (3000 * settings.network_commission_rate)|round(2) }} ({{ (settings.network_commission_rate * 100)|round(1) }}%)</td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <button type="submit" class="btn btn-primary">Save Settings</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Format percentage inputs
+        const percentInputs = document.querySelectorAll('input[type="number"]');
+        percentInputs.forEach(input => {
+            input.addEventListener('change', function() {
+                // Ensure value is between 0 and 1
+                if (this.value < 0) this.value = 0;
+                if (this.value > 1) this.value = 1;
+            });
+        });
+    });
+</script>
+{% endblock %} 
