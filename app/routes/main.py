@@ -50,6 +50,11 @@ def user_dashboard():
         'progress_percentage': 0
     }
     
+    # Check if this is the user's first login
+    first_login = request.args.get('first_login', 'false') == 'true'
+    if first_login:
+        return redirect(url_for('main.welcome'))
+    
     # Get user's companies
     companies = company_service.get_user_companies(current_user.id)
     
@@ -318,3 +323,15 @@ def delete_company(company_id):
         flash(f'Error deleting company: {str(e)}', 'danger')
     
     return redirect(url_for('main.admin_companies'))
+
+@main.route('/welcome')
+@login_required
+def welcome():
+    """Welcome page for new users"""
+    return render_template('dashboard/welcome.html')
+
+@main.route('/resources')
+@login_required
+def resources():
+    """Resources and guidelines page"""
+    return render_template('dashboard/resources.html')

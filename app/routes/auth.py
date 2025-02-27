@@ -101,8 +101,12 @@ def register():
         db.session.add(user)
         db.session.commit()
         
+        # Log the user in
+        login_user(user)
+        
         flash('Registration successful')
-        return redirect(url_for('auth.login'))
+        # Redirect to welcome page for first-time users
+        return redirect(url_for('main.user_dashboard', first_login='true'))
     
     return render_template('auth/register.html', form=form)
 

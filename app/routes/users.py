@@ -3,6 +3,10 @@ from flask_login import login_required, current_user
 from werkzeug.utils import secure_filename
 import os
 import qrcode
+from qrcode.image.styledpil import StyledPilImage
+from qrcode.image.styles.moduledrawers import RoundedModuleDrawer
+from qrcode.image.styles.colormasks import RadialGradiantColorMask
+from PIL import Image, ImageDraw
 from io import BytesIO
 import base64
 from ..decorators import admin_required
@@ -86,11 +90,40 @@ def profile():
     password_form = ChangePasswordForm()
     picture_form = ProfilePictureForm()
     
-    # Generate QR code for referral link
-    qr = qrcode.QRCode(version=1, box_size=10, border=5)
-    qr.add_data(f"https://logisticsonesource.com/ref/{current_user.unique_link}")
+    # Generate QR code for referral link with the correct URL format
+    qr = qrcode.QRCode(
+        version=None,  # Let it determine the best version
+        error_correction=qrcode.constants.ERROR_CORRECT_H,  # High error correction for logo
+        box_size=10,
+        border=4
+    )
+    
+    # Use the /r/unique_link format for the referral URL
+    qr.add_data(f"{request.host_url}r/{current_user.unique_link}")
     qr.make(fit=True)
-    qr_img = qr.make_image(fill_color="black", back_color="white")
+    
+    # Create basic QR code in black
+    qr_img = qr.make_image(fill_color="black", back_color="white").convert('RGBA')
+    
+    # Load and prepare the logo
+    logo_path = os.path.join(current_app.static_folder, 'img/LOS_watermark_red.png')
+    logo = Image.open(logo_path).convert('RGBA')
+    
+    # Calculate logo size (about 25% of QR code)
+    qr_width, qr_height = qr_img.size
+    logo_size = int(qr_width * 0.25)
+    logo = logo.resize((logo_size, logo_size), Image.Resampling.LANCZOS)
+    
+    # Calculate position to center the logo
+    box = ((qr_width - logo_size) // 2, (qr_height - logo_size) // 2)
+    
+    # Create a mask for smooth edges
+    mask = Image.new('L', logo.size, 0)
+    draw = ImageDraw.Draw(mask)
+    draw.rounded_rectangle([(0, 0), (logo_size, logo_size)], radius=int(logo_size*0.1), fill=255)
+    
+    # Paste the logo onto the QR code
+    qr_img.paste(logo, box, mask)
     
     # Convert QR code to base64 for embedding in HTML
     buffered = BytesIO()

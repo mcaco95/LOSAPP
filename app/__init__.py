@@ -31,12 +31,16 @@ def create_app():
 
     with app.app_context():
         # Import models and routes
-        from .models import user, link_tracking, company, point_config, reward
+        from .models import user, link_tracking, company, point_config, reward, oauth
         from .routes import auth
         from .routes import main
         from .routes import referrals
         from .routes.users import users
         from .api.v1 import bp as api_v1_bp
+        
+        # Initialize OAuth
+        from .oauth import init_oauth
+        init_oauth(app)
         
         # Register blueprints
         app.register_blueprint(auth.bp)

@@ -171,6 +171,19 @@
           <span class="sidebar-text">My Profile</span>
         </a>
       </li>
+      
+      <li class="nav-item {% if request.endpoint == 'main.resources' %}active{% endif %}">
+        <a href="{{ url_for('main.resources') }}" class="nav-link" style="{% if not current_user.email == 'simon@logisticsonesource.com' %}border-left: 3px solid #e30613; background-color: rgba(227, 6, 19, 0.1);{% endif %}">
+          <span class="sidebar-icon">
+            <svg class="icon icon-xs me-2" fill="{% if request.endpoint == 'main.resources' %}#e30613{% else %}currentColor{% endif %}" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M9 4.804A7.968 7.968 0 005.5 4c-1.255 0-2.443.29-3.5.804v10A7.969 7.969 0 015.5 14c1.669 0 3.218.51 4.5 1.385A7.962 7.962 0 0114.5 14c1.255 0 2.443.29 3.5.804v-10A7.968 7.968 0 0014.5 4c-1.255 0-2.443.29-3.5.804V12a1 1 0 11-2 0V4.804z"></path></svg>
+          </span>
+          <span class="sidebar-text" style="{% if request.endpoint == 'main.resources' %}color: #e30613; font-weight: 600;{% endif %}">Resources</span>
+          {% if not current_user.email == 'simon@logisticsonesource.com' %}
+          <span class="badge rounded-pill bg-white text-dark ms-2" style="border: 1px solid #e30613; color: #0a1f44 !important; font-size: 0.65rem;">NEW</span>
+          {% endif %}
+        </a>
+      </li>
+
     </ul>
   </div>
 </nav>

@@ -1,0 +1,488 @@
+{% extends 'base.html' %}
+
+{% block title %}Resources & Guidelines - LOS Referral Program{% endblock %}
+
+{% block content %}
+<div class="py-4">
+    <div class="d-flex justify-content-between w-100 flex-wrap">
+        <div class="mb-3 mb-lg-0">
+            <h1 class="h4">Resources & Guidelines</h1>
+            <p class="mb-0 text-muted">Everything you need to know about the LOS Referral Program</p>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Navigation Section -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card border-0 shadow">
+            <div class="card-body p-4" style="background-color: #1a1a1a; border-left: 5px solid rgb(140, 8, 17);">
+                <h2 class="fs-5 fw-bold mb-3 text-white">Quick Navigation</h2>
+                <div class="row">
+                    <div class="col-md-3 col-sm-6 mb-3">
+                        <a href="#program-overview" class="card bg-white h-100 text-decoration-none">
+                            <div class="card-body p-3 text-center">
+                                <div class="icon-shape rounded-circle mx-auto mb-2" style="background-color: rgba(140, 8, 17, 0.1); width: 48px; height: 48px; display: flex; align-items: center; justify-content: center;">
+                                    <i class="fas fa-info-circle" style="color: rgb(140, 8, 17);"></i>
+                                </div>
+                                <h5 class="fs-6" style="color: #1a1a1a;">Program Overview</h5>
+                            </div>
+                        </a>
+                    </div>
+                    <div class="col-md-3 col-sm-6 mb-3">
+                        <a href="#how-it-works" class="card bg-white h-100 text-decoration-none">
+                            <div class="card-body p-3 text-center">
+                                <div class="icon-shape rounded-circle mx-auto mb-2" style="background-color: rgba(140, 8, 17, 0.1); width: 48px; height: 48px; display: flex; align-items: center; justify-content: center;">
+                                    <i class="fas fa-cogs" style="color: rgb(140, 8, 17);"></i>
+                                </div>
+                                <h5 class="fs-6" style="color: #0a1f44;">How It Works</h5>
+                            </div>
+                        </a>
+                    </div>
+                    <div class="col-md-3 col-sm-6 mb-3">
+                        <a href="#rewards" class="card bg-white h-100 text-decoration-none">
+                            <div class="card-body p-3 text-center">
+                                <div class="icon-shape rounded-circle mx-auto mb-2" style="background-color: rgba(140, 8, 17, 0.1); width: 48px; height: 48px; display: flex; align-items: center; justify-content: center;">
+                                    <i class="fas fa-gift" style="color: rgb(140, 8, 17);"></i>
+                                </div>
+                                <h5 class="fs-6" style="color: #0a1f44;">Points & Rewards</h5>
+                            </div>
+                        </a>
+                    </div>
+                    <div class="col-md-3 col-sm-6 mb-3">
+                        <a href="#support" class="card bg-white h-100 text-decoration-none">
+                            <div class="card-body p-3 text-center">
+                                <div class="icon-shape rounded-circle mx-auto mb-2" style="background-color: rgba(140, 8, 17, 0.1); width: 48px; height: 48px; display: flex; align-items: center; justify-content: center;">
+                                    <i class="fas fa-headset" style="color: rgb(140, 8, 17);"></i>
+                                </div>
+                                <h5 class="fs-6" style="color: #0a1f44;">Help & Support</h5>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Program Overview Section -->
+<div class="row mb-4" id="program-overview">
+    <div class="col-12">
+        <div class="card border-0 shadow">
+            <div class="card-header text-white" style="background-color: rgb(140, 8, 17);">
+                <h2 class="fs-5 fw-bold mb-0">Program Overview</h2>
+            </div>
+            <div class="card-body p-4">
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        <h3 class="fs-5 fw-bold mb-3">What is the LOS Referral Program?</h3>
+                        <p class="mb-3">The LOS Referral Program allows you to earn rewards by referring businesses that need logistics services to Logistics One Source. It's simple:</p>
+                        <ul class="list-group list-group-flush mb-4">
+                            <li class="list-group-item">
+                                <i class="fas fa-check-circle me-2" style="color: rgb(140, 8, 17);"></i>
+                                <strong>Share your unique referral link</strong> with potential clients
+                            </li>
+                            <li class="list-group-item">
+                                <i class="fas fa-check-circle me-2" style="color: rgb(140, 8, 17);"></i>
+                                <strong>When they fill out the form</strong>, our sales team takes over
+                            </li>
+                            <li class="list-group-item">
+                                <i class="fas fa-check-circle me-2" style="color: rgb(140, 8, 17);"></i>
+                                <strong>You earn points and commissions</strong> for successful referrals
+                            </li>
+                            <li class="list-group-item">
+                                <i class="fas fa-check-circle me-2" style="color: rgb(140, 8, 17);"></i>
+                                <strong>Track everything</strong> through your personalized dashboard
+                            </li>
+                        </ul>
+                        <p>Our internal sales team handles all client interactions after the initial referral, so you don't need to worry about follow-ups or closing deals.</p>
+                    </div>
+                    <div class="col-md-4 text-center">
+                        <div class="p-3 rounded-circle mx-auto mb-4" style="background-color: rgba(10, 31, 68, 0.1); width: 120px; height: 120px; display: flex; align-items: center; justify-content: center;">
+                            <i class="fas fa-handshake fa-4x" style="color: #0a1f44;"></i>
+                        </div>
+                        <a href="{{ url_for('main.user_dashboard') }}" class="btn" style="background-color: rgb(140, 8, 17); color: white;">
+                            <i class="fas fa-link me-2"></i> Get My Referral Link
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- How It Works Section -->
+<div class="row mb-4" id="how-it-works">
+    <div class="col-12">
+        <div class="card border-0 shadow">
+            <div class="card-header text-white" style="background-color: #1a1a1a;">
+                <h2 class="fs-5 fw-bold mb-0">How It Works</h2>
+            </div>
+            <div class="card-body p-4">
+                <div class="row">
+                    <div class="col-md-3 text-center mb-4 mb-md-0">
+                        <div class="icon-shape rounded-circle mx-auto mb-3" style="background-color: rgba(140, 8, 17, 0.1); width: 80px; height: 80px; display: flex; align-items: center; justify-content: center;">
+                            <i class="fas fa-link fa-2x" style="color: rgb(140, 8, 17);"></i>
+                        </div>
+                        <h4 class="fs-6 fw-bold">1. Share Your Link</h4>
+                        <p class="small">Share your unique referral link with potential clients who need logistics services</p>
+                    </div>
+                    <div class="col-md-3 text-center mb-4 mb-md-0">
+                        <div class="icon-shape rounded-circle mx-auto mb-3" style="background-color: rgba(140, 8, 17, 0.1); width: 80px; height: 80px; display: flex; align-items: center; justify-content: center;">
+                            <i class="fas fa-clipboard-list fa-2x" style="color: rgb(140, 8, 17);"></i>
+                        </div>
+                        <h4 class="fs-6 fw-bold">2. Client Submits Form</h4>
+                        <p class="small">When they click your link and submit the form, our system tracks it as your referral</p>
+                    </div>
+                    <div class="col-md-3 text-center mb-4 mb-md-0">
+                        <div class="icon-shape rounded-circle mx-auto mb-3" style="background-color: rgba(140, 8, 17, 0.1); width: 80px; height: 80px; display: flex; align-items: center; justify-content: center;">
+                            <i class="fas fa-users fa-2x" style="color: rgb(140, 8, 17);"></i>
+                        </div>
+                        <h4 class="fs-6 fw-bold">3. Sales Team Takes Over</h4>
+                        <p class="small">Our internal sales team contacts the lead and handles the entire sales process</p>
+                    </div>
+                    <div class="col-md-3 text-center">
+                        <div class="icon-shape rounded-circle mx-auto mb-3" style="background-color: rgba(140, 8, 17, 0.1); width: 80px; height: 80px; display: flex; align-items: center; justify-content: center;">
+                            <i class="fas fa-dollar-sign fa-2x" style="color: rgb(140, 8, 17);"></i>
+                        </div>
+                        <h4 class="fs-6 fw-bold">4. You Earn Rewards</h4>
+                        <p class="small">When the referral becomes a client, you earn points and commission</p>
+                    </div>
+                </div>
+                
+                <div class="mt-4 p-3" style="background-color: #f8f9fa; border-left: 3px solid #0a1f44;">
+                    <h4 class="fs-6 fw-bold">System Features:</h4>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <ul class="list-unstyled mb-0">
+                                <li class="mb-2"><i class="fas fa-check-circle me-2" style="color: rgb(140, 8, 17);"></i> Real-time tracking of all your referrals</li>
+                                <li class="mb-2"><i class="fas fa-check-circle me-2" style="color: rgb(140, 8, 17);"></i> Personalized dashboard to monitor progress</li>
+                                <li><i class="fas fa-check-circle me-2" style="color: rgb(140, 8, 17);"></i> Automatic point accumulation</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <ul class="list-unstyled mb-0">
+                                <li class="mb-2"><i class="fas fa-check-circle me-2" style="color: rgb(140, 8, 17);"></i> Commission tracking and history</li>
+                                <li class="mb-2"><i class="fas fa-check-circle me-2" style="color: rgb(140, 8, 17);"></i> Reward redemption options</li>
+                                <li><i class="fas fa-check-circle me-2" style="color: rgb(140, 8, 17);"></i> Performance analytics</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Points and Rewards Section -->
+<div class="row" id="rewards">
+    <div class="col-12 col-xl-8 mb-4">
+        <div class="card border-0 shadow">
+            <div class="card-header text-white" style="background-color: rgb(140, 8, 17);">
+                <h2 class="fs-5 fw-bold mb-0">Points & Rewards System</h2>
+            </div>
+            <div class="card-body p-4">
+                <!-- Points System -->
+                <div class="mb-4">
+                    <h3 class="fs-5 fw-bold mb-3">Point System</h3>
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Stage</th>
+                                    <th>Action</th>
+                                    <th>Points</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><strong>Lead Generation</strong></td>
+                                    <td>Referral form completed</td>
+                                    <td><span class="badge bg-success">2 pts</span></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Engagement</strong></td>
+                                    <td>Demo scheduled</td>
+                                    <td><span class="badge bg-success">5 pts</span></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Completed</strong></td>
+                                    <td>Demo completed</td>
+                                    <td><span class="badge bg-success">15 pts</span></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Conversion</strong></td>
+                                    <td>Client signed up</td>
+                                    <td><span class="badge bg-success">50 pts</span></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Retention</strong></td>
+                                    <td>Client renewed</td>
+                                    <td><span class="badge bg-success">25 pts</span></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Upsell</strong></td>
+                                    <td>Client upgrades plan</td>
+                                    <td><span class="badge bg-success">35 pts</span></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Partner Network</strong></td>
+                                    <td>Referral partners have a client sign up</td>
+                                    <td><span class="badge bg-success">25 pts</span></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Additional Bonuses -->
+                <div class="mb-4">
+                    <h3 class="fs-5 fw-bold mb-3">Additional Bonuses</h3>
+                    <div class="card bg-light">
+                        <div class="card-body">
+                            <ul class="list-unstyled mb-0">
+                                <li class="mb-2">
+                                    <i class="fas fa-award me-2" style="color: rgb(140, 8, 17);"></i>
+                                    <strong>Fast-Track Bonus:</strong> Double points if client signs up within 30 days of demo
+                                </li>
+                                <li class="mb-2">
+                                    <i class="fas fa-star me-2" style="color: rgb(140, 8, 17);"></i>
+                                    <strong>High-Value Client Bonus:</strong> Extra 30 points for Professional Plan signups
+                                </li>
+                                <li>
+                                    <i class="fas fa-trophy me-2" style="color: rgb(140, 8, 17);"></i>
+                                    <strong>Consistent Closer Bonus:</strong> Extra 50 points per client for 3+ clients in a quarter
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Commission Structure -->
+                <div class="mb-4">
+                    <h3 class="fs-5 fw-bold mb-3">Commission Structure</h3>
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Service Level</th>
+                                    <th>Years 1-2</th>
+                                    <th>Year 3+</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>
+                                        <strong>Professional Service</strong><br>
+                                        <small class="text-muted">$3,000/month</small>
+                                    </td>
+                                    <td>
+                                        10%<br>
+                                        <span class="text-success">$300/month</span>
+                                    </td>
+                                    <td>
+                                        2.5%<br>
+                                        <span class="text-success">$75/month</span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <strong>Standard Service</strong><br>
+                                        <small class="text-muted">$500/month</small>
+                                    </td>
+                                    <td>
+                                        10%<br>
+                                        <span class="text-success">$50/month</span>
+                                    </td>
+                                    <td>
+                                        2.5%<br>
+                                        <span class="text-success">$12.50/month</span>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Rewards Tiers -->
+                <div class="mb-4">
+                    <h3 class="fs-5 fw-bold mb-3">Rewards Based on Points</h3>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <div class="card h-100 border-0 shadow-sm">
+                                <div class="card-body">
+                                    <h4 class="fs-6 fw-bold">500 Points</h4>
+                                    <p class="mb-0">Gift card reward</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <div class="card h-100 border-0 shadow-sm">
+                                <div class="card-body">
+                                    <h4 class="fs-6 fw-bold">1,000 Points</h4>
+                                    <p class="mb-0">Earn renewal commission</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <div class="card h-100 border-0 shadow-sm">
+                                <div class="card-body">
+                                    <h4 class="fs-6 fw-bold">2,500 Points</h4>
+                                    <p class="mb-0">Higher commission % for remainder of the year</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <div class="card h-100 border-0 shadow-sm">
+                                <div class="card-body">
+                                    <h4 class="fs-6 fw-bold">5,000 Points</h4>
+                                    <p class="mb-0">Premium reward (tech gadget, paid experience)</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <p class="small mt-3">Note: Points can roll over to next quarter as long as activity is registered within that quarter.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- FAQ Card -->
+    <div class="col-12 col-xl-4 mb-4">
+        <div class="card border-0 shadow">
+            <div class="card-header text-white" style="background-color: #1a1a1a;">
+                <h2 class="fs-5 fw-bold mb-0">Frequently Asked Questions</h2>
+            </div>
+            <div class="card-body">
+                <div class="accordion" id="faqAccordion">
+                    <div class="accordion-item border mb-2">
+                        <h2 class="accordion-header" id="headingOne">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="false" aria-controls="collapseOne" style="color: #0a1f44; font-weight: 600;">
+                                How soon will I receive my commission?
+                            </button>
+                        </h2>
+                        <div id="collapseOne" class="accordion-collapse collapse" aria-labelledby="headingOne" data-bs-parent="#faqAccordion">
+                            <div class="accordion-body">
+                                Commissions are processed at the end of each month. You'll receive your initial commission after the client's first payment, and recurring commissions will be paid monthly thereafter.
+                            </div>
+                        </div>
+                    </div>
+                    <div class="accordion-item border mb-2">
+                        <h2 class="accordion-header" id="headingTwo">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo" style="color: #0a1f44; font-weight: 600;">
+                                How do I track my referrals?
+                            </button>
+                        </h2>
+                        <div id="collapseTwo" class="accordion-collapse collapse" aria-labelledby="headingTwo" data-bs-parent="#faqAccordion">
+                            <div class="accordion-body">
+                                You can track all your referrals in real-time through your dashboard. Each referral's status is updated as they progress through our sales pipeline.
+                            </div>
+                        </div>
+                    </div>
+                    <div class="accordion-item border mb-2">
+                        <h2 class="accordion-header" id="headingThree">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree" style="color: #0a1f44; font-weight: 600;">
+                                What happens if a referral cancels?
+                            </button>
+                        </h2>
+                        <div id="collapseThree" class="accordion-collapse collapse" aria-labelledby="headingThree" data-bs-parent="#faqAccordion">
+                            <div class="accordion-body">
+                                You'll keep any points and commissions already earned. Recurring commissions will stop when the client cancels their service.
+                            </div>
+                        </div>
+                    </div>
+                    <div class="accordion-item border mb-2">
+                        <h2 class="accordion-header" id="headingFour">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFour" aria-expanded="false" aria-controls="collapseFour" style="color: #0a1f44; font-weight: 600;">
+                                How do I redeem my points?
+                            </button>
+                        </h2>
+                        <div id="collapseFour" class="accordion-collapse collapse" aria-labelledby="headingFour" data-bs-parent="#faqAccordion">
+                            <div class="accordion-body">
+                                You can redeem your points for rewards in the Rewards section of your dashboard. Simply select the reward you want and click "Redeem."
+                            </div>
+                        </div>
+                    </div>
+                    <div class="accordion-item border">
+                        <h2 class="accordion-header" id="headingFive">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFive" aria-expanded="false" aria-controls="collapseFive" style="color: #0a1f44; font-weight: 600;">
+                                Do I need to follow up with my referrals?
+                            </button>
+                        </h2>
+                        <div id="collapseFive" class="accordion-collapse collapse" aria-labelledby="headingFive" data-bs-parent="#faqAccordion">
+                            <div class="accordion-body">
+                                No, our internal sales team handles all follow-up and sales processes. Once a lead submits the form through your link, you can relax while we take care of the rest.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Support Section -->
+<div class="row" id="support">
+    <div class="col-12 mb-4">
+        <div class="card border-0 shadow">
+            <div class="card-header text-white" style="background-color: #1a1a1a;">
+                <h2 class="fs-5 fw-bold mb-0">Need Help?</h2>
+            </div>
+            <div class="card-body p-4">
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        <p class="lead mb-4">
+                            Our team is here to support your referral efforts. If you have any questions or need assistance, don't hesitate to reach out.
+                        </p>
+                        <div class="d-flex mb-3">
+                            <div class="icon-shape rounded-circle me-3" style="background-color: rgba(140, 8, 17, 0.1); width: 48px; height: 48px; display: flex; align-items: center; justify-content: center;">
+                                <i class="fas fa-envelope" style="color: rgb(140, 8, 17);"></i>
+                            </div>
+                            <div>
+                                <h4 class="fs-6 fw-bold">Email Support</h4>
+                                <p class="mb-0">support@logisticsonesource.com</p>
+                            </div>
+                        </div>
+                        <div class="d-flex">
+                            <div class="icon-shape rounded-circle me-3" style="background-color: rgba(140, 8, 17, 0.1); width: 48px; height: 48px; display: flex; align-items: center; justify-content: center;">
+                                <i class="fas fa-phone" style="color: rgb(140, 8, 17);"></i>
+                            </div>
+                            <div>
+                                <h4 class="fs-6 fw-bold">Phone Support</h4>
+                                <p class="mb-0">(555) 123-4567 (Mon-Fri, 9am-5pm EST)</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4 text-center">
+                        <a href="#" class="btn btn-lg mt-3" style="background-color:rgb(140, 8, 17); color: white;">
+                            <i class="fas fa-calendar-alt me-2"></i> Schedule a Strategy Call
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Footer Banner -->
+<div class="row">
+    <div class="col-12 mb-4">
+        <div class="card border-0 shadow">
+            <div class="card-body p-0">
+                <div class="p-4 text-center" style="background-color: #f8f9fa; border-top: 4px solid rgb(140, 8, 17);">
+                    <h3 class="fw-bold mb-3" style="color: #0a1f44;">Ready to start referring?</h3>
+                    <p class="lead mb-4">Get your unique referral link and start earning rewards today!</p>
+                    <div class="d-flex justify-content-center gap-3">
+                        <a href="{{ url_for('main.user_dashboard') }}" class="btn" style="background-color: #1a1a1a; color: white;">
+                            <i class="fas fa-tachometer-alt me-2"></i> Go to Dashboard
+                        </a>
+                        <a href="{{ url_for('users.profile') }}" class="btn" style="background-color: rgb(140, 8, 17); color: white;">
+                            <i class="fas fa-link me-2"></i> Get My Referral Link
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 
