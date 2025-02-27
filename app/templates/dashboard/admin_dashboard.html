@@ -1,0 +1,126 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard{% endblock %}
+
+{% block content %}
+<div class="py-4">
+    <div class="row">
+        <div class="col-12 col-sm-6 col-xl-3 mb-4">
+            <div class="card border-0 shadow">
+                <div class="card-body">
+                    <div class="row d-block d-xl-flex align-items-center">
+                        <div class="col-12 col-xl-5 text-xl-center mb-3 mb-xl-0 d-flex align-items-center justify-content-xl-center">
+                            <div class="icon-shape icon-shape-primary rounded me-4 me-sm-0">
+                                <i class="fas fa-users"></i>
+                            </div>
+                        </div>
+                        <div class="col-12 col-xl-7 px-xl-0">
+                            <h2 class="h6 text-gray-400 mb-0">Total Users</h2>
+                            <h3 class="fw-extrabold mb-2">{{ metrics.total_users }}</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-sm-6 col-xl-3 mb-4">
+            <div class="card border-0 shadow">
+                <div class="card-body">
+                    <div class="row d-block d-xl-flex align-items-center">
+                        <div class="col-12 col-xl-5 text-xl-center mb-3 mb-xl-0 d-flex align-items-center justify-content-xl-center">
+                            <div class="icon-shape icon-shape-secondary rounded me-4 me-sm-0">
+                                <i class="fas fa-star"></i>
+                            </div>
+                        </div>
+                        <div class="col-12 col-xl-7 px-xl-0">
+                            <h2 class="h6 text-gray-400 mb-0">Total Points</h2>
+                            <h3 class="fw-extrabold mb-2">{{ metrics.total_points }}</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Point Transactions Table -->
+    <div class="card border-0 shadow mb-4">
+        <div class="card-header">
+            <h5 class="mb-0">Point Transactions</h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-centered table-nowrap mb-0 rounded">
+                    <thead class="thead-light">
+                        <tr>
+                            <th class="border-0">User</th>
+                            <th class="border-0">Points</th>
+                            <th class="border-0">Reason</th>
+                            <th class="border-0">Type</th>
+                            <th class="border-0">Balance</th>
+                            <th class="border-0">Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for tx in point_transactions %}
+                        <tr>
+                            <td>{{ tx.user_email }}</td>
+                            <td>
+                                <span class="text-{{ 'success' if tx.amount > 0 else 'danger' }}">
+                                    {{ '+' if tx.amount > 0 else '' }}{{ tx.amount }}
+                                </span>
+                            </td>
+                            <td>{{ tx.reason }}</td>
+                            <td>
+                                <span class="badge bg-{{ 'primary' if tx.activity_type == 'status_change' else 'info' }}">
+                                    {{ tx.activity_type }}
+                                </span>
+                            </td>
+                            <td>{{ tx.balance_after }}</td>
+                            <td>{{ tx.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="6" class="text-center">No transactions found</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Top Performers Table -->
+    <div class="card border-0 shadow mb-4">
+        <div class="card-header">
+            <h5 class="mb-0">Top Performers</h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-centered table-nowrap mb-0 rounded">
+                    <thead class="thead-light">
+                        <tr>
+                            <th class="border-0">Rank</th>
+                            <th class="border-0">User</th>
+                            <th class="border-0">Points</th>
+                            <th class="border-0">Stats</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for user in top_performers %}
+                        <tr>
+                            <td>#{{ loop.index }}</td>
+                            <td>{{ user.email }}</td>
+                            <td>{{ user.points }}</td>
+                            <td>{{ user.stats }}</td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="4" class="text-center">No users found</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

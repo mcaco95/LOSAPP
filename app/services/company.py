@@ -8,7 +8,7 @@ class CompanyService:
     """Service for handling company-related operations"""
 
     @staticmethod
-    def create_company(name, user_id, status='new', metadata=None):
+    def create_company(name, user_id, status='lead', metadata=None):
         """Create a new company referral"""
         user = User.query.get(user_id)
         if not user:
@@ -24,6 +24,20 @@ class CompanyService:
         try:
             db.session.add(company)
             db.session.commit()
+            
+            # Award points for lead generation
+            points_awarded = PointService.award_points_for_status(company.id, status)
+            
+            # Update the status history with the points (without changing status)
+            if not company.company_metadata:
+                company.company_metadata = {}
+            if 'status_history' not in company.company_metadata:
+                company.company_metadata['status_history'] = []
+            
+            # Record initial status with points
+            company.company_metadata['status_history'][0]['points_awarded'] = points_awarded
+            db.session.commit()
+            
             return company
         except Exception as e:
             db.session.rollback()

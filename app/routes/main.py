@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template, redirect, request, url_for, jsonify, flash, current_app, abort
 from flask_login import login_required, current_user
 from datetime import datetime, timedelta
-from sqlalchemy import func
+from sqlalchemy import func, text
 from app.services.points import PointService
 from app.services.company import CompanyService
 from app.services.reward import RewardService
@@ -71,54 +71,49 @@ def user_dashboard():
 @login_required
 @admin_required
 def admin_dashboard():
-    """Admin dashboard route"""
     try:
-        point_service = PointService()
-        company_service = CompanyService()
-        
         # Get system metrics
-        try:
-            metrics = point_service.get_system_metrics()
-        except Exception as e:
-            print(f"Error getting metrics: {str(e)}")
-            metrics = {'total_users': 0, 'total_points': 0, 'user_growth': 0, 'points_growth': 0}
+        metrics = PointService.get_system_metrics()
         
-        # Get recent activity
-        try:
-            recent_activity = point_service.get_recent_activity()
-        except Exception as e:
-            print(f"Error getting recent activity: {str(e)}")
-            recent_activity = []
+        # Get point transactions
+        point_transactions_query = text("""
+            SELECT 
+                pt.id,
+                u.email as user_email,
+                pt.amount,
+                pt.reason,
+                pt.timestamp,
+                pt.activity_type,
+                pt.balance_after,
+                pt.transaction_metadata
+            FROM point_transaction pt
+            JOIN "user" u ON pt.user_id = u.id
+            ORDER BY pt.timestamp DESC
+            LIMIT 50
+        """)
+        point_transactions = db.session.execute(point_transactions_query).fetchall()
         
-        # Get status changes history
-        try:
-            status_changes = company_service.get_status_changes_history()
-        except Exception as e:
-            print(f"Error getting status changes: {str(e)}")
-            status_changes = []
+        # Get recent status changes
+        recent_changes = CompanyService.get_recent_status_changes(limit=10)
         
         # Get top performers
-        try:
-            top_performers = point_service.get_top_users(limit=5)
-        except Exception as e:
-            print(f"Error getting top performers: {str(e)}")
-            top_performers = []
+        top_performers = PointService.get_top_users(limit=10)
         
         return render_template(
-            'dashboard/admin/index.html',
+            'dashboard/admin_dashboard.html',
             metrics=metrics,
-            recent_activity=recent_activity,
-            status_changes=status_changes,
+            point_transactions=point_transactions,
+            recent_changes=recent_changes,
             top_performers=top_performers
         )
     except Exception as e:
-        print(f"Critical error in admin_dashboard: {str(e)}")
-        flash('Error loading dashboard. Some features may be unavailable.', 'error')
+        print(f"Error in admin dashboard: {str(e)}")
+        flash('Error loading dashboard data', 'error')
         return render_template(
-            'dashboard/admin/index.html',
-            metrics={'total_users': 0, 'total_points': 0, 'user_growth': 0, 'points_growth': 0},
-            recent_activity=[],
-            status_changes=[],
+            'dashboard/admin_dashboard.html',
+            metrics={},
+            point_transactions=[],
+            recent_changes=[],
             top_performers=[]
         )
 
