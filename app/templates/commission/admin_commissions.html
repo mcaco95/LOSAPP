@@ -56,6 +56,63 @@
 
 {% block content %}
 <div class="container-fluid">
+    <!-- Summary Cards Row -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card bg-primary text-white">
+                <div class="card-body py-3">
+                    <div class="d-flex align-items-center">
+                        <i class="align-middle me-3 fas fa-fw fa-dollar-sign fa-2x"></i>
+                        <div>
+                            <h5 class="card-title mb-0">Total</h5>
+                            <h2 class="mt-2 mb-0">${{ "{:,.2f}".format(summary.total) }}</h2>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-success text-white">
+                <div class="card-body py-3">
+                    <div class="d-flex align-items-center">
+                        <i class="align-middle me-3 fas fa-fw fa-check-circle fa-2x"></i>
+                        <div>
+                            <h5 class="card-title mb-0">Paid</h5>
+                            <h2 class="mt-2 mb-0">${{ "{:,.2f}".format(summary.paid) }}</h2>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-warning text-white">
+                <div class="card-body py-3">
+                    <div class="d-flex align-items-center">
+                        <i class="align-middle me-3 fas fa-fw fa-clock fa-2x"></i>
+                        <div>
+                            <h5 class="card-title mb-0">Pending</h5>
+                            <h2 class="mt-2 mb-0">${{ "{:,.2f}".format(summary.pending) }}</h2>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-danger text-white">
+                <div class="card-body py-3">
+                    <div class="d-flex align-items-center">
+                        <i class="align-middle me-3 fas fa-fw fa-ban fa-2x"></i>
+                        <div>
+                            <h5 class="card-title mb-0">Cancelled</h5>
+                            <h2 class="mt-2 mb-0">${{ "{:,.2f}".format(summary.cancelled) }}</h2>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
     <div class="row">
         <div class="col-12">
             <div class="card">
@@ -76,17 +133,17 @@
                                 <a href="{{ url_for('commission.admin_commissions', status='cancelled') }}" class="btn btn-outline-danger {{ 'active' if request.args.get('status') == 'cancelled' }}">Cancelled</a>
                             </div>
                         </div>
-                        <div class="col-md-6 text-end">
-                            <div class="input-group" style="max-width: 300px; float: right;">
+                        <div class="col-md-6">
+                            <div class="input-group">
                                 <input type="text" class="form-control" id="searchInput" placeholder="Search commissions...">
-                                <button class="btn btn-outline-secondary" type="button">
+                                <span class="input-group-text">
                                     <i class="fas fa-search"></i>
-                                </button>
+                                </span>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Commissions Table -->
+                    <!-- Table -->
                     <div class="table-responsive">
                         <table class="table table-striped table-hover" id="commissionsTable">
                             <thead>
@@ -106,30 +163,17 @@
                                 {% for commission in commissions %}
                                 <tr>
                                     <td>#{{ commission.id }}</td>
-                                    <td>
-                                        <div class="d-flex align-items-center">
-                                            <div class="avatar avatar-sm me-2 bg-primary">
-                                                <div class="avatar-content">{{ commission.partner.user.name[:1] if commission.partner.user.name else commission.partner.user.username[:1] }}</div>
-                                            </div>
-                                            <div>{{ commission.partner.user.name or commission.partner.user.username }}</div>
-                                        </div>
-                                    </td>
+                                    <td>{{ commission.partner.user.name or commission.partner.user.username }}</td>
                                     <td>{{ commission.company.name }}</td>
-                                    <td>
-                                        {% if commission.service_type == 'professional' %}
-                                            <span class="badge bg-primary">Professional</span>
-                                        {% else %}
-                                            <span class="badge bg-secondary">Standard</span>
-                                        {% endif %}
-                                    </td>
+                                    <td>{{ commission.service_type }}</td>
                                     <td>
                                         {% if commission.is_initial_month %}
-                                            <span class="badge bg-info">Initial</span>
+                                            Initial Month
                                         {% else %}
                                             Month {{ commission.month_number }}
                                         {% endif %}
                                     </td>
-                                    <td>${{ "%.2f"|format(commission.amount) }}</td>
+                                    <td>${{ "{:,.2f}".format(commission.amount) }}</td>
                                     <td>
                                         {% if commission.status == 'pending' %}
                                             <span class="badge bg-warning">Pending</span>
@@ -198,128 +242,37 @@
                     </div>
 
                     <!-- Pagination -->
-                    {% if commissions and commissions|length > 20 %}
-                    <nav aria-label="Page navigation" class="mt-4">
+                    {% if pagination.pages > 1 %}
+                    <nav aria-label="Commission pagination" class="mt-4">
                         <ul class="pagination justify-content-center">
-                            <li class="page-item disabled">
-                                <a class="page-link" href="#" tabindex="-1">Previous</a>
+                            <li class="page-item {{ 'disabled' if not pagination.has_prev }}">
+                                <a class="page-link" href="{{ url_for('commission.admin_commissions', page=pagination.prev_num, status=request.args.get('status', '')) if pagination.has_prev else '#' }}">
+                                    <i class="fas fa-chevron-left"></i>
+                                </a>
                             </li>
-                            <li class="page-item active"><a class="page-link" href="#">1</a></li>
-                            <li class="page-item"><a class="page-link" href="#">2</a></li>
-                            <li class="page-item"><a class="page-link" href="#">3</a></li>
-                            <li class="page-item">
-                                <a class="page-link" href="#">Next</a>
+                            
+                            {% for page_num in pagination.iter_pages(left_edge=2, left_current=2, right_current=3, right_edge=2) %}
+                                {% if page_num %}
+                                    <li class="page-item {{ 'active' if page_num == pagination.page }}">
+                                        <a class="page-link" href="{{ url_for('commission.admin_commissions', page=page_num, status=request.args.get('status', '')) }}">
+                                            {{ page_num }}
+                                        </a>
+                                    </li>
+                                {% else %}
+                                    <li class="page-item disabled">
+                                        <span class="page-link">...</span>
+                                    </li>
+                                {% endif %}
+                            {% endfor %}
+                            
+                            <li class="page-item {{ 'disabled' if not pagination.has_next }}">
+                                <a class="page-link" href="{{ url_for('commission.admin_commissions', page=pagination.next_num, status=request.args.get('status', '')) if pagination.has_next else '#' }}">
+                                    <i class="fas fa-chevron-right"></i>
+                                </a>
                             </li>
                         </ul>
                     </nav>
                     {% endif %}
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Commission Summary -->
-    <div class="row mt-4">
-        <div class="col-md-6">
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="card-title mb-0">Commission Summary</h5>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-4">
-                            <div class="card bg-primary text-white">
-                                <div class="card-body py-3">
-                                    <div class="d-flex align-items-center">
-                                        <i class="align-middle me-3 fas fa-fw fa-dollar-sign fa-2x"></i>
-                                        <div>
-                                            <h5 class="card-title mb-0">Total</h5>
-                                            <h2 class="mt-2 mb-0">${{ "%.2f"|format(commissions|map(attribute='amount')|sum) }}</h2>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="card bg-success text-white">
-                                <div class="card-body py-3">
-                                    <div class="d-flex align-items-center">
-                                        <i class="align-middle me-3 fas fa-fw fa-check-circle fa-2x"></i>
-                                        <div>
-                                            <h5 class="card-title mb-0">Paid</h5>
-                                            <h2 class="mt-2 mb-0">${{ "%.2f"|format(commissions|selectattr('status', 'equalto', 'paid')|map(attribute='amount')|sum) }}</h2>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="card bg-warning text-white">
-                                <div class="card-body py-3">
-                                    <div class="d-flex align-items-center">
-                                        <i class="align-middle me-3 fas fa-fw fa-clock fa-2x"></i>
-                                        <div>
-                                            <h5 class="card-title mb-0">Pending</h5>
-                                            <h2 class="mt-2 mb-0">${{ "%.2f"|format(commissions|selectattr('status', 'equalto', 'pending')|map(attribute='amount')|sum) }}</h2>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="mt-4">
-                        <h6>Commission Distribution</h6>
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="chart-container" style="position: relative; height: 250px; width: 100%;">
-                                    <canvas id="commissionChart"></canvas>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="chart-container" style="position: relative; height: 250px; width: 100%;">
-                                    <canvas id="partnerCommissionChart"></canvas>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-6">
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="card-title mb-0">Bulk Actions</h5>
-                </div>
-                <div class="card-body">
-                    <div class="mb-4">
-                        <h6>Process Monthly Commissions</h6>
-                        <p>Generate recurring commissions for all active clients.</p>
-                        <button type="button" class="btn btn-primary" id="processMonthlyBtn">
-                            <i class="fas fa-sync-alt me-1"></i> Process Monthly Commissions
-                        </button>
-                    </div>
-                    
-                    <div class="mb-4">
-                        <h6>Mark Pending Commissions as Paid</h6>
-                        <p>Mark all pending commissions as paid in bulk.</p>
-                        <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#bulkPayModal">
-                            <i class="fas fa-check-circle me-1"></i> Pay All Pending Commissions
-                        </button>
-                    </div>
-                    
-                    <div>
-                        <h6>Export Commissions</h6>
-                        <p>Export commission data for accounting purposes.</p>
-                        <div class="btn-group">
-                            <button type="button" class="btn btn-outline-primary" id="exportCsvBtn">
-                                <i class="fas fa-file-csv me-1"></i> Export CSV
-                            </button>
-                            <button type="button" class="btn btn-outline-primary" id="exportExcelBtn">
-                                <i class="fas fa-file-excel me-1"></i> Export Excel
-                            </button>
-                        </div>
-                    </div>
                 </div>
             </div>
         </div>
@@ -471,7 +424,7 @@
             </div>
             <div class="modal-body">
                 <p>Are you sure you want to mark all pending commissions as paid?</p>
-                <p>This will affect <strong id="pendingCount">{{ commissions|selectattr('status', 'equalto', 'pending')|list|length }}</strong> commissions totaling <strong id="pendingTotal">${{ "%.2f"|format(commissions|selectattr('status', 'equalto', 'pending')|map(attribute='amount')|sum) }}</strong>.</p>
+                <p>This will affect <strong id="pendingCount">{{ commissions|selectattr('status', 'equalto', 'pending')|list|length }}</strong> commissions totaling <strong id="pendingTotal">${{ "{:,.2f}".format(commissions|selectattr('status', 'equalto', 'pending')|map(attribute='amount')|sum) }}</strong>.</p>
                 <p>This action cannot be undone.</p>
             </div>
             <div class="modal-footer">

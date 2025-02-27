@@ -138,13 +138,34 @@ def admin_partners():
 @admin_required
 def admin_commissions():
     """Admin view of all commissions"""
+    page = request.args.get('page', 1, type=int)
+    per_page = 20  # Number of items per page
     status_filter = request.args.get('status')
-    if status_filter:
-        commissions_list = Commission.query.filter_by(status=status_filter).order_by(Commission.created_at.desc()).all()
-    else:
-        commissions_list = Commission.query.order_by(Commission.created_at.desc()).all()
     
-    return render_template('commission/admin_commissions.html', commissions=commissions_list)
+    # Base query
+    query = Commission.query.order_by(Commission.created_at.desc())
+    
+    # Apply status filter if provided
+    if status_filter:
+        query = query.filter_by(status=status_filter)
+    
+    # Get paginated results
+    pagination = query.paginate(page=page, per_page=per_page, error_out=False)
+    commissions_list = pagination.items
+    
+    # Calculate summary stats for all commissions (not just current page)
+    all_commissions = query.all()
+    summary = {
+        'total': sum(c.amount for c in all_commissions),
+        'paid': sum(c.amount for c in all_commissions if c.status == 'paid'),
+        'pending': sum(c.amount for c in all_commissions if c.status == 'pending'),
+        'cancelled': sum(c.amount for c in all_commissions if c.status == 'cancelled')
+    }
+    
+    return render_template('commission/admin_commissions.html', 
+                         commissions=commissions_list,
+                         pagination=pagination,
+                         summary=summary)
 
 @bp.route('/admin/commission/<int:commission_id>/mark-paid', methods=['POST'])
 @login_required

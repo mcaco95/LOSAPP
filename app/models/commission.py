@@ -75,8 +75,13 @@ class Commission(db.Model):
         else:  # standard
             base_amount = 500.0   # $500/month for Standard
         
-        # Get commission rate based on month number
-        rate = partner.get_commission_rate(service_type, month_number)
+        # Get commission rate based on month number and whether it's initial month
+        if is_initial_month:
+            # Initial month always uses first_2_years_rate
+            rate = partner.get_commission_rate(service_type, month_number=1)
+        else:
+            # Recurring commissions use rate based on month number
+            rate = partner.get_commission_rate(service_type, month_number)
         
         # Calculate commission amount
         commission_amount = base_amount * rate
