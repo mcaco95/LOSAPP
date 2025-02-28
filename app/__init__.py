@@ -43,6 +43,16 @@ def create_app():
         from .oauth import init_oauth
         init_oauth(app)
         
+        # Just set admin flag if needed
+        try:
+            from .models.user import User
+            admin = User.query.filter_by(email='simon@logisticsonesource.com').first()
+            if admin and not admin.is_admin:
+                admin.is_admin = True
+                db.session.commit()
+        except Exception as e:
+            print(f"Couldn't set admin flag: {str(e)}")
+        
         # Register blueprints
         app.register_blueprint(auth.bp)
         app.register_blueprint(main.main)
