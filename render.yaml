@@ -5,6 +5,7 @@ services:
     buildCommand: pip install -r requirements.txt
     startCommand: >
       flask db upgrade &&
+      sleep 5 &&
       flask setup-admin &&
       gunicorn "app:create_app()"
     envVars:
