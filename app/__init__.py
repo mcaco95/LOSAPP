@@ -70,24 +70,40 @@ def create_app():
         @app.cli.command('setup-admin')
         def setup_admin():
             """Set up the admin user."""
-            from .models.user import User
-            admin_email = 'simon@logisticsonesource.com'
-            admin = User.query.filter_by(email=admin_email).first()
+            try:
+                from .models.user import User
+                print("Starting admin setup...")
+                admin_email = 'simon@logisticsonesource.com'
+                admin = User.query.filter_by(email=admin_email).first()
+                
+                if admin:
+                    print(f"Found existing user {admin_email}")
+                    admin.is_admin = True
+                    db.session.commit()
+                    print(f'Updated existing user {admin_email} to admin')
+                else:
+                    print(f"Creating new admin user {admin_email}")
+                    admin = User(
+                        email=admin_email,
+                        name='Simon',
+                        is_admin=True
+                    )
+                    admin.set_password('admin123')  # Set a temporary password
+                    db.session.add(admin)
+                    db.session.commit()
+                    print(f'Created new admin user {admin_email} with password: admin123')
+                
+                # Verify the change
+                admin = User.query.filter_by(email=admin_email).first()
+                if admin and admin.is_admin:
+                    print("Admin setup verified successfully")
+                else:
+                    print("Warning: Admin setup could not be verified")
+                
+            except Exception as e:
+                print(f"Error in admin setup: {str(e)}")
+                raise
             
-            if admin:
-                admin.is_admin = True
-                print(f'Updated existing user {admin_email} to admin')
-            else:
-                admin = User(
-                    email=admin_email,
-                    name='Simon',
-                    is_admin=True
-                )
-                admin.set_password('admin123')  # Set a temporary password
-                db.session.add(admin)
-                print(f'Created new admin user {admin_email} with password: admin123')
-            
-            db.session.commit()
             print('Admin setup complete')
 
         @app.cli.command('init-points-rewards')
