@@ -9,6 +9,7 @@ from app.decorators import admin_required
 from app.models.company import Company
 from app.models.user import User
 from .. import db
+import json
 
 main = Blueprint('main', __name__)
 
@@ -69,6 +70,7 @@ def user_dashboard():
         next_reward_points=next_reward_data['reward']['points_required'],
         next_reward_progress=next_reward_data['progress_percentage'],
         companies=companies,
+        companies_json=json.dumps(companies),
         top_users=top_users
     )
 
@@ -160,13 +162,37 @@ def admin_rewards():
         recent_redemptions=recent_redemptions
     )
 
-@main.route('/dashboard/points/history')
+@main.route('/dashboard/points')
 @login_required
-def points_history():
-    period = request.args.get('period', 'month')
-    point_service = PointService()
-    history = point_service.get_points_history(current_user.id, period)
-    return jsonify(history)
+def points_dashboard():
+    # Get user's points summary
+    points_service = PointService()
+    points_summary = points_service.get_user_points_summary(current_user.id)
+    total_points = points_summary.get('total_points', 0)
+    points_by_category = points_summary.get('points_by_category', {})
+    
+    # Get points trend data for the last month
+    trend_data = points_service.get_points_trend(current_user.id, period='month')
+    
+    # Get available rewards
+    reward_service = RewardService()
+    available_rewards = reward_service.get_available_rewards(current_user.id)
+    
+    # Get points transactions
+    transactions = points_service.get_user_points_history(current_user.id)
+    
+    # Calculate points change percentage
+    points_change = points_service.calculate_points_change_percentage(current_user.id)
+    
+    return render_template(
+        'dashboard/user/points.html',
+        total_points=total_points,
+        points_by_category=points_by_category,
+        available_rewards=available_rewards,
+        transactions=transactions,
+        points_change=points_change,
+        trend_data=trend_data
+    )
 
 @main.route('/settings')
 @login_required
@@ -177,9 +203,21 @@ def settings():
 @login_required
 def user_rewards():
     reward_service = RewardService()
+    point_service = PointService()
+    
+    # Get user's total points and points summary
+    points_summary = point_service.get_user_points_summary(current_user.id)
+    total_points = points_summary.get('total_points', 0)
+    points_by_category = points_summary.get('points_by_category', {})
+    
+    # Calculate points change percentage
+    points_change = point_service.calculate_points_change_percentage(current_user.id)
     
     # Get available rewards
     available_rewards = reward_service.get_available_rewards(current_user.id)
+    
+    # Get next 3 rewards
+    next_rewards = reward_service.get_next_rewards(current_user.id, limit=3)
     
     # Get user's reward history
     reward_history = reward_service.get_user_rewards(current_user.id)
@@ -195,7 +233,11 @@ def user_rewards():
         available_rewards=available_rewards,
         reward_history=reward_history,
         next_reward_points=next_reward_data['reward']['points_required'],
-        next_reward_progress=next_reward_data['progress_percentage']
+        next_reward_progress=next_reward_data['progress_percentage'],
+        next_rewards=next_rewards,
+        total_points=total_points,
+        points_change=points_change,
+        points_by_category=points_by_category
     )
 
 @main.route('/dashboard/user/companies')
@@ -206,12 +248,17 @@ def user_companies():
     # Get user's companies
     companies = company_service.get_user_companies(current_user.id)
     
-    # Get company statistics
-    stats = company_service.get_company_statistics()
+    # Get user-specific statistics
+    user_stats = {
+        'total_companies': len(companies),
+        'demos_scheduled': len([c for c in companies if c['status'] == 'demo_scheduled']),
+        'demos_completed': len([c for c in companies if c['status'] == 'demo_completed']),
+        'clients_signed': len([c for c in companies if c['status'] in ['client_signed', 'renewed', 'upgraded']])
+    }
     
     return render_template('dashboard/user/companies.html',
         companies=companies,
-        statistics=stats
+        statistics=user_stats
     )
 
 @main.route('/dashboard/clients')

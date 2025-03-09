@@ -102,16 +102,6 @@
 
       {% else %}
       <!-- User Navigation -->
-      <!-- Overview Section -->
-      <li class="nav-item {% if request.endpoint == 'main.user_dashboard' %}active{% endif %}">
-        <a href="{{ url_for('main.user_dashboard') }}" class="nav-link">
-          <span class="sidebar-icon">
-            <svg class="icon icon-xs me-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M2 10a8 8 0 018-8v8h8a8 8 0 11-16 0z"></path><path d="M12 2.252A8.014 8.014 0 0117.748 8H12V2.252z"></path></svg>
-          </span> 
-          <span class="sidebar-text">Overview</span>
-        </a>
-      </li>
-
       <!-- Companies Section -->
       <li class="nav-item {% if request.endpoint == 'main.user_companies' %}active{% endif %}">
         <a href="{{ url_for('main.user_companies') }}" class="nav-link">
@@ -137,8 +127,8 @@
         </span>
         <div class="multi-level collapse show" role="list" id="submenu-points" aria-expanded="false">
           <ul class="flex-column nav">
-            <li class="nav-item {% if request.endpoint == 'main.user_dashboard' %}active{% endif %}">
-              <a href="{{ url_for('main.user_dashboard') }}" class="nav-link">
+            <li class="nav-item {% if request.endpoint == 'main.points_dashboard' %}active{% endif %}">
+              <a href="{{ url_for('main.points_dashboard') }}" class="nav-link">
                 <span class="sidebar-text">My Points</span>
               </a>
             </li>

@@ -1,0 +1,470 @@
+{% extends "base.html" %}
+
+{% block title %}Points History{% endblock %}
+
+{% block extra_css %}
+    <link type="text/css" href="{{ url_for('static', filename='css/points-rewards.css') }}" rel="stylesheet">
+    <style>
+        .points-badge {
+            font-size: 0.875rem;
+            padding: 0.35em 0.65em;
+            font-weight: 600;
+            border-radius: 0.25rem;
+        }
+        
+        .points-positive {
+            background-color: #d1e7dd;
+            color: #0f5132;
+        }
+        
+        .points-negative {
+            background-color: #f8d7da;
+            color: #842029;
+        }
+        
+        .activity-icon {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            color: white;
+            font-size: 1.25rem;
+        }
+        
+        .activity-company { background-color: #0d6efd; }
+        .activity-reward { background-color: #6f42c1; }
+        .activity-bonus { background-color: #198754; }
+        .activity-other { background-color: #6c757d; }
+
+        .points-trend-chart {
+            position: relative;
+            height: 400px;
+            margin: 1rem 0;
+        }
+
+        .ct-chart-points {
+            height: 100%;
+        }
+
+        .points-chart-tooltip {
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            padding: 8px 12px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: #0a1f44;
+        }
+
+        .chart-loading {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255,255,255,0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1;
+        }
+
+        .ct-label {
+            font-size: 0.75rem;
+            color: #6c757d;
+            fill: #6c757d;
+        }
+
+        .ct-grid {
+            stroke: rgba(0,0,0,0.1);
+            stroke-dasharray: 2px;
+        }
+
+        .btn-group .btn {
+            padding: 0.375rem 1rem;
+            font-size: 0.875rem;
+            border: 1px solid #dee2e6;
+            background-color: #fff;
+            color: #6c757d;
+            transition: all 0.2s ease;
+        }
+
+        .btn-group .btn:hover {
+            background-color: #f8f9fa;
+        }
+
+        .btn-group .btn.active {
+            background-color: #0d6efd;
+            border-color: #0d6efd;
+            color: #fff;
+        }
+
+        .category-progress {
+            height: 8px;
+            border-radius: 4px;
+        }
+
+        .stats-card {
+            transition: all 0.2s ease;
+        }
+        
+        .stats-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .icon-shape {
+            width: 48px;
+            height: 48px;
+            background-color: var(--bs-primary);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            border-radius: 0.5rem;
+        }
+
+        .icon-shape-primary {
+            background: linear-gradient(45deg, #0d6efd, #0a58ca);
+        }
+
+        .icon-shape-secondary {
+            background: linear-gradient(45deg, #6c757d, #495057);
+        }
+
+        .icon-shape-success {
+            background: linear-gradient(45deg, #198754, #146c43);
+        }
+
+        .icon-shape svg {
+            height: 24px;
+            width: 24px;
+            color: white;
+        }
+
+        .points-filter {
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            background-color: #f8f9fa;
+            margin-bottom: 1rem;
+        }
+
+        .points-filter .btn-group .btn {
+            padding: 0.25rem 1rem;
+            font-size: 0.875rem;
+        }
+
+        .transaction-row {
+            transition: all 0.2s ease;
+        }
+
+        .transaction-row:hover {
+            background-color: rgba(13, 110, 253, 0.05);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 3rem 0;
+        }
+
+        .empty-state i {
+            font-size: 3rem;
+            color: #dee2e6;
+            margin-bottom: 1rem;
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+<div class="py-4">
+    <!-- Page Header -->
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center py-4">
+        <div class="d-block mb-4 mb-md-0">
+            <h2 class="h4">Points Dashboard</h2>
+            <p class="mb-0">Track your points, rewards, and achievements</p>
+        </div>
+    </div>
+
+    <!-- Points Summary Cards -->
+    <div class="row">
+        <div class="col-12 col-sm-6 col-xl-4 mb-4">
+            <div class="card border-0 shadow stats-card">
+                <div class="card-body">
+                    <div class="row d-block d-xl-flex align-items-center">
+                        <div class="col-12 col-xl-5 text-xl-center mb-3 mb-xl-0 d-flex align-items-center justify-content-xl-center">
+                            <div class="icon-shape icon-shape-primary rounded me-4">
+                                <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                            </div>
+                            <div class="d-sm-none">
+                                <h2 class="fw-extrabold h5">Total Points</h2>
+                                <h3 class="mb-1">{{ total_points }}</h3>
+                            </div>
+                        </div>
+                        <div class="col-12 col-xl-7 px-xl-0">
+                            <div class="d-none d-sm-block">
+                                <h2 class="h6 text-gray-400 mb-0">Total Points</h2>
+                                <h3 class="fw-extrabold mb-2">{{ total_points }}</h3>
+                            </div>
+                            {% if points_change > 0 %}
+                            <small class="d-flex align-items-center text-success">
+                                <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
+                                </svg>
+                                <span class="fw-bold">{{ points_change }}% increase</span> this month
+                            </small>
+                            {% else %}
+                            <small class="d-flex align-items-center text-muted">
+                                No change this month
+                            </small>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-sm-6 col-xl-4 mb-4">
+            <div class="card border-0 shadow stats-card">
+                <div class="card-body">
+                    <div class="row d-block d-xl-flex align-items-center">
+                        <div class="col-12 col-xl-5 text-xl-center mb-3 mb-xl-0 d-flex align-items-center justify-content-xl-center">
+                            <div class="icon-shape icon-shape-secondary rounded me-4">
+                                <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"></path>
+                                </svg>
+                            </div>
+                            <div class="d-sm-none">
+                                <h2 class="fw-extrabold h5">Categories</h2>
+                                <h3 class="mb-1">{{ points_by_category|length }}</h3>
+                            </div>
+                        </div>
+                        <div class="col-12 col-xl-7 px-xl-0">
+                            <div class="d-none d-sm-block">
+                                <h2 class="h6 text-gray-400 mb-0">Point Categories</h2>
+                                <h3 class="fw-extrabold mb-2">{{ points_by_category|length }}</h3>
+                            </div>
+                            <small class="text-gray-500">
+                                Different ways you earn points
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-sm-6 col-xl-4 mb-4">
+            <div class="card border-0 shadow stats-card">
+                <div class="card-body">
+                    <div class="row d-block d-xl-flex align-items-center">
+                        <div class="col-12 col-xl-5 text-xl-center mb-3 mb-xl-0 d-flex align-items-center justify-content-xl-center">
+                            <div class="icon-shape icon-shape-success rounded me-4">
+                                <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7"></path>
+                                </svg>
+                            </div>
+                            <div class="d-sm-none">
+                                <h2 class="fw-extrabold h5">Available Rewards</h2>
+                                <h3 class="mb-1">{{ available_rewards|length }}</h3>
+                            </div>
+                        </div>
+                        <div class="col-12 col-xl-7 px-xl-0">
+                            <div class="d-none d-sm-block">
+                                <h2 class="h6 text-gray-400 mb-0">Available Rewards</h2>
+                                <h3 class="fw-extrabold mb-2">{{ available_rewards|length }}</h3>
+                            </div>
+                            <small class="d-flex align-items-center">
+                                <a href="{{ url_for('main.user_rewards') }}" class="text-primary">View rewards →</a>
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Points Trend Chart -->
+    <div class="card border-0 shadow mb-4">
+        <div class="card-header">
+            <div class="row align-items-center">
+                <div class="col">
+                    <h2 class="fs-5 fw-bold mb-0">Points Trend</h2>
+                </div>
+                <div class="col text-end">
+                    <div class="btn-group">
+                        <button class="btn btn-sm btn-gray-800" data-period="week">Week</button>
+                        <button class="btn btn-sm btn-gray-800 active" data-period="month">Month</button>
+                        <button class="btn btn-sm btn-gray-800" data-period="year">Year</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="points-trend-chart">
+                <div class="ct-chart-points" data-trend='{{ trend_data|tojson }}'></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Points History -->
+    <div class="card border-0 shadow mb-4">
+        <div class="card-header">
+            <div class="row align-items-center">
+                <div class="col">
+                    <h2 class="fs-5 fw-bold mb-0">Points History</h2>
+                </div>
+            </div>
+        </div>
+        <div class="card-body">
+            {% if transactions %}
+            <div class="table-responsive">
+                <table class="table align-items-center table-flush">
+                    <thead class="thead-light">
+                        <tr>
+                            <th class="border-bottom" scope="col">Activity</th>
+                            <th class="border-bottom" scope="col">Points</th>
+                            <th class="border-bottom" scope="col">Details</th>
+                            <th class="border-bottom" scope="col">Balance</th>
+                            <th class="border-bottom" scope="col">Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for tx in transactions %}
+                        <tr class="transaction-row">
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    {% if tx.activity_type == 'status_change' %}
+                                    <div class="activity-icon activity-company me-3">
+                                        <i class="fas fa-building"></i>
+                                    </div>
+                                    {% elif tx.activity_type == 'reward_redemption' %}
+                                    <div class="activity-icon activity-reward me-3">
+                                        <i class="fas fa-gift"></i>
+                                    </div>
+                                    {% elif tx.activity_type == 'bonus' %}
+                                    <div class="activity-icon activity-bonus me-3">
+                                        <i class="fas fa-star"></i>
+                                    </div>
+                                    {% else %}
+                                    <div class="activity-icon activity-other me-3">
+                                        <i class="fas fa-circle"></i>
+                                    </div>
+                                    {% endif %}
+                                    <div>
+                                        <span class="fw-bold">{{ tx.activity_type|replace('_', ' ')|title }}</span>
+                                        {% if tx.transaction_metadata and tx.transaction_metadata.company_name %}
+                                        <br>
+                                        <small class="text-muted">{{ tx.transaction_metadata.company_name }}</small>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="points-badge {{ 'points-positive' if tx.amount > 0 else 'points-negative' }}">
+                                    {{ '+' if tx.amount > 0 else '' }}{{ tx.amount }}
+                                </span>
+                                {% if tx.transaction_metadata and tx.transaction_metadata.bonus_points %}
+                                <br>
+                                <small class="text-success">
+                                    <i class="fas fa-plus-circle me-1"></i>{{ tx.transaction_metadata.bonus_points }} bonus
+                                </small>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <span>{{ tx.reason }}</span>
+                                {% if tx.transaction_metadata %}
+                                <br>
+                                {% if tx.transaction_metadata.old_status and tx.transaction_metadata.new_status %}
+                                <small class="text-muted">
+                                    <i class="fas fa-arrow-right me-1"></i>
+                                    {{ tx.transaction_metadata.old_status|replace('_', ' ')|title }} → 
+                                    {{ tx.transaction_metadata.new_status|replace('_', ' ')|title }}
+                                </small>
+                                {% endif %}
+                                {% endif %}
+                            </td>
+                            <td>
+                                <span class="fw-bold">{{ tx.balance_after }}</span>
+                            </td>
+                            <td>
+                                <span class="small text-muted">{{ tx.timestamp.strftime('%Y-%m-%d %H:%M') }}</span>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="empty-state">
+                <i class="fas fa-coins"></i>
+                <h5>No points history yet</h5>
+                <p class="text-muted">Start earning points by referring companies and completing activities!</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Points by Category -->
+    <div class="card border-0 shadow mb-4">
+        <div class="card-header">
+            <div class="row align-items-center">
+                <div class="col">
+                    <h2 class="fs-5 fw-bold mb-0">Points by Category</h2>
+                </div>
+            </div>
+        </div>
+        <div class="card-body">
+            {% if points_by_category %}
+            <div class="table-responsive">
+                <table class="table align-items-center table-flush">
+                    <thead class="thead-light">
+                        <tr>
+                            <th class="border-bottom" scope="col">Category</th>
+                            <th class="border-bottom" scope="col">Total Points</th>
+                            <th class="border-bottom" scope="col">Percentage</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for category, points in points_by_category.items() %}
+                        <tr class="transaction-row">
+                            <td>
+                                <span class="fw-bold">{{ category|replace('_', ' ')|title }}</span>
+                            </td>
+                            <td>
+                                <span class="points-badge points-positive">{{ points }}</span>
+                            </td>
+                            <td style="width: 40%;">
+                                <div class="d-flex align-items-center">
+                                    <div class="progress category-progress flex-grow-1">
+                                        <div class="progress-bar bg-primary" role="progressbar" 
+                                             style="width: {{ (points / total_points * 100)|round }}%" 
+                                             aria-valuenow="{{ (points / total_points * 100)|round }}" 
+                                             aria-valuemin="0" 
+                                             aria-valuemax="100">
+                                        </div>
+                                    </div>
+                                    <span class="ms-3 text-sm">{{ (points / total_points * 100)|round }}%</span>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="empty-state">
+                <i class="fas fa-chart-pie"></i>
+                <h5>No categories yet</h5>
+                <p class="text-muted">Your points will be categorized as you earn them</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/points-rewards.js') }}"></script>
+{% endblock %} 

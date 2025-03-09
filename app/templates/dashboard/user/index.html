@@ -4,245 +4,1142 @@
 
 {% block extra_css %}
     <link type="text/css" href="{{ url_for('static', filename='css/points-rewards.css') }}" rel="stylesheet">
+    <style>
+        .height-400 {
+            height: 400px;
+            position: relative;
+        }
+        
+        /* Chart styling */
+        .ct-series-a .ct-line {
+            stroke: #0d6efd;
+            stroke-width: 3px;
+        }
+        
+        .ct-series-a .ct-area {
+            fill: #0d6efd;
+            fill-opacity: 0.2;
+        }
+        
+        .ct-series-a .ct-point {
+            stroke: #0d6efd;
+            stroke-width: 8px;
+        }
+        
+        .ct-grid {
+            stroke: rgba(0, 0, 0, 0.1);
+            stroke-dasharray: 2px;
+        }
+        
+        .ct-label {
+            font-size: 12px;
+            color: #6c757d;
+            font-weight: 500;
+        }
+        
+        /* Card styling */
+        .card {
+            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
+        }
+        
+        .icon-shape {
+            width: 48px;
+            height: 48px;
+            background-position: center;
+            border-radius: 0.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .icon-shape .icon {
+            width: 24px;
+            height: 24px;
+        }
+        
+        .icon-shape-primary {
+            background: linear-gradient(45deg, #0d6efd, #0a58ca);
+        }
+        
+        .icon-shape-secondary {
+            background: linear-gradient(45deg, #6c757d, #495057);
+        }
+        
+        .icon-shape-success {
+            background: linear-gradient(45deg, #198754, #146c43);
+        }
+        
+        .icon-shape-info {
+            background: linear-gradient(45deg, #0dcaf0, #0aa2c0);
+        }
+        
+        .icon-shape-tertiary {
+            background: linear-gradient(45deg, #6f42c1, #59359a);
+        }
+        
+        /* Button group styling */
+        .btn-group .btn {
+            transition: all 0.2s ease;
+            font-weight: 500;
+        }
+        
+        .btn-group .btn.active {
+            box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+            transform: translateY(-1px);
+        }
+        
+        /* Top Performers styling */
+        .avatar-lg {
+            width: 60px;
+            height: 60px;
+        }
+        
+        .avatar-text {
+            font-size: 24px;
+        }
+        
+        .bg-primary-soft {
+            background-color: rgba(13, 110, 253, 0.1);
+            color: #0d6efd;
+            font-weight: 600;
+        }
+        
+        .bg-success-soft {
+            background-color: rgba(25, 135, 84, 0.1);
+            color: #198754;
+            font-weight: 600;
+        }
+        
+        .bg-silver {
+            background: linear-gradient(45deg, #C0C0C0, #A8A8A8);
+            color: white;
+        }
+        
+        .bg-bronze {
+            background: linear-gradient(45deg, #cd7f32, #a66529);
+            color: white;
+        }
+        
+        .separator {
+            position: relative;
+            text-align: center;
+            color: #6c757d;
+            font-weight: bold;
+            margin: 5px 0;
+        }
+        
+        .separator-text {
+            display: inline-block;
+            letter-spacing: 3px;
+        }
+        
+        .rank-badge .badge {
+            font-size: 14px;
+            font-weight: 600;
+        }
+        
+        .progress-tooltip {
+            font-size: 12px;
+            color: #6c757d;
+            margin-top: 2px;
+        }
+        
+        /* Company status badges */
+        .status-badge {
+            display: inline-block;
+            padding: 0.35em 0.65em;
+            font-size: 0.75em;
+            font-weight: 600;
+            line-height: 1;
+            text-align: center;
+            white-space: nowrap;
+            vertical-align: baseline;
+            border-radius: 0.25rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .action-form-completed {
+            background-color: #e9ecef;
+            color: #495057;
+        }
+        
+        .action-demo-scheduled {
+            background-color: #cff4fc;
+            color: #055160;
+        }
+        
+        .action-demo-completed {
+            background-color: #d1e7dd;
+            color: #0f5132;
+        }
+        
+        .action-client-signed {
+            background-color: #dff5e8;
+            color: #146c43;
+        }
+        
+        .action-client-renewed {
+            background-color: #e8d4fb;
+            color: #6f42c1;
+        }
+        
+        .action-client-upgraded {
+            background-color: #fff3cd;
+            color: #997404;
+        }
+        
+        /* Company progress bar */
+        .progress-thin {
+            height: 4px;
+            border-radius: 2px;
+            background-color: #e9ecef;
+            overflow: hidden;
+        }
+        
+        .progress-thin .progress-bar {
+            transition: width 0.6s ease;
+        }
+        
+        .company-avatar {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            color: white;
+            font-weight: 600;
+            background: linear-gradient(45deg, #0d6efd, #0a58ca);
+        }
+        
+        /* Company table styles */
+        .table > :not(caption) > * > * {
+            padding: 1rem 1rem;
+            vertical-align: middle;
+        }
+        
+        .table > tbody > tr:hover {
+            background-color: rgba(13, 110, 253, 0.05);
+        }
+        
+        .dropdown-item {
+            padding: 0.5rem 1rem;
+            font-size: 0.875rem;
+            transition: all 0.2s ease;
+        }
+        
+        .dropdown-item:hover {
+            background-color: rgba(13, 110, 253, 0.1);
+            color: #0d6efd;
+        }
+        
+        .dropdown-item i {
+            width: 1rem;
+            text-align: center;
+            margin-right: 0.5rem;
+            color: #6c757d;
+        }
+        
+        .dropdown-item:hover i {
+            color: #0d6efd;
+        }
+        
+        /* Card value animations */
+        @keyframes countUp {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .fw-extrabold {
+            animation: countUp 0.5s ease-out forwards;
+        }
+        
+        /* Network stats styling */
+        .network-stat {
+            font-size: 0.875rem;
+            color: #6c757d;
+            display: flex;
+            align-items: center;
+            margin-top: 0.5rem;
+        }
+        
+        .network-stat i {
+            margin-right: 0.5rem;
+            color: #0dcaf0;
+        }
+        
+        .commission-stat {
+            font-size: 0.875rem;
+            color: #198754;
+            display: flex;
+            align-items: center;
+            margin-top: 0.5rem;
+        }
+        
+        .commission-stat i {
+            margin-right: 0.5rem;
+        }
+        
+        /* Enhanced Layout & Spacing */
+        .dashboard-container {
+            padding: 1.5rem;
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+        
+        .dashboard-header {
+            margin-bottom: 2rem;
+        }
+        
+        .welcome-section {
+            background: linear-gradient(45deg, #0d6efd, #0a58ca);
+            border-radius: 1rem;
+            padding: 2rem;
+            color: white;
+            margin-bottom: 2rem;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .welcome-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            left: 0;
+            background: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z' fill='%23ffffff' fill-opacity='0.1' fill-rule='evenodd'/%3E%3C/svg%3E");
+            opacity: 0.1;
+        }
+        
+        .welcome-text {
+            font-size: 1.5rem;
+            font-weight: 300;
+            margin-bottom: 0.5rem;
+        }
+        
+        .welcome-name {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .stat-card {
+            background: white;
+            border-radius: 1rem;
+            padding: 1.5rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 20px rgba(0, 0, 0, 0.08);
+        }
+        
+        .stat-card::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, rgba(13, 110, 253, 0.5), rgba(13, 110, 253, 0.8));
+            transform: translateY(-100%);
+            transition: transform 0.3s ease;
+        }
+        
+        .stat-card:hover::after {
+            transform: translateY(0);
+        }
+        
+        .main-content {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        @media (max-width: 1200px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .chart-card {
+            background: white;
+            border-radius: 1rem;
+            padding: 1.5rem;
+            box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+        }
+        
+        .leaderboard-card {
+            background: white;
+            border-radius: 1rem;
+            box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+        }
+        
+        .companies-section {
+            background: white;
+            border-radius: 1rem;
+            box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+            margin-bottom: 2rem;
+        }
+        
+        /* Enhanced Card Styling */
+        .card {
+            border-radius: 1rem;
+            border: none;
+            transition: all 0.3s ease;
+        }
+        
+        .card-header {
+            background: transparent;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+            padding: 1.5rem;
+        }
+        
+        .card-body {
+            padding: 1.5rem;
+        }
+        
+        /* Enhanced Table Styling */
+        .table-container {
+            margin: 1rem;
+            background: white;
+            border-radius: 0.5rem;
+            overflow: hidden;
+        }
+        
+        .table {
+            margin-bottom: 0;
+        }
+        
+        .table thead th {
+            background: #f8f9fa;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 0.5px;
+            padding: 1rem;
+            border-bottom: 2px solid #dee2e6;
+        }
+        
+        .table tbody td {
+            padding: 1rem;
+            vertical-align: middle;
+        }
+        
+        /* Mobile Optimizations */
+        @media (max-width: 768px) {
+            .dashboard-container {
+                padding: 1rem;
+            }
+            
+            .welcome-section {
+                padding: 1.5rem;
+                margin-bottom: 1.5rem;
+            }
+            
+            .stats-grid {
+                gap: 1rem;
+            }
+            
+            .stat-card {
+                padding: 1rem;
+            }
+            
+            .table-container {
+                margin: 0.5rem;
+            }
+            
+            .table thead th {
+                padding: 0.75rem;
+            }
+            
+            .table tbody td {
+                padding: 0.75rem;
+            }
+        }
+        
+        /* Enhanced Progress Bars */
+        .progress {
+            height: 6px;
+            border-radius: 3px;
+            overflow: hidden;
+        }
+        
+        .progress-bar {
+            transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        /* Enhanced Badges */
+        .badge {
+            padding: 0.5em 0.75em;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+
+        /* Value Change Indicators */
+        .value-change {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.25rem 0.5rem;
+            border-radius: 1rem;
+            font-size: 0.875rem;
+            transition: all 0.2s ease;
+        }
+
+        .value-change.positive {
+            background: rgba(25, 135, 84, 0.1);
+            color: #198754;
+        }
+
+        .value-change.negative {
+            background: rgba(220, 53, 69, 0.1);
+            color: #dc3545;
+        }
+
+        /* Enhanced Chart */
+        .ct-chart-points {
+            margin: 1rem 0;
+        }
+
+        .ct-series-a .ct-point {
+            stroke: #0d6efd;
+            stroke-width: 8px;
+            transition: stroke-width 0.2s ease;
+        }
+
+        .ct-series-a .ct-point:hover {
+            stroke-width: 12px;
+            stroke: #0a58ca;
+        }
+
+        .ct-series-a .ct-area {
+            fill: url(#gradient);
+        }
+
+        /* Enhanced Top Performers */
+        .list-group-item {
+            transition: all 0.2s ease;
+            border: none;
+            margin-bottom: 0.5rem;
+            border-radius: 0.5rem;
+        }
+
+        .list-group-item:hover {
+            background-color: rgba(13, 110, 253, 0.03);
+            transform: translateX(4px);
+        }
+
+        .avatar-lg {
+            transition: transform 0.2s ease;
+        }
+
+        .list-group-item:hover .avatar-lg {
+            transform: scale(1.05);
+        }
+
+        /* Welcome Section Enhancement */
+        .welcome-section {
+            background: linear-gradient(135deg, #0d6efd, #0a58ca);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .welcome-section::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 60%);
+            animation: rotate 20s linear infinite;
+        }
+
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        /* Button Enhancements */
+        .btn-group .btn {
+            position: relative;
+            overflow: hidden;
+            transition: all 0.2s ease;
+        }
+
+        .btn-group .btn::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            background: rgba(255,255,255,0.2);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            transition: width 0.6s ease, height 0.6s ease;
+        }
+
+        .btn-group .btn:hover::after {
+            width: 200%;
+            height: 200%;
+        }
+
+        /* Value Animation */
+        .stat-value {
+            animation: countUp 0.5s ease-out forwards;
+        }
+
+        /* Chart Period Buttons */
+        .chart-period-btn {
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+
+        .chart-period-btn.active {
+            background: #0d6efd;
+            color: white;
+            box-shadow: 0 2px 4px rgba(13, 110, 253, 0.2);
+        }
+
+        /* Add SVG gradient for chart area */
+        <svg width="0" height="0">
+            <defs>
+                <linearGradient id="gradient" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stop-color="#0d6efd" stop-opacity="0.2"/>
+                    <stop offset="100%" stop-color="#0d6efd" stop-opacity="0"/>
+                </linearGradient>
+            </defs>
+        </svg>
+
+        /* Enhanced Card Interactions */
+        .stat-card {
+            cursor: pointer;
+            position: relative;
+            z-index: 1;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(45deg, rgba(13, 110, 253, 0.1), rgba(13, 110, 253, 0.05));
+            border-radius: 1rem;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            z-index: -1;
+        }
+
+        .stat-card:hover::before {
+            opacity: 1;
+        }
+
+        .stat-card:active {
+            transform: translateY(2px);
+        }
+
+        /* Enhance chart interactions */
+        .ct-point {
+            cursor: pointer;
+        }
+
+        /* Add subtle animations for loading states */
+        @keyframes shimmer {
+            0% {
+                background-position: -1000px 0;
+            }
+            100% {
+                background-position: 1000px 0;
+            }
+        }
+
+        .loading {
+            animation: shimmer 2s infinite linear;
+            background: linear-gradient(to right, #f6f7f8 8%, #edeef1 18%, #f6f7f8 33%);
+            background-size: 1000px 100%;
+        }
+
+        /* Enhance progress bars */
+        .progress {
+            background-color: rgba(13, 110, 253, 0.1);
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .progress-bar::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(
+                90deg,
+                rgba(255,255,255,0) 0%,
+                rgba(255,255,255,0.2) 50%,
+                rgba(255,255,255,0) 100%
+            );
+            transform: translateX(-100%);
+            animation: shimmer 2s infinite;
+        }
+
+        @keyframes shimmer {
+            100% {
+                transform: translateX(100%);
+            }
+        }
+    </style>
 {% endblock %}
 
 {% block extra_js %}
     <script src="{{ url_for('static', filename='js/points-rewards.js') }}"></script>
+    <script>
+        // Initialize companies data
+        const companies = {{ companies_json|safe }};
+        
+        // Initialize company details modal
+        document.addEventListener('DOMContentLoaded', function() {
+            const companyDetailsModal = document.getElementById('companyDetailsModal');
+            if (companyDetailsModal) {
+                companyDetailsModal.addEventListener('show.bs.modal', function(event) {
+                    const button = event.relatedTarget;
+                    const companyId = button.getAttribute('data-company-id');
+                    const company = companies.find(c => c.id === parseInt(companyId));
+                    
+                    if (company) {
+                        document.getElementById('modalCompanyName').textContent = company.name;
+                        document.getElementById('modalCompanyStatus').innerHTML = `
+                            <span class="status-badge status-${company.status}">${company.status.replace('_', ' ').title()}</span>
+                        `;
+                        document.getElementById('modalContactName').textContent = company.contact_name || 'Not provided';
+                        document.getElementById('modalEmail').textContent = company.email || 'Not provided';
+                        document.getElementById('modalPhone').textContent = company.phone || 'Not provided';
+                        document.getElementById('modalContactTime').textContent = company.preferred_contact_time ? 
+                            company.preferred_contact_time.replace('_', ' ').title() : 'Not specified';
+                        document.getElementById('modalServiceType').textContent = company.service_display || 'Not specified';
+                        document.getElementById('modalAdditionalInfo').textContent = company.additional_info || 'No additional information provided';
+                    }
+                });
+            }
+        });
+
+        // Initialize Chartist with enhanced options
+        new Chartist.Line('.ct-chart-points', {
+            // ... your existing data ...
+        }, {
+            low: 0,
+            showArea: true,
+            showPoint: true,
+            fullWidth: true,
+            plugins: [
+                Chartist.plugins.tooltip()
+            ],
+            axisY: {
+                labelInterpolationFnc: function(value) {
+                    return value + ' pts';
+                }
+            }
+        });
+
+        // Add hover animations for stat cards
+        document.querySelectorAll('.stat-card').forEach(card => {
+            const value = card.querySelector('.stat-value');
+            if (value) {
+                const observer = new IntersectionObserver((entries) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            value.style.animation = 'countUp 0.5s ease-out forwards';
+                        }
+                    });
+                });
+                observer.observe(value);
+            }
+        });
+
+        // Enhance progress bars
+        document.querySelectorAll('.progress-bar').forEach(bar => {
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        const width = bar.getAttribute('aria-valuenow') + '%';
+                        bar.style.width = width;
+                    }
+                });
+            });
+            observer.observe(bar);
+        });
+    </script>
 {% endblock %}
 
 {% block content %}
-<div class="py-4">
-    <!-- Points Overview Row -->
-    <div class="row">
-        <div class="col-12 col-sm-6 col-xl-4 mb-4">
-            <div class="card border-0 shadow">
-                <div class="card-body">
-                    <div class="row d-block d-xl-flex align-items-center">
-                        <div class="col-12 col-xl-5 text-xl-center mb-3 mb-xl-0 d-flex align-items-center justify-content-xl-center">
-                            <div class="icon-shape icon-shape-primary rounded me-4 me-sm-0">
-                                <svg class="icon" fill="currentColor" viewBox="0 0 20 20">
-                                    <path d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-3a1 1 0 00-.867.5 1 1 0 11-1.731-1A3 3 0 0113 8a3.001 3.001 0 01-2 2.83V11a1 1 0 11-2 0v-1a1 1 0 011-1 1 1 0 100-2zm0 8a1 1 0 100-2 1 1 0 000 2z"/>
-                                </svg>
-                            </div>
-                            <div class="d-sm-none">
-                                <h2 class="h5">Total Points</h2>
-                                <h3 class="fw-extrabold mb-1">{{ total_points }}</h3>
-                            </div>
-                        </div>
-                        <div class="col-12 col-xl-7 px-xl-0">
-                            <div class="d-none d-sm-block">
-                                <h2 class="h6 text-gray-400 mb-0">Total Points</h2>
-                                <h3 class="fw-extrabold mb-2">{{ total_points }}</h3>
-                            </div>
-                            <small class="d-flex align-items-center text-success">
-                                <svg class="icon icon-xs me-1" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fill-rule="evenodd" d="M14.707 12.707a1 1 0 01-1.414 0L10 9.414l-3.293 3.293a1 1 0 01-1.414-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 010 1.414z"/>
-                                </svg>
-                                <span class="fw-bold">{{ points_change }}% increase</span> this month
-                            </small>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-12 col-sm-6 col-xl-4 mb-4">
-            <div class="card border-0 shadow">
-                <div class="card-body">
-                    <div class="row d-block d-xl-flex align-items-center">
-                        <div class="col-12 col-xl-5 text-xl-center mb-3 mb-xl-0 d-flex align-items-center justify-content-xl-center">
-                            <div class="icon-shape icon-shape-secondary rounded me-4 me-sm-0">
-                                <svg class="icon" fill="currentColor" viewBox="0 0 20 20">
-                                    <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z"/>
-                                </svg>
-                            </div>
-                            <div class="d-sm-none">
-                                <h2 class="h5">Rank</h2>
-                                <h3 class="fw-extrabold mb-1">#{{ rank }}</h3>
-                            </div>
-                        </div>
-                        <div class="col-12 col-xl-7 px-xl-0">
-                            <div class="d-none d-sm-block">
-                                <h2 class="h6 text-gray-400 mb-0">Your Rank</h2>
-                                <h3 class="fw-extrabold mb-2">#{{ rank }}</h3>
-                            </div>
-                            <small class="d-flex align-items-center">
-                                <span class="text-success fw-bold">{{ rank_percentile }}%</span>&nbsp;of top performers
-                            </small>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-12 col-sm-6 col-xl-4 mb-4">
-            <div class="card border-0 shadow">
-                <div class="card-body">
-                    <div class="row d-block d-xl-flex align-items-center">
-                        <div class="col-12 col-xl-5 text-xl-center mb-3 mb-xl-0 d-flex align-items-center justify-content-xl-center">
-                            <div class="icon-shape icon-shape-tertiary rounded me-4 me-sm-0">
-                                <svg class="icon" fill="currentColor" viewBox="0 0 20 20">
-                                    <path d="M10 2a1 1 0 011 1v1.323l3.954 1.582 1.599-.8a1 1 0 01.894 1.79l-1.233.616 1.738 5.42a1 1 0 01-.285 1.05A3.989 3.989 0 0115 15a3.989 3.989 0 01-2.667-1.019 1 1 0 01-.285-1.05l1.715-5.349L11 6.477V16h2a1 1 0 110 2H7a1 1 0 110-2h2V6.477L6.237 7.582l1.715 5.349a1 1 0 01-.285 1.05A3.989 3.989 0 015 15a3.989 3.989 0 01-2.667-1.019 1 1 0 01-.285-1.05l1.738-5.42-1.233-.616a1 1 0 01.894-1.79l1.599.8L9 4.323V3a1 1 0 011-1zm-5 8.274l-.818 2.552c.25.112.526.174.818.174.292 0 .569-.062.818-.174L5 10.274zm10 0l-.818 2.552c.25.112.526.174.818.174.292 0 .569-.062.818-.174L15 10.274z"/>
-                                </svg>
-                            </div>
-                            <div class="d-sm-none">
-                                <h2 class="h5">Next Reward</h2>
-                                <h3 class="fw-extrabold mb-1">{{ next_reward_points }} pts</h3>
-                            </div>
-                        </div>
-                        <div class="col-12 col-xl-7 px-xl-0">
-                            <div class="d-none d-sm-block">
-                                <h2 class="h6 text-gray-400 mb-0">Next Reward</h2>
-                                <h3 class="fw-extrabold mb-2">{{ next_reward_points }} pts</h3>
-                            </div>
-                            <div class="small d-flex mt-1">
-                                <div>
-                                    <div class="progress">
-                                        <div class="progress-bar bg-tertiary" role="progressbar" style="width: {{ next_reward_progress }}%" aria-valuenow="{{ next_reward_progress }}" aria-valuemin="0" aria-valuemax="100"></div>
-                                    </div>
-                                    <small class="fw-bold">{{ next_reward_progress }}% progress</small>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+<div class="dashboard-container">
+    <!-- Welcome Section -->
+    <div class="welcome-section">
+        <div class="welcome-text">Welcome back,</div>
+        <div class="welcome-name">{{ current_user.name }}</div>
+        <div class="d-flex align-items-center">
+            <span class="badge bg-white text-primary me-2">
+                <i class="fas fa-chart-line me-1"></i>
+                Rank #{{ rank }}
+            </span>
+            <span class="badge bg-white text-primary">
+                <i class="fas fa-star me-1"></i>
+                {{ total_points }} Points
+            </span>
         </div>
     </div>
 
-    <!-- Points History and Leaderboard Row -->
-    <div class="row">
-        <div class="col-12 col-xl-8 mb-4">
-            <div class="card border-0 shadow">
-                <div class="card-header">
-                    <div class="row align-items-center">
-                        <div class="col">
-                            <h2 class="fs-5 fw-bold mb-0">Points History</h2>
-                        </div>
-                        <div class="col text-end">
-                            <div class="btn-group">
-                                <button class="btn btn-sm btn-gray-800">Week</button>
-                                <button class="btn btn-sm btn-gray-800">Month</button>
-                                <button class="btn btn-sm btn-gray-800">Year</button>
-                            </div>
-                        </div>
-                    </div>
+    <!-- Stats Grid -->
+    <div class="stats-grid">
+        <!-- Points Card -->
+        <a href="/dashboard/points" class="stat-card text-decoration-none">
+            <div class="d-flex justify-content-between align-items-start mb-3">
+                <div>
+                    <h6 class="text-muted mb-1">Total Points</h6>
+                    <h3 class="mb-0 text-dark">{{ total_points }}</h3>
                 </div>
-                <div class="card-body">
-                    <div class="ct-chart-points height-400"></div>
+                <div class="icon-shape icon-shape-primary">
+                    <i class="fas fa-star"></i>
                 </div>
             </div>
+            <div class="d-flex align-items-center">
+                <i class="fas fa-arrow-up text-success me-1"></i>
+                <span class="text-success fw-bold">{{ points_change }}%</span>
+                <span class="text-muted ms-1">vs last month</span>
+            </div>
+        </a>
+
+        <!-- Commission Card -->
+        <a href="/dashboard/user/companies" class="stat-card text-decoration-none">
+            <div class="d-flex justify-content-between align-items-start mb-3">
+                <div>
+                    <h6 class="text-muted mb-1">Total Commission</h6>
+                    <h3 class="mb-0 text-dark">${{ total_commission|default(0)|round(2) }}</h3>
+                </div>
+                <div class="icon-shape icon-shape-success">
+                    <i class="fas fa-dollar-sign"></i>
+                </div>
+            </div>
+            <div class="d-flex align-items-center">
+                <i class="fas fa-chart-line text-success me-1"></i>
+                <span class="fw-bold text-success">${{ monthly_commission|default(0)|round(2) }}</span>
+                <span class="text-muted ms-1">this month</span>
+            </div>
+        </a>
+
+        <!-- Network Card -->
+        <a href="/dashboard/clients" class="stat-card text-decoration-none">
+            <div class="d-flex justify-content-between align-items-start mb-3">
+                <div>
+                    <h6 class="text-muted mb-1">Network Partners</h6>
+                    <h3 class="mb-0 text-dark">{{ network_partners|default(1) }}</h3>
+                </div>
+                <div class="icon-shape icon-shape-info">
+                    <i class="fas fa-users"></i>
+                </div>
+            </div>
+            <div class="d-flex align-items-center">
+                <i class="fas fa-coins text-info me-1"></i>
+                <span class="fw-bold text-info">${{ network_commission|default(0)|round(2) }}</span>
+                <span class="text-muted ms-1">network earnings</span>
+            </div>
+        </a>
+
+        <!-- Next Reward Card -->
+        <a href="/dashboard/user/rewards" class="stat-card text-decoration-none">
+            <div class="d-flex justify-content-between align-items-start mb-3">
+                <div>
+                    <h6 class="text-muted mb-1">Next Reward</h6>
+                    <h3 class="mb-0 text-dark">{{ next_reward_points }} pts</h3>
+                </div>
+                <div class="icon-shape icon-shape-tertiary">
+                    <i class="fas fa-gift"></i>
+                </div>
+            </div>
+            <div class="progress mb-2">
+                <div class="progress-bar bg-tertiary" role="progressbar" style="width: {{ next_reward_progress }}%" 
+                     aria-valuenow="{{ next_reward_progress }}" aria-valuemin="0" aria-valuemax="100"></div>
+            </div>
+            <small class="text-muted">{{ next_reward_progress }}% to next reward</small>
+        </a>
+    </div>
+
+    <!-- Main Content Grid -->
+    <div class="main-content">
+        <!-- Points History Chart -->
+        <div class="chart-card">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h5 class="mb-0">
+                    <i class="fas fa-chart-line text-primary me-2"></i>
+                    Points History
+                </h5>
+                <div class="btn-group shadow-sm">
+                    <button class="btn btn-sm btn-gray-800" data-period="week">Week</button>
+                    <button class="btn btn-sm btn-primary text-white active" data-period="month">Month</button>
+                    <button class="btn btn-sm btn-gray-800" data-period="year">Year</button>
+                </div>
+            </div>
+            <div class="ct-chart-points height-400"></div>
         </div>
 
-        <div class="col-12 col-xl-4 mb-4">
-            <div class="card border-0 shadow">
-                <div class="card-header">
-                    <div class="row align-items-center">
-                        <div class="col">
-                            <h2 class="fs-5 fw-bold mb-0">Top Performers</h2>
-                        </div>
-                    </div>
-                </div>
-                <div class="card-body">
-                    <ul class="list-group list-group-flush list my--3">
-                        {% for user in top_users %}
-                        <li class="list-group-item px-0">
-                            <div class="row align-items-center">
-                                <div class="col-auto">
-                                    <div class="avatar">
-                                        {% if user.profile_picture %}
-                                            <img class="avatar rounded-circle" src="{{ url_for('static', filename=user.profile_picture) }}" alt="{{ user.username }}">
-                                        {% else %}
-                                            <div class="avatar-name rounded-circle bg-gray-800">
-                                                <span>{{ user.username[0] }}</span>
+        <!-- Top Performers -->
+        <div class="leaderboard-card">
+            <div class="card-header bg-transparent">
+                <h5 class="mb-0">
+                    <i class="fas fa-trophy text-warning me-2"></i>
+                    Top Performers
+                </h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="list-group list-group-flush">
+                    {% for user in top_users %}
+                        {% if loop.index <= 5 or user.id == current_user.id %}
+                            <div class="list-group-item border-0 px-4 py-3 {% if user.id == current_user.id %}bg-light{% endif %}">
+                                <div class="d-flex align-items-center">
+                                    <div class="position-relative">
+                                        {% if loop.index == 1 %}
+                                            <div class="position-absolute top-0 start-0 translate-middle badge rounded-pill bg-warning">
+                                                <i class="fas fa-crown text-white"></i>
                                             </div>
+                                        {% elif loop.index == 2 %}
+                                            <div class="position-absolute top-0 start-0 translate-middle badge rounded-pill bg-silver">
+                                                <i class="fas fa-medal text-white"></i>
+                                            </div>
+                                        {% elif loop.index == 3 %}
+                                            <div class="position-absolute top-0 start-0 translate-middle badge rounded-pill bg-bronze">
+                                                <i class="fas fa-medal text-white"></i>
+                                            </div>
+                                        {% endif %}
+                                        <div class="avatar-lg rounded-circle bg-gray-100 d-flex align-items-center justify-content-center border {% if loop.index == 1 %}border-warning{% elif loop.index == 2 %}border-silver{% elif loop.index == 3 %}border-bronze{% endif %}" style="border-width: 2px;">
+                                            {% if user.profile_picture %}
+                                                <img class="avatar-img rounded-circle" src="{{ url_for('static', filename=user.profile_picture) }}" alt="{{ user.username }}">
+                                            {% else %}
+                                                <span class="avatar-text h3 mb-0 fw-bold {% if loop.index == 1 %}text-warning{% elif loop.index == 2 %}text-secondary{% elif loop.index == 3 %}text-bronze{% else %}text-primary{% endif %}">
+                                                    {{ user.username[0] | upper }}
+                                                </span>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    <div class="ms-3 flex-grow-1">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <div>
+                                                <h6 class="mb-1">{{ user.username }}</h6>
+                                                <div class="d-flex align-items-center">
+                                                    <span class="badge bg-primary-soft me-2">
+                                                        <i class="fas fa-star text-warning me-1"></i>
+                                                        {{ user.points }} points
+                                                    </span>
+                                                    {% if user.id == current_user.id %}
+                                                        <span class="badge bg-success-soft">
+                                                            <i class="fas fa-user me-1"></i>
+                                                            You
+                                                        </span>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                            <div class="text-end">
+                                                <span class="badge rounded-pill {% if loop.index == 1 %}bg-warning{% elif loop.index == 2 %}bg-silver{% elif loop.index == 3 %}bg-bronze{% else %}bg-primary{% endif %}">
+                                                    #{{ loop.index }}
+                                                </span>
+                                            </div>
+                                        </div>
+                                        {% if loop.index <= 3 %}
+                                            <div class="progress mt-2" style="height: 4px;">
+                                                <div class="progress-bar {% if loop.index == 1 %}bg-warning{% elif loop.index == 2 %}bg-silver{% elif loop.index == 3 %}bg-bronze{% endif %}" 
+                                                     role="progressbar" 
+                                                     style="width: {{ (user.points / top_users[0].points * 100) | round }}%" 
+                                                     aria-valuenow="{{ user.points }}" 
+                                                     aria-valuemin="0" 
+                                                     aria-valuemax="{{ top_users[0].points }}">
+                                                </div>
+                                            </div>
+                                            <small class="text-muted d-block text-end mt-1">
+                                                {{ (user.points / top_users[0].points * 100) | round }}% of top score
+                                            </small>
                                         {% endif %}
                                     </div>
                                 </div>
-                                <div class="col-auto ms--2">
-                                    <h4 class="h6 mb-0">
-                                        <a href="#">{{ user.username }}</a>
-                                    </h4>
-                                    <div class="d-flex align-items-center">
-                                        <small class="text-success fw-bold">{{ user.points }} points</small>
+                            </div>
+                            {% if loop.index == 5 and current_user.id not in top_users[:5]|map(attribute='id')|list %}
+                                <div class="list-group-item border-0 px-0 py-2 text-center">
+                                    <div class="separator">
+                                        <span class="separator-text">•••</span>
                                     </div>
                                 </div>
-                                <div class="col text-end">
-                                    <span class="badge bg-primary">#{{ loop.index }}</span>
-                                </div>
-                            </div>
-                        </li>
-                        {% endfor %}
-                    </ul>
+                            {% endif %}
+                        {% endif %}
+                    {% endfor %}
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Companies Row -->
-    <div class="row">
-        <div class="col-12 mb-4">
-            <div class="card border-0 shadow">
-                <div class="card-header">
-                    <div class="row align-items-center">
-                        <div class="col">
-                            <h2 class="fs-5 fw-bold mb-0">Your Companies</h2>
-                        </div>
-                        <div class="col text-end">
-                            <a href="#" class="btn btn-sm btn-primary">Add Company</a>
-                        </div>
-                    </div>
-                </div>
-                <div class="table-responsive">
-                    <table class="table align-items-center table-flush">
-                        <thead class="thead-light">
-                            <tr>
-                                <th class="border-bottom" scope="col">Company</th>
-                                <th class="border-bottom" scope="col">Status</th>
-                                <th class="border-bottom" scope="col">Points Earned</th>
-                                <th class="border-bottom" scope="col">Last Updated</th>
-                                <th class="border-bottom" scope="col">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for company in companies %}
-                            <tr>
-                                <td>
-                                    <div class="d-flex align-items-center">
-                                        <div class="avatar rounded bg-gray-800 me-3">
-                                            <span>{{ company.initials }}</span>
-                                        </div>
-                                        <div class="d-block">
-                                            <span class="fw-bold">{{ company.name }}</span>
+    <!-- Companies Section -->
+    <div class="companies-section">
+        <div class="card-header bg-transparent">
+            <h5 class="mb-0">
+                <i class="fas fa-building text-primary me-2"></i>
+                Your Companies
+            </h5>
+        </div>
+        <div class="table-container">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th>Company</th>
+                            <th>Status</th>
+                            <th>Progress</th>
+                            <th>Last Updated</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for company in companies %}
+                        <tr>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="company-avatar me-3">
+                                        <span>{{ company.name[:2].upper() }}</span>
+                                    </div>
+                                    <div>
+                                        <h6 class="mb-0">{{ company.name }}</h6>
+                                        {% if company.contact_name %}
+                                        <small class="text-muted">
+                                            <i class="fas fa-user-tie me-1"></i>
+                                            {{ company.contact_name }}
+                                        </small>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                {% if company.status == 'lead' %}
+                                    <span class="status-badge action-form-completed">
+                                        <i class="fas fa-file-alt me-1"></i>
+                                        Lead
+                                    </span>
+                                {% elif company.status == 'demo_scheduled' %}
+                                    <span class="status-badge action-demo-scheduled">
+                                        <i class="fas fa-calendar-check me-1"></i>
+                                        Demo Scheduled
+                                    </span>
+                                {% elif company.status == 'demo_completed' %}
+                                    <span class="status-badge action-demo-completed">
+                                        <i class="fas fa-check-circle me-1"></i>
+                                        Demo Completed
+                                    </span>
+                                {% elif company.status == 'client_signed' %}
+                                    <span class="status-badge action-client-signed">
+                                        <i class="fas fa-handshake me-1"></i>
+                                        Client
+                                    </span>
+                                {% elif company.status == 'renewed' %}
+                                    <span class="status-badge action-client-renewed">
+                                        <i class="fas fa-sync me-1"></i>
+                                        Renewed
+                                    </span>
+                                {% elif company.status == 'upgraded' %}
+                                    <span class="status-badge action-client-upgraded">
+                                        <i class="fas fa-arrow-up me-1"></i>
+                                        Upgraded
+                                    </span>
+                                {% endif %}
+                            </td>
+                            <td style="width: 20%;">
+                                {% set stage_mapping = {
+                                    'lead': 0,
+                                    'demo_scheduled': 1,
+                                    'demo_completed': 2,
+                                    'client_signed': 3,
+                                    'renewed': 4,
+                                    'upgraded': 5
+                                } %}
+                                
+                                {% set current_index = stage_mapping.get(company.status, 0) %}
+                                {% set progress_percent = (current_index / 5 * 100)|round %}
+                                
+                                <div class="d-flex align-items-center">
+                                    <div class="progress flex-grow-1" style="height: 4px;">
+                                        <div class="progress-bar bg-success" role="progressbar" 
+                                             style="width: {{ progress_percent }}%" 
+                                             aria-valuenow="{{ progress_percent }}" 
+                                             aria-valuemin="0" 
+                                             aria-valuemax="100">
                                         </div>
                                     </div>
-                                </td>
-                                <td>
-                                    <span class="badge bg-{{ company.status_color }}">{{ company.status }}</span>
-                                </td>
-                                <td>
-                                    <span class="fw-bold">{{ company.points }}</span>
-                                </td>
-                                <td>
-                                    <span class="small">{{ company.updated_at }}</span>
-                                </td>
-                                <td>
-                                    <div class="btn-group">
-                                        <button class="btn btn-link text-dark dropdown-toggle dropdown-toggle-split m-0 p-0" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                            <span class="icon icon-sm">
-                                                <span class="fas fa-ellipsis-h icon-dark"></span>
-                                            </span>
-                                        </button>
-                                        <div class="dropdown-menu py-0">
-                                            <a class="dropdown-item rounded-top" href="#"><span class="fas fa-eye me-2"></span>View Details</a>
-                                            <a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#updateStatus"><span class="fas fa-edit me-2"></span>Update Status</a>
-                                            <a class="dropdown-item text-danger rounded-bottom" href="#"><span class="fas fa-trash-alt me-2"></span>Remove</a>
-                                        </div>
-                                    </div>
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
+                                    <span class="ms-2 small fw-bold">{{ progress_percent }}%</span>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="d-flex flex-column">
+                                    <small class="text-muted">
+                                        <i class="fas fa-clock me-1"></i>
+                                        {{ company.updated_at }}
+                                    </small>
+                                    {% if company.payment_date %}
+                                    <small class="text-success">
+                                        <i class="fas fa-money-bill-wave me-1"></i>
+                                        {{ company.payment_date }}
+                                    </small>
+                                    {% endif %}
+                                </div>
+                            </td>
+                            <td>
+                                <div class="btn-group">
+                                    <button class="btn btn-sm btn-outline-primary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                        <i class="fas fa-cog me-1"></i>
+                                        Actions
+                                    </button>
+                                    <ul class="dropdown-menu">
+                                        <li>
+                                            <a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#companyDetailsModal" data-company-id="{{ company.id }}">
+                                                <i class="fas fa-eye me-2"></i> View Details
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#updateStatus" data-company-id="{{ company.id }}">
+                                                <i class="fas fa-edit me-2"></i> Update Status
+                                            </a>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>
@@ -273,6 +1170,76 @@
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                 <button type="button" class="btn btn-primary">Update Status</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Company Details Modal -->
+<div class="modal fade" id="companyDetailsModal" tabindex="-1" role="dialog" aria-labelledby="companyDetailsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="h6 modal-title" id="companyDetailsModalLabel">Company Details</h2>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-4">
+                    <h6 class="fw-bold">Basic Information</h6>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p class="mb-1"><strong>Company Name:</strong></p>
+                            <p class="text-muted" id="modalCompanyName"></p>
+                        </div>
+                        <div class="col-md-6">
+                            <p class="mb-1"><strong>Current Status:</strong></p>
+                            <p id="modalCompanyStatus"></p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mb-4">
+                    <h6 class="fw-bold">Contact Information</h6>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p class="mb-1"><strong>Contact Name:</strong></p>
+                            <p class="text-muted" id="modalContactName"></p>
+                        </div>
+                        <div class="col-md-6">
+                            <p class="mb-1"><strong>Email:</strong></p>
+                            <p class="text-muted" id="modalEmail"></p>
+                        </div>
+                    </div>
+                    <div class="row mt-2">
+                        <div class="col-md-6">
+                            <p class="mb-1"><strong>Phone:</strong></p>
+                            <p class="text-muted" id="modalPhone"></p>
+                        </div>
+                        <div class="col-md-6">
+                            <p class="mb-1"><strong>Preferred Contact Time:</strong></p>
+                            <p class="text-muted" id="modalContactTime"></p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mb-4">
+                    <h6 class="fw-bold">Service Details</h6>
+                    <div class="row">
+                        <div class="col-12">
+                            <p class="mb-1"><strong>Service Type:</strong></p>
+                            <p class="text-muted" id="modalServiceType"></p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div>
+                    <h6 class="fw-bold">Additional Information</h6>
+                    <p class="text-muted" id="modalAdditionalInfo"></p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#updateStatus">Update Status</button>
             </div>
         </div>
     </div>

@@ -221,3 +221,39 @@ class RewardService:
             }
         except Exception as e:
             raise ValueError(f"Error getting next reward: {str(e)}")
+
+    @staticmethod
+    def get_next_rewards(user_id, limit=3):
+        """Get the next rewards that the user can achieve"""
+        try:
+            # Get user's current points
+            user = User.query.get(user_id)
+            if not user:
+                return []
+            
+            # Get rewards with higher point requirements than user's current points
+            rewards = Reward.query.filter(
+                Reward.points_required > user.points
+            ).order_by(
+                Reward.points_required.asc()
+            ).limit(limit).all()
+            
+            # If we don't have enough rewards, add some available rewards
+            if len(rewards) < limit:
+                available_rewards = Reward.query.filter(
+                    Reward.points_required <= user.points
+                ).order_by(
+                    Reward.points_required.desc()
+                ).limit(limit - len(rewards)).all()
+                rewards.extend(available_rewards)
+            
+            return [{
+                'id': reward.id,
+                'name': reward.name,
+                'description': reward.description,
+                'points_required': reward.points_required,
+                'is_available': reward.points_required <= user.points
+            } for reward in rewards]
+        except Exception as e:
+            print(f"Error getting next rewards: {str(e)}")
+            return []

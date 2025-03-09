@@ -81,6 +81,21 @@ def get_points_distribution():
     except Exception as e:
         return jsonify({'error': 'Internal server error'}), 500
 
+@bp.route('/points/trend', methods=['GET'])
+@login_required
+def get_points_trend():
+    """Get points trend data for the chart"""
+    period = request.args.get('period', 'month')
+    if period not in ['week', 'month', 'year']:
+        return jsonify({'error': 'Invalid period'}), 400
+        
+    try:
+        points_service = PointService()
+        trend_data = points_service.get_points_trend(current_user.id, period=period)
+        return jsonify(trend_data), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
 # Rewards Routes
 @bp.route('/rewards', methods=['GET'])
 @login_required

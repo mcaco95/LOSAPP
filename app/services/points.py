@@ -690,3 +690,102 @@ class PointService:
             db.session.commit()
             return points
         return 0
+
+    def get_points_trend(self, user_id, period='month'):
+        """Get points trend data for a user over a specified period."""
+        if period == 'week':
+            days = 7
+            interval = 'day'
+        elif period == 'month':
+            days = 30
+            interval = 'week'
+        else:  # year
+            days = 365
+            interval = 'month'
+
+        query = text("""
+            WITH RECURSIVE dates AS (
+                SELECT date_trunc(:interval, CURRENT_TIMESTAMP) as date
+                UNION ALL
+                SELECT date_trunc(:interval, date - ('1 ' || :interval)::interval)
+                FROM dates
+                WHERE date > CURRENT_TIMESTAMP - (:days || ' days')::interval
+            ),
+            points_per_period AS (
+                SELECT 
+                    date_trunc(:interval, pt.timestamp) as period,
+                    SUM(pt.amount) as points
+                FROM point_transaction pt
+                WHERE pt.user_id = :user_id
+                AND pt.timestamp > CURRENT_TIMESTAMP - (:days || ' days')::interval
+                GROUP BY date_trunc(:interval, pt.timestamp)
+            )
+            SELECT 
+                to_char(d.date, 
+                    CASE 
+                        WHEN :interval = 'day' THEN 'Day DD'
+                        WHEN :interval = 'week' THEN 'Week WW'
+                        ELSE 'Mon YYYY'
+                    END
+                ) as label,
+                COALESCE(p.points, 0) as points
+            FROM dates d
+            LEFT JOIN points_per_period p ON d.date = p.period
+            ORDER BY d.date ASC
+        """)
+
+        result = db.session.execute(query, {
+            'user_id': user_id,
+            'interval': interval,
+            'days': str(days)
+        }).fetchall()
+
+        return {
+            'labels': [row.label for row in result],
+            'series': [[row.points for row in result]]
+        }
+
+    def calculate_points_change_percentage(self, user_id):
+        """Calculate the percentage change in points from the previous period."""
+        query = text("""
+            WITH current_period AS (
+                SELECT COALESCE(SUM(amount), 0) as points
+                FROM point_transaction
+                WHERE user_id = :user_id
+                AND timestamp >= date_trunc('month', CURRENT_TIMESTAMP)
+            ),
+            previous_period AS (
+                SELECT COALESCE(SUM(amount), 0) as points
+                FROM point_transaction
+                WHERE user_id = :user_id
+                AND timestamp >= date_trunc('month', CURRENT_TIMESTAMP - INTERVAL '1 month')
+                AND timestamp < date_trunc('month', CURRENT_TIMESTAMP)
+            )
+            SELECT 
+                CASE 
+                    WHEN p.points = 0 THEN 0
+                    ELSE ((c.points - p.points) / p.points * 100)::integer
+                END as change_percentage
+            FROM current_period c, previous_period p
+        """)
+
+        result = db.session.execute(query, {'user_id': user_id}).scalar()
+        return result or 0
+
+    def get_user_points_history(self, user_id):
+        """Get detailed points transaction history for a user."""
+        query = text("""
+            SELECT 
+                pt.id,
+                pt.amount,
+                pt.reason,
+                pt.timestamp,
+                pt.activity_type,
+                pt.balance_after,
+                pt.transaction_metadata
+            FROM point_transaction pt
+            WHERE pt.user_id = :user_id
+            ORDER BY pt.timestamp DESC
+        """)
+        
+        return db.session.execute(query, {'user_id': user_id}).fetchall()

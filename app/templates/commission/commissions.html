@@ -126,40 +126,45 @@
         </div>
     </div>
 
-    <!-- Commission Information -->
+    <!-- Commission Information and Increase Commissions Section -->
     <div class="row mt-4">
+        <!-- Commission Information Card -->
         <div class="col-md-6">
-            <div class="card">
-                <div class="card-header">
+            <div class="card border-0 shadow">
+                <div class="card-header bg-white">
                     <h5 class="card-title mb-0">Commission Information</h5>
                 </div>
                 <div class="card-body">
-                    <div class="mb-3">
-                        <h6>Commission Rates</h6>
-                        <p>As a commission partner, you earn:</p>
+                    <div class="mb-4">
+                        <h6 class="fw-bold">Commission Rates</h6>
+                        <p class="text-muted">As a commission partner, you earn:</p>
                         <ul>
-                            <li><strong>20%</strong> on initial sign-ups</li>
-                            <li><strong>2.5%</strong> recurring commission on monthly payments</li>
+                            <li>10% recurring commission on monthly payments for the first 2 years</li>
+                            <li>2.5% recurring commission on monthly payments from year 3 onwards</li>
                         </ul>
                     </div>
-                    <div class="mb-3">
-                        <h6>Payment Schedule</h6>
-                        <p>Commissions are paid monthly on the 15th for all commissions marked as "paid" in the previous month.</p>
+                    
+                    <div class="mb-4">
+                        <h6 class="fw-bold">Payment Schedule</h6>
+                        <p class="text-muted">Commissions are paid monthly on the 15th for all commissions marked as "paid" in the previous month.</p>
                     </div>
+                    
                     <div>
-                        <h6>Commission Status Definitions</h6>
-                        <ul>
-                            <li><strong>Pending</strong>: Commission has been calculated but not yet paid</li>
-                            <li><strong>Paid</strong>: Commission has been paid to your account</li>
-                            <li><strong>Cancelled</strong>: Commission has been cancelled (hover over the info icon to see reason)</li>
+                        <h6 class="fw-bold">Commission Status Definitions</h6>
+                        <ul class="list-unstyled">
+                            <li class="mb-2"><i class="fas fa-clock text-warning me-2"></i> Pending: Commission has been calculated but not yet paid</li>
+                            <li class="mb-2"><i class="fas fa-check text-success me-2"></i> Paid: Commission has been paid to your account</li>
+                            <li><i class="fas fa-times text-danger me-2"></i> Cancelled: Commission has been cancelled (hover over the info icon to see reason)</li>
                         </ul>
                     </div>
                 </div>
             </div>
         </div>
+
+        <!-- Increase Your Commissions Card -->
         <div class="col-md-6">
-            <div class="card">
-                <div class="card-header">
+            <div class="card border-0 shadow">
+                <div class="card-header bg-white">
                     <h5 class="card-title mb-0">Increase Your Commissions</h5>
                 </div>
                 <div class="card-body">
@@ -168,34 +173,40 @@
                             <i class="align-middle fas fa-fw fa-link fa-2x text-primary"></i>
                         </div>
                         <div class="flex-grow-1 ms-3">
-                            <h5>Share Your Referral Link</h5>
-                            <p>Share your unique referral link with potential clients to earn commissions when they sign up.</p>
+                            <h6 class="fw-bold">Share Your Referral Link</h6>
+                            <p class="text-muted small">Share your unique referral link with potential clients to earn commissions when they sign up.</p>
                             <div class="input-group">
                                 <input type="text" class="form-control" value="{{ request.host_url }}referral/{{ current_user.unique_link }}" readonly id="referralLink">
-                                <button class="btn btn-outline-primary" type="button" onclick="copyReferralLink()">Copy</button>
+                                <button class="btn btn-primary" onclick="navigator.clipboard.writeText('{{ request.host_url }}referral/{{ current_user.unique_link }}'); showCopiedToast();">
+                                    <i class="fas fa-copy me-2"></i>Copy
+                                </button>
                             </div>
                         </div>
                     </div>
+
                     <div class="d-flex mb-4">
                         <div class="flex-shrink-0">
                             <i class="align-middle fas fa-fw fa-users fa-2x text-primary"></i>
                         </div>
                         <div class="flex-grow-1 ms-3">
-                            <h5>Grow Your Partner Network</h5>
-                            <p>Invite others to become commission partners and build your network.</p>
+                            <h6 class="fw-bold">Grow Your Partner Network</h6>
+                            <p class="text-muted small">Invite others to become commission partners and build your network.</p>
                             <div class="input-group">
                                 <input type="text" class="form-control" value="{{ request.host_url }}commission/partners?ref={{ current_user.unique_link }}" readonly id="partnerLink">
-                                <button class="btn btn-outline-primary" type="button" onclick="copyPartnerLink()">Copy</button>
+                                <button class="btn btn-primary" onclick="navigator.clipboard.writeText('{{ request.host_url }}commission/partners?ref={{ current_user.unique_link }}'); showCopiedToast();">
+                                    <i class="fas fa-copy me-2"></i>Copy
+                                </button>
                             </div>
                         </div>
                     </div>
+
                     <div class="d-flex">
                         <div class="flex-shrink-0">
                             <i class="align-middle fas fa-fw fa-arrow-up fa-2x text-primary"></i>
                         </div>
                         <div class="flex-grow-1 ms-3">
-                            <h5>Promote Professional Plans</h5>
-                            <p>Professional plans earn you higher commissions. Focus on promoting these to maximize your earnings.</p>
+                            <h6 class="fw-bold">Promote Professional Plans</h6>
+                            <p class="text-muted small">Professional plans earn you higher commissions. Focus on promoting these to maximize your earnings.</p>
                         </div>
                     </div>
                 </div>
@@ -203,6 +214,19 @@
         </div>
     </div>
 </div>
+
+<!-- Toast for copy notification -->
+<div class="position-fixed bottom-0 end-0 p-3" style="z-index: 11">
+    <div id="copyToast" class="toast align-items-center text-white bg-success border-0" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="d-flex">
+            <div class="toast-body">
+                <i class="fas fa-check-circle me-2"></i> Link copied to clipboard!
+            </div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+    </div>
+</div>
+
 {% endblock %}
 
 {% block scripts %}
@@ -246,20 +270,11 @@
         });
     });
 
-    function copyReferralLink() {
-        var copyText = document.getElementById("referralLink");
-        copyText.select();
-        copyText.setSelectionRange(0, 99999);
-        navigator.clipboard.writeText(copyText.value);
-        alert("Referral link copied to clipboard!");
-    }
-
-    function copyPartnerLink() {
-        var copyText = document.getElementById("partnerLink");
-        copyText.select();
-        copyText.setSelectionRange(0, 99999);
-        navigator.clipboard.writeText(copyText.value);
-        alert("Partner link copied to clipboard!");
+    // Function to show the copied toast
+    function showCopiedToast() {
+        var toastEl = document.getElementById('copyToast');
+        var toast = new bootstrap.Toast(toastEl);
+        toast.show();
     }
 </script>
 {% endblock %} 

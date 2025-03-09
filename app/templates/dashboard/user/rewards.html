@@ -4,6 +4,266 @@
 
 {% block extra_css %}
     <link type="text/css" href="{{ url_for('static', filename='css/points-rewards.css') }}" rel="stylesheet">
+    <style>
+        .reward-card {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border: none;
+            border-radius: 1.5rem;
+            overflow: hidden;
+            background: linear-gradient(145deg, #ffffff 0%, #f8f9fa 100%);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+        }
+        
+        .reward-card:hover {
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.12);
+        }
+        
+        .reward-icon {
+            width: 80px;
+            height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 1.5rem;
+            margin-bottom: 1.5rem;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .reward-icon::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(45deg, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0) 100%);
+            z-index: 1;
+        }
+        
+        .reward-icon.bronze {
+            background: linear-gradient(135deg, #CD7F32 0%, #e6b17e 50%, #CD7F32 100%);
+            box-shadow: 0 8px 20px rgba(205, 127, 50, 0.3);
+        }
+        
+        .reward-icon.silver {
+            background: linear-gradient(135deg, #C0C0C0 0%, #e6e6e6 50%, #C0C0C0 100%);
+            box-shadow: 0 8px 20px rgba(253, 251, 242, 0.3);
+        }
+        
+        .reward-icon.gold {
+            background: linear-gradient(135deg, #FFD700 0%, #ffeeb2 50%, #FFD700 100%);
+            box-shadow: 0 8px 20px rgba(192, 192, 192, 0.3);
+        }
+        
+        .points-badge {
+            font-size: 0.875rem;
+            padding: 0.625rem 1.25rem;
+            border-radius: 2rem;
+            font-weight: 600;
+            background: linear-gradient(135deg, rgba(13, 110, 253, 0.1) 0%, rgba(13, 110, 253, 0.2) 100%);
+            color: #0d6efd;
+            transition: all 0.3s ease;
+        }
+        
+        .reward-card:hover .points-badge {
+            background: linear-gradient(135deg, rgba(13, 110, 253, 0.15) 0%, rgba(13, 110, 253, 0.25) 100%);
+            transform: scale(1.05);
+        }
+        
+        .reward-status {
+            font-size: 0.875rem;
+            margin-top: 0.75rem;
+            padding: 0.5rem;
+            border-radius: 1rem;
+            transition: all 0.3s ease;
+        }
+        
+        .reward-status.locked {
+            color: #6c757d;
+            background-color: rgba(108, 117, 125, 0.1);
+        }
+        
+        .reward-status.available {
+            color: #198754;
+            background-color: rgba(25, 135, 84, 0.1);
+        }
+        
+        .reward-progress {
+            height: 10px;
+            border-radius: 5px;
+            background: linear-gradient(90deg, #e9ecef 0%, #f8f9fa 100%);
+            margin: 1rem 0;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .reward-progress .progress-bar {
+            border-radius: 5px;
+            background: linear-gradient(90deg, #0d6efd 0%, #0a58ca 100%);
+            transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+        }
+        
+        .reward-progress .progress-bar::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.2) 50%, rgba(255,255,255,0) 100%);
+            animation: shine 2s infinite;
+        }
+        
+        @keyframes shine {
+            from { transform: translateX(-100%); }
+            to { transform: translateX(100%); }
+        }
+        
+        .next-rewards {
+            position: relative;
+            padding: 3rem 0;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-radius: 2rem;
+            margin: 2rem -1rem;
+        }
+        
+        .next-rewards::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 100%;
+            background: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z' fill='%23ffffff' fill-opacity='0.1' fill-rule='evenodd'/%3E%3C/svg%3E");
+            opacity: 0.5;
+        }
+
+        /* Progress bar styles */
+        .progress-bar-container {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 4px;
+            position: relative;
+            margin: 30px 0;
+            height: 30px;
+        }
+
+        .progress-segments {
+            display: flex;
+            height: 100%;
+            width: 100%;
+        }
+
+        .progress-segment {
+            height: 100%;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+        .progress-segment:not(:last-child) {
+            margin-right: 4px;
+        }
+
+        .progress-segment.completed {
+            background: #0d6efd;
+        }
+
+        .progress-segment.current {
+            background: rgba(13, 110, 253, 0.2);
+        }
+
+        .progress-segment.upcoming {
+            background: #e9ecef;
+        }
+
+        .progress-labels {
+            position: absolute;
+            width: 100%;
+            top: 100%;
+            left: 0;
+            display: flex;
+            justify-content: space-between;
+            margin-top: 8px;
+        }
+
+        .progress-label {
+            font-size: 0.875rem;
+            color: #495057;
+            text-align: center;
+            transform: translateX(-50%);
+            white-space: nowrap;
+            font-weight: 500;
+            margin-top: 12px;
+        }
+
+        .progress-label.completed {
+            color: #0d6efd;
+            font-weight: 600;
+        }
+
+        .progress-points {
+            position: absolute;
+            top: -25px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            transform: translateX(-50%);
+            background: white;
+            padding: 2px 8px;
+            border-radius: 12px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            color: #495057;
+        }
+
+        .activity-item {
+            padding: 8px;
+            transition: all 0.2s ease;
+        }
+
+        .activity-item:hover {
+            background-color: rgba(13, 110, 253, 0.05);
+            border-radius: 8px;
+        }
+
+        .activity-item .h5 {
+            color: #0d6efd;
+            font-weight: 600;
+            min-width: 30px;
+        }
+
+        .activity-item .text-muted {
+            font-size: 0.8125rem;
+            max-width: 180px;
+        }
+
+        .points-activity {
+            background: #fff;
+            border-radius: 1rem;
+            padding: 1.5rem;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+        }
+
+        /* Achievement badges */
+        .achievement-badge {
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+        .achievement-badge:hover {
+            transform: translateY(-3px);
+        }
+
+        .achievement-badge .reward-icon {
+            margin-bottom: 0;
+            border: 2px solid white;
+        }
+
+        .achievement-badge:not(:first-child) {
+            margin-left: -10px;
+        }
+    </style>
 {% endblock %}
 
 {% block extra_js %}
@@ -12,34 +272,83 @@
 
 {% block content %}
 <div class="py-4">
-    <!-- Next Reward Progress -->
-    <div class="row">
-        <div class="col-12 mb-4">
+    <!-- Progress Overview Section -->
+    <div class="row mb-4">
+        <div class="col-12">
             <div class="card border-0 shadow">
-                <div class="card-body">
+                <div class="card-body p-4">
                     <div class="row align-items-center">
-                        <div class="col-12 col-xl-5 text-xl-center mb-3 mb-xl-0 d-flex align-items-center justify-content-xl-center">
-                            <div class="icon-shape icon-shape-tertiary rounded me-4">
-                                <svg class="icon" fill="currentColor" viewBox="0 0 20 20">
-                                    <path d="M10 2a1 1 0 011 1v1.323l3.954 1.582 1.599-.8a1 1 0 01.894 1.79l-1.233.616 1.738 5.42a1 1 0 01-.285 1.05A3.989 3.989 0 0115 15a3.989 3.989 0 01-2.667-1.019 1 1 0 01-.285-1.05l1.715-5.349L11 6.477V16h2a1 1 0 110 2H7a1 1 0 110-2h2V6.477L6.237 7.582l1.715 5.349a1 1 0 01-.285 1.05A3.989 3.989 0 015 15a3.989 3.989 0 01-2.667-1.019 1 1 0 01-.285-1.05l1.738-5.42-1.233-.616a1 1 0 01.894-1.79l1.599.8L9 4.323V3a1 1 0 011-1z"/>
-                                </svg>
+                        <div class="col-md-6">
+                            <h2 class="h3 fw-bold mb-3">Your Rewards Journey</h2>
+                            <p class="text-muted mb-4">Keep earning points to unlock exclusive rewards!</p>
+                            <div class="d-flex align-items-center mb-4">
+                                <div class="me-4">
+                                    <span class="h2 fw-bold mb-0" data-count="{{ total_points }}">{{ total_points }}</span>
+                                    <span class="text-gradient ms-2">points earned</span>
+                                </div>
+                                {% if points_change > 0 %}
+                                <div class="points-trend positive">
+                                    <i class="fas fa-arrow-up me-1"></i>
+                                    <span>+{{ points_change }}%</span>
+                                    <small class="text-muted ms-1">this month</small>
+                                </div>
+                                {% endif %}
                             </div>
-                            <div class="d-sm-none">
-                                <h2 class="h5">Next Reward</h2>
-                                <h3 class="fw-extrabold mb-1">{{ next_reward_points }} pts</h3>
+                            <div class="achievements mb-3">
+                                <div class="achievement-badges d-flex">
+                                    {% for reward in reward_history[:3] %}
+                                    <div class="achievement-badge" data-bs-toggle="tooltip" title="{{ reward.name }}">
+                                        <div class="reward-icon {{ ['bronze', 'silver', 'gold'][loop.index0 % 3] }}" style="width: 40px; height: 40px;">
+                                            <i class="fas fa-trophy text-white"></i>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                </div>
                             </div>
                         </div>
-                        <div class="col-12 col-xl-7 px-xl-0">
-                            <div class="d-none d-sm-block">
-                                <h2 class="h6 text-gray-400 mb-0">Next Reward</h2>
-                                <h3 class="fw-extrabold mb-2">{{ next_reward_points }} pts</h3>
+                        <div class="col-md-6">
+                            <div class="progress-bar-container">
+                                <div class="progress-segments">
+                                    {% set milestones = [0, 100, 500, 1000] %}
+                                    {% for i in range(milestones|length - 1) %}
+                                        {% set segment_width = (100 / (milestones|length - 1))|round %}
+                                        {% set is_current = total_points >= milestones[i] and total_points < milestones[i + 1] %}
+                                        {% set is_completed = total_points >= milestones[i + 1] %}
+                                        <div class="progress-segment {{ 'completed' if is_completed else 'current' if is_current else 'upcoming' }}"
+                                             style="width: {{ segment_width }}%">
+                                            <span class="progress-points">{{ milestones[i] }}</span>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                                <div class="progress-labels">
+                                    {% set labels = ['Bronze', 'Silver', 'Gold'] %}
+                                    {% for label in labels %}
+                                        {% set position = (loop.index0 * 50) %}
+                                        <span class="progress-label {{ 'completed' if total_points >= milestones[loop.index] }}" 
+                                              style="left: {{ position if loop.first else (position if loop.last else position) }}%">
+                                            {{ label }}
+                                        </span>
+                                    {% endfor %}
+                                </div>
                             </div>
-                            <div class="small d-flex mt-1">
-                                <div class="w-100">
-                                    <div class="progress">
-                                        <div class="progress-bar bg-tertiary" role="progressbar" style="width: {{ next_reward_progress }}%" aria-valuenow="{{ next_reward_progress }}" aria-valuemin="0" aria-valuemax="100"></div>
+                            <div class="points-activity mt-5">
+                                <div class="d-flex flex-wrap justify-content-between">
+                                    {% set activities = [
+                                        {'points': 2, 'text': 'Click Reward'},
+                                        {'points': 80, 'text': 'Test 2 Has Signed Up As A Commission Partner'},
+                                        {'points': 25, 'text': 'Signup: Simon Test 2 Has Completed Their Test'},
+                                        {'points': 15, 'text': '2 Has Booked A Demo!'},
+                                        {'points': 5, 'text': 'Unique Click'},
+                                        {'points': 1, 'text': 'Reward'}
+                                    ] %}
+                                    {% for activity in activities %}
+                                        <div class="activity-item mb-2" style="flex: 0 0 33.333%;">
+                                            <div class="d-flex align-items-center">
+                                                <span class="h5 mb-0 me-2">{{ activity.points }}</span>
+                                                <span class="text-muted small" style="line-height: 1.2;">{{ activity.text }}</span>
+                                            </div>
                                     </div>
-                                    <small class="fw-bold">{{ next_reward_progress }}% progress</small>
+                                    {% endfor %}
                                 </div>
                             </div>
                         </div>
@@ -49,45 +358,136 @@
         </div>
     </div>
 
+    <!-- Next 3 Rewards -->
+    <div class="next-rewards mb-5">
+        <div class="row justify-content-center">
+            <div class="col-12 text-center mb-4">
+                <h3 class="fw-bold">Next Rewards</h3>
+                <p class="text-muted">Your next milestones on the journey</p>
+            </div>
+        </div>
+        <div class="row">
+            {% for reward in next_rewards[:3] %}
+            <div class="col-12 col-md-4 mb-4">
+                <div class="card reward-card h-100">
+                    <div class="card-body text-center">
+                        {% set badge_order = ['bronze', 'silver', 'gold'] %}
+                        <div class="reward-icon {{ badge_order[loop.index0] }} mx-auto">
+                            <i class="fas fa-trophy text-white fa-2x"></i>
+                        </div>
+                        {% if badge_order[loop.index0] == 'bronze' %}
+                            <h5 class="card-title mb-3">Bronze Badge</h5>
+                            <span class="points-badge mb-3 d-inline-block">100 pts</span>
+                            <p class="card-text text-muted mb-3">Digital badge for reaching bronze tier</p>
+                            {% if total_points >= 100 %}
+                            <button class="btn btn-primary w-100" onclick="redeemReward({{ reward.id }})">
+                                Redeem Now
+                            </button>
+                            <div class="reward-status available">
+                                <i class="fas fa-unlock me-1"></i> Available
+                            </div>
+                            {% else %}
+                            <button class="btn btn-secondary w-100" disabled>
+                                {{ 100 - total_points }} pts more needed
+                            </button>
+                            <div class="reward-status locked">
+                                <i class="fas fa-lock me-1"></i> Locked
+                            </div>
+                            {% endif %}
+                        {% elif badge_order[loop.index0] == 'silver' %}
+                            <h5 class="card-title mb-3">Silver Badge</h5>
+                            <span class="points-badge mb-3 d-inline-block">500 pts</span>
+                            <p class="card-text text-muted mb-3">Digital badge for reaching silver tier</p>
+                            {% if total_points >= 500 %}
+                            <button class="btn btn-primary w-100" onclick="redeemReward({{ reward.id }})">
+                                Redeem Now
+                            </button>
+                            <div class="reward-status available">
+                                <i class="fas fa-unlock me-1"></i> Available
+                            </div>
+                            {% else %}
+                            <button class="btn btn-secondary w-100" disabled>
+                                {{ 500 - total_points }} pts more needed
+                            </button>
+                            <div class="reward-status locked">
+                                <i class="fas fa-lock me-1"></i> Locked
+                            </div>
+                            {% endif %}
+                        {% else %}
+                            <h5 class="card-title mb-3">Gold Badge</h5>
+                            <span class="points-badge mb-3 d-inline-block">1000 pts</span>
+                            <p class="card-text text-muted mb-3">Digital badge for reaching gold tier</p>
+                            {% if total_points >= 1000 %}
+                            <button class="btn btn-primary w-100" onclick="redeemReward({{ reward.id }})">
+                                Redeem Now
+                            </button>
+                            <div class="reward-status available">
+                                <i class="fas fa-unlock me-1"></i> Available
+                            </div>
+                            {% else %}
+                            <button class="btn btn-secondary w-100" disabled>
+                                {{ 1000 - total_points }} pts more needed
+                            </button>
+                            <div class="reward-status locked">
+                                <i class="fas fa-lock me-1"></i> Locked
+                            </div>
+                            {% endif %}
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
     <!-- Available Rewards -->
-    <div class="row">
-        {% for reward in available_rewards %}
-        <div class="col-12 col-sm-6 col-xl-4 mb-4">
+    <div class="row mb-4">
+        <div class="col-12">
             <div class="card border-0 shadow">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">All Available Rewards</h5>
+                </div>
                 <div class="card-body">
-                    <div class="row d-block d-xl-flex align-items-center">
-                        <div class="col-12 col-xl-5 text-xl-center mb-3 mb-xl-0 d-flex align-items-center justify-content-xl-center">
-                            <div class="icon-shape icon-shape-primary rounded me-4 me-sm-0">
-                                <svg class="icon" fill="currentColor" viewBox="0 0 20 20">
-                                    <path d="M11 17a1 1 0 001.447.894l4-2A1 1 0 0017 15V9.236a1 1 0 00-1.447-.894l-4 2a1 1 0 00-.553.894V17zM15.211 6.276a1 1 0 000-1.788l-4.764-2.382a1 1 0 00-.894 0L4.789 4.488a1 1 0 000 1.788l4.764 2.382a1 1 0 00.894 0l4.764-2.382zM4.447 8.342A1 1 0 003 9.236V15a1 1 0 00.553.894l4 2A1 1 0 009 17v-5.764a1 1 0 00-.553-.894l-4-2z"/>
-                                </svg>
+                    <div class="row">
+                        {% for reward in available_rewards %}
+                        <div class="col-12 col-md-6 col-xl-4 mb-4">
+                            <div class="card reward-card h-100">
+                                <div class="card-body">
+                                    <div class="d-flex align-items-center mb-3">
+                                        <div class="reward-icon {{ ['bronze', 'silver', 'gold'][loop.index0 % 3] }} me-3">
+                                            <i class="fas fa-gift text-white"></i>
+                                        </div>
+                                        <div>
+                                            <h6 class="mb-1">{{ reward.name }}</h6>
+                                            <span class="points-badge">{{ reward.points_required }} pts</span>
                             </div>
                         </div>
-                        <div class="col-12 col-xl-7 px-xl-0">
-                            <div class="d-none d-sm-block">
-                                <h2 class="h6 text-gray-400 mb-0">{{ reward.name }}</h2>
-                                <h3 class="fw-extrabold mb-2">{{ reward.points_required }} pts</h3>
+                                    <p class="text-muted mb-3">{{ reward.description }}</p>
+                                    {% if reward.points_required <= total_points %}
+                                    <button class="btn btn-primary btn-sm w-100" onclick="redeemReward({{ reward.id }})">
+                                        Redeem Now
+                                    </button>
+                                    {% else %}
+                                    <button class="btn btn-secondary btn-sm w-100" disabled>
+                                        Need {{ reward.points_required - total_points }} more pts
+                                    </button>
+                                    {% endif %}
+                                </div>
                             </div>
-                            <p class="text-gray-500 mb-3">{{ reward.description }}</p>
-                            <button class="btn btn-sm btn-tertiary" onclick="redeemReward({{ reward.id }})">Redeem Reward</button>
                         </div>
+                        {% endfor %}
                     </div>
                 </div>
             </div>
         </div>
-        {% endfor %}
     </div>
 
     <!-- Redemption History -->
     <div class="row">
-        <div class="col-12 mb-4">
+        <div class="col-12">
             <div class="card border-0 shadow">
-                <div class="card-header">
-                    <div class="row align-items-center">
-                        <div class="col">
-                            <h2 class="fs-5 fw-bold mb-0">Redemption History</h2>
-                        </div>
-                    </div>
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">Redemption History</h5>
                 </div>
                 <div class="table-responsive">
                     <table class="table align-items-center table-flush">
@@ -100,26 +500,36 @@
                             </tr>
                         </thead>
                         <tbody>
+                            {% if reward_history %}
                             {% for reward in reward_history %}
                             <tr>
                                 <td>
                                     <div class="d-flex align-items-center">
-                                        <div class="d-block">
+                                            <div class="reward-icon {{ ['bronze', 'silver', 'gold'][loop.index0 % 3] }} me-3" style="width: 32px; height: 32px;">
+                                                <i class="fas fa-gift text-white fa-sm"></i>
+                                            </div>
                                             <span class="fw-bold">{{ reward.name }}</span>
-                                        </div>
                                     </div>
                                 </td>
                                 <td>
-                                    <span class="fw-bold">{{ reward.points_required }}</span>
+                                        <span class="points-badge">{{ reward.points_required }}</span>
                                 </td>
                                 <td>
                                     <span class="badge bg-success">Redeemed</span>
                                 </td>
                                 <td>
-                                    <span class="small">{{ reward.redeemed_at }}</span>
+                                        <span class="text-muted">{{ reward.redeemed_at.strftime('%Y-%m-%d %H:%M') }}</span>
                                 </td>
                             </tr>
                             {% endfor %}
+                            {% else %}
+                                <tr>
+                                    <td colspan="4" class="text-center py-4">
+                                        <i class="fas fa-gift text-muted mb-2" style="font-size: 2rem;"></i>
+                                        <p class="text-muted mb-0">No rewards redeemed yet</p>
+                                    </td>
+                                </tr>
+                            {% endif %}
                         </tbody>
                     </table>
                 </div>
