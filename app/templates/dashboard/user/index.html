@@ -978,14 +978,14 @@
                                             <div class="progress mt-2" style="height: 4px;">
                                                 <div class="progress-bar {% if loop.index == 1 %}bg-warning{% elif loop.index == 2 %}bg-silver{% elif loop.index == 3 %}bg-bronze{% endif %}" 
                                                      role="progressbar" 
-                                                     style="width: {{ (user.points / top_users[0].points * 100) | round }}%" 
+                                                     style="width: {{ (user.points / (top_users[0].points if top_users and top_users[0].points > 0 else 1) * 100) | round }}%" 
                                                      aria-valuenow="{{ user.points }}" 
                                                      aria-valuemin="0" 
-                                                     aria-valuemax="{{ top_users[0].points }}">
+                                                     aria-valuemax="{{ top_users[0].points if top_users else 0 }}">
                                                 </div>
                                             </div>
                                             <small class="text-muted d-block text-end mt-1">
-                                                {{ (user.points / top_users[0].points * 100) | round }}% of top score
+                                                {{ (user.points / (top_users[0].points if top_users and top_users[0].points > 0 else 1) * 100) | round }}% of top score
                                             </small>
                                         {% endif %}
                                     </div>
