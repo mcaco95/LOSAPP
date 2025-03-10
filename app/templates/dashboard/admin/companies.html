@@ -136,6 +136,57 @@
         position: relative;
         z-index: 10001;
     }
+    
+    /* Add toggle switch styles */
+    .toggle-switch {
+        position: relative;
+        display: inline-block;
+        width: 60px;
+        height: 30px;
+    }
+
+    .toggle-switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+    }
+
+    .toggle-slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: #ccc;
+        transition: .4s;
+        border-radius: 30px;
+    }
+
+    .toggle-slider:before {
+        position: absolute;
+        content: "";
+        height: 22px;
+        width: 22px;
+        left: 4px;
+        bottom: 4px;
+        background-color: white;
+        transition: .4s;
+        border-radius: 50%;
+    }
+
+    input:checked + .toggle-slider {
+        background-color: #2196F3;
+    }
+
+    input:checked + .toggle-slider:before {
+        transform: translateX(30px);
+    }
+
+    .toggle-label {
+        margin-left: 10px;
+        font-weight: 500;
+    }
 </style>
 {% endblock %}
 
@@ -476,7 +527,7 @@
                                     </td>
                                     <td>
                                         <div class="btn-group mb-1">
-                                            <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#companyDetailsModal" data-company-id="{{ company.id }}">Details</button>
+                                            <a href="{{ url_for('main.admin_company_details', company_id=company.id) }}" class="btn btn-sm btn-primary">Details</a>
                                             <button type="button" class="btn btn-sm btn-warning" data-bs-toggle="modal" data-bs-target="#companyStatusModal" data-company-id="{{ company.id }}" data-company-name="{{ company.name }}" data-company-status="{{ company.status }}">Status</button>
                                             <button class="btn btn-sm btn-danger" onclick="confirmDelete({{ company.id }}, '{{ company.name }}')">Delete</button>
                                         </div>
@@ -585,6 +636,26 @@
                             <label class="form-label">Service Type</label>
                             <p id="detailsServiceType" class="form-control-static">Loading...</p>
                         </div>
+                        <div class="mb-3" id="safetyStatusContainer">
+                            <label class="form-label">Safety Service Status</label>
+                            <div class="d-flex align-items-center">
+                                <label class="toggle-switch">
+                                    <input type="checkbox" class="service-toggle" data-service="safety">
+                                    <span class="toggle-slider"></span>
+                                </label>
+                                <span class="toggle-label" id="safetyStatusLabel">Inactive</span>
+                            </div>
+                        </div>
+                        <div class="mb-3" id="recruitmentStatusContainer">
+                            <label class="form-label">Recruitment Service Status</label>
+                            <div class="d-flex align-items-center">
+                                <label class="toggle-switch">
+                                    <input type="checkbox" class="service-toggle" data-service="recruitment">
+                                    <span class="toggle-slider"></span>
+                                </label>
+                                <span class="toggle-label" id="recruitmentStatusLabel">Inactive</span>
+                            </div>
+                        </div>
                         <div class="mb-3">
                             <label class="form-label">Status</label>
                             <p id="detailsStatus" class="form-control-static">Loading...</p>
@@ -597,6 +668,32 @@
                             <label class="form-label">Last Updated</label>
                             <p id="detailsUpdated" class="form-control-static">Loading...</p>
                         </div>
+                    </div>
+                </div>
+                
+                <div class="row mt-3" id="recruitmentRequestsContainer">
+                    <div class="col-12">
+                        <h6 class="fw-bold">Recruitment Requests</h6>
+                        <div class="table-responsive">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Position</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="recruitmentRequestsTable">
+                                    <tr>
+                                        <td colspan="4" class="text-center">Loading requests...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <button class="btn btn-sm btn-primary" id="addRecruitmentRequest">
+                            Add Recruitment Request
+                        </button>
                     </div>
                 </div>
                 
@@ -656,6 +753,38 @@
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                 <button type="button" class="btn btn-primary" id="saveStatusBtn">Save Changes</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Recruitment Request Modal -->
+<div class="modal fade" id="recruitmentRequestModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Add Recruitment Request</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="recruitmentRequestForm">
+                    <div class="mb-3">
+                        <label class="form-label">Position Title</label>
+                        <input type="text" class="form-control" name="position" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Description</label>
+                        <textarea class="form-control" name="description" rows="3" required></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Requirements</label>
+                        <textarea class="form-control" name="requirements" rows="3" required></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="saveRecruitmentRequest">Save Request</button>
             </div>
         </div>
     </div>
@@ -807,15 +936,17 @@
         // Handle Company Details Modal
         var companyDetailsModal = document.getElementById('companyDetailsModal');
         if (companyDetailsModal) {
+            let currentCompanyId = null;  // Add this line to store the current company ID
+            
             companyDetailsModal.addEventListener('show.bs.modal', function(event) {
                 var button = event.relatedTarget;
-                var companyId = button.getAttribute('data-company-id');
+                currentCompanyId = button.getAttribute('data-company-id');  // Store the company ID
                 
                 // Update modal title
                 document.getElementById('companyDetailsModalLabel').textContent = 'Company Details';
                 
                 // Fetch company details via AJAX
-                fetch(`/api/v1/company/${companyId}`)
+                fetch(`/api/v1/company/${currentCompanyId}`)
                     .then(response => response.json())
                     .then(data => {
                         if (data.success) {
@@ -846,8 +977,119 @@
                             
                             // Set up edit button
                             document.getElementById('editCompanyBtn').onclick = function() {
-                                window.location.href = `/dashboard/admin/companies/edit/${companyId}`;
+                                window.location.href = `/dashboard/admin/companies/edit/${currentCompanyId}`;
                             };
+
+                            // Update service status toggles
+                            const safetyToggle = document.querySelector('input[data-service="safety"]');
+                            const recruitmentToggle = document.querySelector('input[data-service="recruitment"]');
+                            const safetyLabel = document.getElementById('safetyStatusLabel');
+                            const recruitmentLabel = document.getElementById('recruitmentStatusLabel');
+
+                            // Set initial states
+                            if (company.safety_status === 'active') {
+                                safetyToggle.checked = true;
+                                safetyLabel.textContent = 'Active';
+                            } else {
+                                safetyToggle.checked = false;
+                                safetyLabel.textContent = 'Inactive';
+                            }
+
+                            if (company.recruitment_status === 'active') {
+                                recruitmentToggle.checked = true;
+                                recruitmentLabel.textContent = 'Active';
+                            } else {
+                                recruitmentToggle.checked = false;
+                                recruitmentLabel.textContent = 'Inactive';
+                            }
+
+                            // Add event listeners for toggles
+                            document.querySelectorAll('.service-toggle').forEach(toggle => {
+                                toggle.onchange = function() {
+                                    const service = this.dataset.service;
+                                    const label = document.getElementById(`${service}StatusLabel`);
+                                    const newStatus = this.checked ? 'active' : 'inactive';
+
+                                    fetch(`/api/v1/company/${currentCompanyId}/service-status`, {
+                                        method: 'PUT',
+                                        headers: {
+                                            'Content-Type': 'application/json',
+                                            'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                                        },
+                                        body: JSON.stringify({
+                                            service: service,
+                                            status: newStatus
+                                        })
+                                    })
+                                    .then(response => response.json())
+                                    .then(data => {
+                                        if (data.success) {
+                                            label.textContent = this.checked ? 'Active' : 'Inactive';
+                                        } else {
+                                            // Revert the toggle if the update failed
+                                            this.checked = !this.checked;
+                                            label.textContent = this.checked ? 'Active' : 'Inactive';
+                                            alert('Error updating service status: ' + (data.message || 'Unknown error'));
+                                        }
+                                    })
+                                    .catch(error => {
+                                        console.error('Error updating service status:', error);
+                                        // Revert the toggle if there was an error
+                                        this.checked = !this.checked;
+                                        label.textContent = this.checked ? 'Active' : 'Inactive';
+                                        alert('Error updating service status. Please try again.');
+                                    });
+                                };
+                            });
+
+                            // Set up recruitment request handler
+                            document.getElementById('addRecruitmentRequest').onclick = function() {
+                                // Show the modal
+                                const modal = new bootstrap.Modal(document.getElementById('recruitmentRequestModal'));
+                            };
+
+                            // Handle saving recruitment request
+                            document.getElementById('saveRecruitmentRequest').onclick = function() {
+                                const form = document.getElementById('recruitmentRequestForm');
+                                const formData = new FormData(form);
+                                const requestData = {
+                                    position: formData.get('position'),
+                                    details: formData.get('description'),
+                                    requirements: formData.get('requirements')
+                                };
+                                
+                                fetch(`/api/v1/company/${currentCompanyId}/recruitment-request`, {
+                                    method: 'POST',
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                        'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                                    },
+                                    body: JSON.stringify(requestData)
+                                })
+                                .then(response => response.json())
+                                .then(data => {
+                                    if (data.success) {
+                                        // Close modal
+                                        const modal = bootstrap.Modal.getInstance(document.getElementById('recruitmentRequestModal'));
+                                        modal.hide();
+                                        
+                                        // Clear form
+                                        form.reset();
+                                        
+                                        // Refresh recruitment requests list
+                                        loadRecruitmentRequests(currentCompanyId);
+                                    } else {
+                                        alert('Error adding recruitment request: ' + (data.message || 'Unknown error'));
+                                    }
+                                })
+                                .catch(error => {
+                                    console.error('Error adding recruitment request:', error);
+                                    alert('Error adding recruitment request. Please try again.');
+                                });
+                            };
+
+                            // Initial load of recruitment requests
+                            loadRecruitmentRequests(currentCompanyId);
                         } else {
                             // Show error message
                             alert('Error loading company details: ' + (data.message || 'Unknown error'));
@@ -949,6 +1191,70 @@ function confirmDelete(companyId, companyName) {
         document.body.appendChild(form);
         form.submit();
     }
+}
+
+function loadRecruitmentRequests(companyId) {
+    const requestsContainer = document.getElementById('recruitmentRequestsTable');
+    if (!requestsContainer) return;
+
+    requestsContainer.innerHTML = '<tr><td colspan="4" class="text-center">Loading requests...</td></tr>';
+
+    fetch(`/api/v1/company/${companyId}/recruitment-requests`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success && data.requests) {
+                if (data.requests.length === 0) {
+                    requestsContainer.innerHTML = '<tr><td colspan="4" class="text-center">No recruitment requests found.</td></tr>';
+                    return;
+                }
+
+                requestsContainer.innerHTML = data.requests.map(request => `
+                    <tr>
+                        <td>${request.position}</td>
+                        <td>${request.details || 'N/A'}</td>
+                        <td>${request.status}</td>
+                        <td>
+                            <button class="btn btn-sm btn-primary" onclick="updateRequestStatus('${request.id}', 'in_progress')">Start</button>
+                            <button class="btn btn-sm btn-success" onclick="updateRequestStatus('${request.id}', 'completed')">Complete</button>
+                            <button class="btn btn-sm btn-danger" onclick="updateRequestStatus('${request.id}', 'cancelled')">Cancel</button>
+                        </td>
+                    </tr>
+                `).join('');
+            } else {
+                requestsContainer.innerHTML = '<tr><td colspan="4" class="text-center text-danger">Error loading requests.</td></tr>';
+            }
+        })
+        .catch(error => {
+            console.error('Error loading recruitment requests:', error);
+            requestsContainer.innerHTML = '<tr><td colspan="4" class="text-center text-danger">Error loading requests. Please try again.</td></tr>';
+        });
+}
+
+function updateRequestStatus(requestId, newStatus) {
+    const companyId = document.querySelector('[data-company-id]').getAttribute('data-company-id');
+    
+    fetch(`/api/v1/company/${companyId}/recruitment-request/${requestId}`, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+        },
+        body: JSON.stringify({
+            status: newStatus
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            loadRecruitmentRequests(companyId);
+        } else {
+            alert('Error updating request status: ' + (data.message || 'Unknown error'));
+        }
+    })
+    .catch(error => {
+        console.error('Error updating request status:', error);
+        alert('Error updating request status. Please try again.');
+    });
 }
 </script>
 {% endblock %} 

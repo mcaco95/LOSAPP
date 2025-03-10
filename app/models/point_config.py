@@ -54,21 +54,20 @@ class PointConfig(db.Model):
         defaults = {
             # Basic click points
             'click': 1,                    # Regular click
-            'unique_click': 1,             # Unique visitor click (changed from 5 to 1 as requested)
+            'unique_click': 1,             # Unique visitor click
             
-            # Sales cycle points - Updated to match the image
-            'status_lead': 2,              # Lead Generation (referral form completed)
-            'status_demo_scheduled': 5,    # Engagement - Demo scheduled
-            'status_demo_completed': 15,   # Completed - Demo completed
-            'status_client_signed': 50,    # Conversion - Client signed up
-            'status_renewed': 25,          # Retention - Client renewed
-            'status_upgraded': 35,         # Upsell - Client upgrades plan
-            'status_partner_signup': 25,   # Partner Network - Referral partners have a client sign up
+            # Sales cycle points
+            'status_referral_form_completed': 2,  # Referral form completed
+            'status_filled_out_form': 2,         # Filled out form
+            'status_demo_scheduled': 5,          # Demo scheduled
+            'status_demo_completed': 15,         # Demo completed
+            'status_client_signed_up': 50,       # Client signed up
+            'status_client_renewed': 25,         # Client renewed
             
             # Bonus points
-            'bonus_fast_track': 0,         # Fast-Track Bonus (double points if client signs within 30 days)
+            'bonus_fast_track': 1,         # Fast-Track Bonus (double points if client signs within 30 days)
             'bonus_high_value': 30,        # High-Value Client Bonus (Professional Plan)
-            'bonus_consistent_closer': 50  # Consistent Closer Bonus (3+ clients in a quarter)
+            'bonus_consistent_closer': 50   # Consistent Closer Bonus (3+ clients in a quarter)
         }
         
         for key, value in defaults.items():

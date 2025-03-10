@@ -389,3 +389,11 @@ def welcome():
 def resources():
     """Resources and guidelines page"""
     return render_template('dashboard/resources.html')
+
+@main.route('/dashboard/admin/companies/<int:company_id>')
+@login_required
+@admin_required
+def admin_company_details(company_id):
+    """Display detailed view of a company"""
+    company = Company.query.get_or_404(company_id)
+    return render_template('dashboard/admin/company_details.html', company=company)

@@ -38,18 +38,18 @@ class PointService:
         
         if points > 0:
             # Create user-friendly message
-            if new_status == 'lead':
-                message = f"{company.name} has completed a lead form!"
+            if new_status == 'referral_form_completed':
+                message = f"{company.name} has completed a referral form!"
+            elif new_status == 'filled_out_form':
+                message = f"{company.name} has filled out the form!"
             elif new_status == 'demo_scheduled':
                 message = f"{company.name} has booked a demo!"
             elif new_status == 'demo_completed':
                 message = f"{company.name} has completed their demo!"
-            elif new_status == 'client_signed':
+            elif new_status == 'client_signed_up':
                 message = f"{company.name} has signed up as a client!"
-            elif new_status == 'renewed':
+            elif new_status == 'client_renewed':
                 message = f"{company.name} has renewed their service!"
-            elif new_status == 'upgraded':
-                message = f"{company.name} has upgraded their plan!"
             else:
                 message = f"Status changed to {Company.get_status_display(new_status)}"
             
@@ -82,7 +82,7 @@ class PointService:
         bonus_breakdown = {}
         
         # Fast-Track Bonus - Double points if client signs up within 30 days of demo
-        if new_status == 'client_signed':
+        if new_status == 'client_signed_up':
             # Check if there's a demo_completed status in history
             status_history = company.company_metadata.get('status_history', [])
             demo_completed_entry = next((entry for entry in status_history if entry.get('to') == 'demo_completed'), None)
@@ -92,8 +92,8 @@ class PointService:
                 days_since_demo = (datetime.utcnow() - demo_date).days
                 
                 if days_since_demo <= 30:
-                    # Get the base points for client_signed
-                    base_points = PointConfig.get_status_points('client_signed')
+                    # Get the base points for client_signed_up
+                    base_points = PointConfig.get_status_points('client_signed_up')
                     # Get the multiplier from config (default to 2x if not set)
                     multiplier = PointConfig.get_value('bonus_fast_track', 1)
                     fast_track_bonus = base_points * multiplier
@@ -101,13 +101,13 @@ class PointService:
                     bonus_breakdown['fast_track'] = fast_track_bonus
         
         # High-Value Client Bonus - Extra points for Professional Plan
-        if new_status == 'client_signed' and company.service_type == 'professional':
+        if new_status == 'client_signed_up' and company.service_type == 'professional':
             high_value_bonus = PointConfig.get_value('bonus_high_value', 30)
             total_bonus += high_value_bonus
             bonus_breakdown['high_value'] = high_value_bonus
         
         # Consistent Closer Bonus - Extra points for 3+ clients in a quarter
-        if new_status == 'client_signed':
+        if new_status == 'client_signed_up':
             # Get the user
             user = company.user
             
@@ -119,7 +119,7 @@ class PointService:
             from ..models.company import Company
             quarter_signups = Company.query.filter(
                 Company.user_id == user.id,
-                Company.status == 'client_signed',
+                Company.status == 'client_signed_up',
                 Company.updated_at >= current_quarter_start
             ).count()
             

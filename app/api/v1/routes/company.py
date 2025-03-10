@@ -2,6 +2,7 @@ from flask import Blueprint, jsonify, request
 from flask_login import login_required, current_user
 from ....services.company import CompanyService
 from ....decorators import admin_required
+from ....models.company import Company
 
 bp = Blueprint('company_api', __name__)
 
@@ -147,21 +148,254 @@ def update_status(company_id):
         if 'metadata' in data and 'notes' in data['metadata']:
             notes = data['metadata']['notes']
             
-        CompanyService.update_status(
+        result = CompanyService.update_status(
             company_id=company_id,
             new_status=data['status'],
             notes=notes
         )
         
+        if not result['success']:
+            return jsonify(result), 400
+            
+        return jsonify(result), 200
+    except ValueError as e:
+        return jsonify({
+            'success': False,
+            'message': str(e)
+        }), 400
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'message': 'Internal server error'
+        }), 500
+
+@bp.route('/<int:company_id>/service-status', methods=['PUT'])
+@login_required
+@admin_required
+def update_service_status(company_id):
+    """Update service status for a company"""
+    try:
+        data = request.get_json()
+        if not data or 'service' not in data or 'status' not in data:
+            return jsonify({
+                'success': False,
+                'message': 'Service and status are required'
+            }), 400
+            
+        company = Company.query.get(company_id)
+        if not company:
+            return jsonify({
+                'success': False,
+                'message': 'Company not found'
+            }), 404
+            
+        # Validate service type matches company's service
+        service = data['service']
+        if service == 'safety' and company.service_type not in ['safety', 'both']:
+            return jsonify({
+                'success': False,
+                'message': 'Company does not have safety service'
+            }), 400
+        elif service == 'recruitment' and company.service_type not in ['recruitment', 'both']:
+            return jsonify({
+                'success': False,
+                'message': 'Company does not have recruitment service'
+            }), 400
+            
+        # Update service status
+        company.update_service_status(service, data['status'])
+        
         return jsonify({
             'success': True,
-            'message': 'Company status updated successfully'
+            'message': f'{service.title()} service status updated successfully'
+        }), 200
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'message': 'Internal server error'
+        }), 500
+
+@bp.route('/<int:company_id>/recruitment-request', methods=['POST'])
+@login_required
+@admin_required
+def add_recruitment_request(company_id):
+    """Add a new recruitment request for a company"""
+    try:
+        data = request.get_json()
+        if not data or 'position' not in data:
+            return jsonify({
+                'success': False,
+                'message': 'Position is required'
+            }), 400
+            
+        company = Company.query.get(company_id)
+        if not company:
+            return jsonify({
+                'success': False,
+                'message': 'Company not found'
+            }), 404
+            
+        if company.service_type not in ['recruitment', 'both']:
+            return jsonify({
+                'success': False,
+                'message': 'Company does not have recruitment service'
+            }), 400
+            
+        # Add recruitment request
+        request_index = company.add_recruitment_request(data)
+        
+        return jsonify({
+            'success': True,
+            'message': 'Recruitment request added successfully',
+            'request_index': request_index
+        }), 201
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'message': 'Internal server error'
+        }), 500
+
+@bp.route('/<int:company_id>/recruitment-request/<int:request_index>', methods=['PUT'])
+@login_required
+@admin_required
+def update_recruitment_request(company_id, request_index):
+    """Update an existing recruitment request"""
+    try:
+        data = request.get_json()
+        if not data:
+            return jsonify({
+                'success': False,
+                'message': 'No data provided'
+            }), 400
+            
+        company = Company.query.get(company_id)
+        if not company:
+            return jsonify({
+                'success': False,
+                'message': 'Company not found'
+            }), 404
+            
+        if company.service_type not in ['recruitment', 'both']:
+            return jsonify({
+                'success': False,
+                'message': 'Company does not have recruitment service'
+            }), 400
+            
+        # Update recruitment request
+        company.update_recruitment_request(request_index, data)
+        
+        return jsonify({
+            'success': True,
+            'message': 'Recruitment request updated successfully'
         }), 200
     except ValueError as e:
         return jsonify({
             'success': False,
             'message': str(e)
         }), 400
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'message': 'Internal server error'
+        }), 500
+
+@bp.route('/<int:company_id>/recruitment-request/<int:request_index>', methods=['DELETE'])
+@login_required
+@admin_required
+def delete_recruitment_request(company_id, request_index):
+    """Delete a recruitment request"""
+    try:
+        company = Company.query.get(company_id)
+        if not company:
+            return jsonify({
+                'success': False,
+                'message': 'Company not found'
+            }), 404
+            
+        if company.service_type not in ['recruitment', 'both']:
+            return jsonify({
+                'success': False,
+                'message': 'Company does not have recruitment service'
+            }), 400
+            
+        # Delete recruitment request
+        company.delete_recruitment_request(request_index)
+        
+        return jsonify({
+            'success': True,
+            'message': 'Recruitment request deleted successfully'
+        }), 200
+    except ValueError as e:
+        return jsonify({
+            'success': False,
+            'message': str(e)
+        }), 400
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'message': 'Internal server error'
+        }), 500
+
+@bp.route('/<int:company_id>/recruitment-requests', methods=['GET'])
+@login_required
+@admin_required
+def get_recruitment_requests(company_id):
+    """Get recruitment requests for a company"""
+    try:
+        company = Company.query.get(company_id)
+        if not company:
+            return jsonify({
+                'success': False,
+                'message': 'Company not found'
+            }), 404
+            
+        if company.service_type not in ['recruitment', 'both']:
+            return jsonify({
+                'success': False,
+                'message': 'Company does not have recruitment service'
+            }), 400
+            
+        requests = company.recruitment_requests.get('requests', []) if company.recruitment_requests else []
+        
+        return jsonify({
+            'success': True,
+            'requests': requests
+        }), 200
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'message': 'Internal server error'
+        }), 500
+
+@bp.route('/<int:company_id>/safety-config', methods=['PUT'])
+@login_required
+@admin_required
+def update_safety_config(company_id):
+    """Update safety configuration for a company"""
+    try:
+        data = request.get_json()
+        if not data or 'truck_count' not in data or 'price_per_truck' not in data:
+            return jsonify({
+                'success': False,
+                'message': 'Truck count and price per truck are required'
+            }), 400
+            
+        company = Company.query.get(company_id)
+        if not company:
+            return jsonify({
+                'success': False,
+                'message': 'Company not found'
+            }), 404
+            
+        # Update safety configuration
+        company.truck_count = data['truck_count']
+        company.price_per_truck = data['price_per_truck']
+        company.save()
+        
+        return jsonify({
+            'success': True,
+            'message': 'Safety configuration updated successfully'
+        }), 200
     except Exception as e:
         return jsonify({
             'success': False,

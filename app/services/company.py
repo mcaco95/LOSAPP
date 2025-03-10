@@ -70,10 +70,17 @@ class CompanyService:
         
         # Award points for status change
         points_awarded = 0
+        points_error = None
         try:
             points_awarded = PointService.award_points_for_status(company_id, new_status)
         except Exception as e:
+            points_error = str(e)
             print(f"Error awarding points: {str(e)}")
+            # Don't let points error prevent status update
+            db.session.rollback()  # Rollback the failed points transaction
+            
+            # Re-fetch company after rollback
+            company = Company.query.get(company_id)
         
         # Process commission if applicable
         commission_result = None
@@ -103,10 +110,15 @@ class CompanyService:
         # Save changes
         db.session.commit()
         
+        message = f"Company status updated from {old_status} to {new_status}"
+        if points_error:
+            message += f" (Note: Points could not be awarded - {points_error})"
+        
         return {
             'success': True,
-            'message': f"Company status updated from {old_status} to {new_status}",
+            'message': message,
             'points_awarded': points_awarded,
+            'points_error': points_error,
             'commission_created': commission_result.to_dict() if commission_result else None,
             'company': company.to_dict()
         }

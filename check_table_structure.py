@@ -3,30 +3,29 @@ from sqlalchemy import text
 
 app = create_app()
 with app.app_context():
-    # Check commission_partner table structure
-    partner_columns = db.session.execute(text("""
-        SELECT column_name, data_type, is_nullable
-        FROM information_schema.columns
-        WHERE table_name = 'commission_partner'
-        ORDER BY ordinal_position
+    # First get all table names
+    tables = db.session.execute(text("""
+        SELECT table_name 
+        FROM information_schema.tables 
+        WHERE table_schema = 'public'
+        ORDER BY table_name
     """)).fetchall()
     
-    print("Commission Partner Table Structure:")
-    for col in partner_columns:
-        print(f"- {col[0]}: {col[1]} (Nullable: {col[2]})")
-    
-    print("\nCommission Table Structure:")
-    commission_columns = db.session.execute(text("""
-        SELECT column_name, data_type, is_nullable
-        FROM information_schema.columns
-        WHERE table_name = 'commission'
-        ORDER BY ordinal_position
-    """)).fetchall()
-    
-    for col in commission_columns:
-        print(f"- {col[0]}: {col[1]} (Nullable: {col[2]})")
+    print("All Tables in Database:")
+    for table in tables:
+        table_name = table[0]
+        print(f"\n{table_name.upper()} Table Structure:")
+        columns = db.session.execute(text(f"""
+            SELECT column_name, data_type, is_nullable
+            FROM information_schema.columns
+            WHERE table_name = '{table_name}'
+            ORDER BY ordinal_position
+        """)).fetchall()
         
-    # Check foreign keys
+        for col in columns:
+            print(f"- {col[0]}: {col[1]} (Nullable: {col[2]})")
+    
+    # Check all foreign keys
     print("\nForeign Keys:")
     foreign_keys = db.session.execute(text("""
         SELECT
@@ -42,7 +41,7 @@ with app.app_context():
               ON ccu.constraint_name = tc.constraint_name
               AND ccu.table_schema = tc.table_schema
         WHERE tc.constraint_type = 'FOREIGN KEY'
-        AND (tc.table_name = 'commission_partner' OR tc.table_name = 'commission')
+        AND tc.table_schema = 'public'
     """)).fetchall()
     
     for fk in foreign_keys:
