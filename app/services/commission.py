@@ -167,71 +167,73 @@ class CommissionService:
         commissions_created = []
             
         # Handle different status changes
-        if new_status == 'client_signed':
-            # Create commission for the referring user (whether they're a partner or not)
-            service_type = company.service_type or 'standard'
-            
-            # Check if user is a commission partner
-            partner = CommissionPartner.query.filter_by(user_id=user.id).first()
-            
-            if not partner:
-                # User is not a partner, create a temporary partner record for this user
-                partner = CommissionPartner(
-                    user_id=user.id,
-                    commission_tier='standard',
-                    metadata={'temporary': True, 'created_for_commission': True}
-                )
+        if new_status == 'client_signed_up':
+            # Create commission for safety service if active
+            if company.safety_status == 'active':
+                # Check if user is a commission partner
+                partner = CommissionPartner.query.filter_by(user_id=user.id).first()
                 
-                db.session.add(partner)
-                db.session.commit()
-            
-            # Create direct commission for the partner (10% for first 2 years)
-            commission = CommissionService.create_commission(
-                partner_id=partner.id,
-                company_id=company.id,
-                service_type=service_type,
-                is_initial_month=False,  # Not used anymore
-                month_number=1
-            )
-            commissions_created.append(commission)
-            
-            # If this user was referred by another partner, create a network commission (2.5%)
-            if partner.referrer_id:
-                referrer_partner = CommissionPartner.query.get(partner.referrer_id)
-                if referrer_partner and referrer_partner.is_active:
-                    # Get base service price
-                    if service_type == 'professional':
-                        base_amount = 3000.0  # $3,000/month for Professional
-                    else:  # standard
-                        base_amount = 500.0   # $500/month for Standard
-                        
-                    # Create network commission for referrer (always 2.5%)
-                    network_rate = CommissionSettings.get_value('network_commission_rate', 0.025)
-                    
-                    referrer_commission = Commission(
-                        partner_id=referrer_partner.id,
-                        company_id=company.id,
-                        amount=base_amount * network_rate,
-                        service_type=service_type,
-                        is_initial_month=False,
-                        month_number=1,
-                        status='pending',
-                        metadata={'network_commission': True, 'referred_partner_id': partner.id}
+                if not partner:
+                    # User is not a partner, create a temporary partner record
+                    partner = CommissionPartner(
+                        user_id=user.id,
+                        commission_tier='standard',
+                        metadata={'temporary': True, 'created_for_commission': True}
                     )
-                    
-                    db.session.add(referrer_commission)
+                    db.session.add(partner)
                     db.session.commit()
-                    commissions_created.append(referrer_commission)
-            
-            return commissions_created
+                
+                # Create direct commission (10% for first month)
+                commission = Commission(
+                    partner_id=partner.id,
+                    company_id=company.id,
+                    amount=company.truck_count * company.price_per_truck * 0.10,
+                    service_type='safety',
+                    commission_type='safety',
+                    is_initial_month=True,
+                    month_number=1,
+                    status='pending',
+                    metadata={
+                        'truck_count': company.truck_count,
+                        'price_per_truck': company.price_per_truck
+                    }
+                )
+                db.session.add(commission)
+                commissions_created.append(commission)
+                
+                # If this user was referred by another partner, create a network commission (2.5%)
+                if partner.referrer_id:
+                    referrer_partner = CommissionPartner.query.get(partner.referrer_id)
+                    if referrer_partner and referrer_partner.is_active:
+                        network_commission = Commission(
+                            partner_id=referrer_partner.id,
+                            company_id=company.id,
+                            amount=company.truck_count * company.price_per_truck * 0.025,
+                            service_type='safety',
+                            commission_type='safety',
+                            is_initial_month=True,
+                            month_number=1,
+                            status='pending',
+                            metadata={
+                                'network_commission': True,
+                                'referred_partner_id': partner.id,
+                                'truck_count': company.truck_count,
+                                'price_per_truck': company.price_per_truck
+                            }
+                        )
+                        db.session.add(network_commission)
+                        commissions_created.append(network_commission)
         
-        return None
+        return commissions_created
     
     @staticmethod
     def process_monthly_commissions():
         """Process monthly recurring commissions for active clients"""
-        # Find all companies with status 'client_signed'
-        active_companies = Company.query.filter_by(status='client_signed').all()
+        # Find all companies with active safety service
+        active_companies = Company.query.filter(
+            Company.status == 'client_signed_up',
+            Company.safety_status == 'active'
+        ).all()
         
         commissions_created = []
         for company in active_companies:
@@ -249,7 +251,8 @@ class CommissionService:
             # Check if commission for this month already exists
             existing_commission = Commission.query.filter_by(
                 company_id=company.id,
-                month_number=months_active
+                month_number=months_active,
+                commission_type='safety'
             ).first()
             
             if existing_commission:
@@ -274,42 +277,45 @@ class CommissionService:
                 db.session.commit()
             
             # Create recurring commission with appropriate month number
-            service_type = company.service_type or 'standard'
-            commission = CommissionService.create_commission(
+            commission = Commission(
                 partner_id=partner.id,
                 company_id=company.id,
-                service_type=service_type,
-                is_initial_month=False,  # Not used anymore
-                month_number=months_active
+                amount=company.truck_count * company.price_per_truck * (0.10 if months_active <= 24 else 0.025),
+                service_type='safety',
+                commission_type='safety',
+                is_initial_month=False,
+                month_number=months_active,
+                status='pending',
+                metadata={
+                    'truck_count': company.truck_count,
+                    'price_per_truck': company.price_per_truck
+                }
             )
+            db.session.add(commission)
             commissions_created.append(commission)
             
             # If this user was referred by another partner, create a network commission (2.5%)
             if partner.referrer_id:
                 referrer_partner = CommissionPartner.query.get(partner.referrer_id)
                 if referrer_partner and referrer_partner.is_active:
-                    # Get base service price
-                    if service_type == 'professional':
-                        base_amount = 3000.0  # $3,000/month for Professional
-                    else:  # standard
-                        base_amount = 500.0   # $500/month for Standard
-                    
-                    # Create network commission for referrer (always 2.5%)
-                    network_rate = CommissionSettings.get_value('network_commission_rate', 0.025)
-                    
-                    referrer_commission = Commission(
+                    network_commission = Commission(
                         partner_id=referrer_partner.id,
                         company_id=company.id,
-                        amount=base_amount * network_rate,
-                        service_type=service_type,
+                        amount=company.truck_count * company.price_per_truck * 0.025,  # Always 2.5%
+                        service_type='safety',
+                        commission_type='safety',
                         is_initial_month=False,
                         month_number=months_active,
                         status='pending',
-                        metadata={'network_commission': True, 'referred_partner_id': partner.id}
+                        metadata={
+                            'network_commission': True,
+                            'referred_partner_id': partner.id,
+                            'truck_count': company.truck_count,
+                            'price_per_truck': company.price_per_truck
+                        }
                     )
-                    
-                    db.session.add(referrer_commission)
-                    db.session.commit()
-                    commissions_created.append(referrer_commission)
+                    db.session.add(network_commission)
+                    commissions_created.append(network_commission)
         
+        db.session.commit()
         return commissions_created 

@@ -1045,10 +1045,10 @@
                                 </div>
                             </td>
                             <td>
-                                {% if company.status == 'lead' %}
+                                {% if company.status == 'referral_form_completed' %}
                                     <span class="status-badge action-form-completed">
                                         <i class="fas fa-file-alt me-1"></i>
-                                        Lead
+                                        Referral form completed
                                     </span>
                                 {% elif company.status == 'demo_scheduled' %}
                                     <span class="status-badge action-demo-scheduled">
@@ -1060,20 +1060,20 @@
                                         <i class="fas fa-check-circle me-1"></i>
                                         Demo Completed
                                     </span>
-                                {% elif company.status == 'client_signed' %}
+                                {% elif company.status == 'client_signed_up' %}
                                     <span class="status-badge action-client-signed">
                                         <i class="fas fa-handshake me-1"></i>
                                         Client
                                     </span>
-                                {% elif company.status == 'renewed' %}
+                                {% elif company.status == 'client_renewed' %}
                                     <span class="status-badge action-client-renewed">
                                         <i class="fas fa-sync me-1"></i>
                                         Renewed
                                     </span>
-                                {% elif company.status == 'upgraded' %}
-                                    <span class="status-badge action-client-upgraded">
-                                        <i class="fas fa-arrow-up me-1"></i>
-                                        Upgraded
+                                {% else %}
+                                    <span class="status-badge">
+                                        <i class="fas fa-circle me-1"></i>
+                                        {{ company.status|replace('_', ' ')|title }}
                                     </span>
                                 {% endif %}
                             </td>

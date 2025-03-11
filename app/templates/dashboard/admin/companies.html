@@ -290,12 +290,11 @@
                             <label class="form-label">New Status</label>
                             <select name="status" class="form-select" required>
                                 <option value="">Select new status</option>
-                                <option value="lead" {% if selected_company.status == 'lead' %}selected{% endif %}>Referral form completed</option>
+                                <option value="referral_form_completed" {% if selected_company.status == 'referral_form_completed' %}selected{% endif %}>Referral form completed</option>
                                 <option value="demo_scheduled" {% if selected_company.status == 'demo_scheduled' %}selected{% endif %}>Demo scheduled</option>
                                 <option value="demo_completed" {% if selected_company.status == 'demo_completed' %}selected{% endif %}>Demo completed</option>
-                                <option value="client_signed" {% if selected_company.status == 'client_signed' %}selected{% endif %}>Client signed up</option>
-                                <option value="renewed" {% if selected_company.status == 'renewed' %}selected{% endif %}>Client renewed</option>
-                                <option value="upgraded" {% if selected_company.status == 'upgraded' %}selected{% endif %}>Client upgraded</option>
+                                <option value="client_signed_up" {% if selected_company.status == 'client_signed_up' %}selected{% endif %}>Client signed up</option>
+                                <option value="client_renewed" {% if selected_company.status == 'client_renewed' %}selected{% endif %}>Client renewed</option>
                             </select>
                         </div>
                         <div class="mt-3">
@@ -415,12 +414,11 @@
                             <label class="form-label">Status</label>
                             <select name="status" class="form-select">
                                 <option value="">All Statuses</option>
-                                <option value="lead" {% if current_status == 'lead' %}selected{% endif %}>Referral form completed</option>
+                                <option value="referral_form_completed" {% if current_status == 'referral_form_completed' %}selected{% endif %}>Referral form completed</option>
                                 <option value="demo_scheduled" {% if current_status == 'demo_scheduled' %}selected{% endif %}>Demo scheduled</option>
                                 <option value="demo_completed" {% if current_status == 'demo_completed' %}selected{% endif %}>Demo completed</option>
-                                <option value="client_signed" {% if current_status == 'client_signed' %}selected{% endif %}>Client signed up</option>
-                                <option value="renewed" {% if current_status == 'renewed' %}selected{% endif %}>Client renewed</option>
-                                <option value="upgraded" {% if current_status == 'upgraded' %}selected{% endif %}>Client upgraded</option>
+                                <option value="client_signed_up" {% if current_status == 'client_signed_up' %}selected{% endif %}>Client signed up</option>
+                                <option value="client_renewed" {% if current_status == 'client_renewed' %}selected{% endif %}>Client renewed</option>
                             </select>
                         </div>
                         <div class="col-md-4">
@@ -503,18 +501,16 @@
                                         </span>
                                     </td>
                                     <td>
-                                        {% if company.status == 'lead' %}
-                                            <span class="status-badge status-lead">Referral form completed</span>
+                                        {% if company.status == 'referral_form_completed' %}
+                                            <span class="status-badge status-referral">Referral form completed</span>
                                         {% elif company.status == 'demo_scheduled' %}
                                             <span class="status-badge status-demo_scheduled">Demo scheduled</span>
                                         {% elif company.status == 'demo_completed' %}
                                             <span class="status-badge status-demo_completed">Demo completed</span>
-                                        {% elif company.status == 'client_signed' %}
+                                        {% elif company.status == 'client_signed_up' %}
                                             <span class="status-badge status-client_signed">Client signed up</span>
-                                        {% elif company.status == 'renewed' %}
+                                        {% elif company.status == 'client_renewed' %}
                                             <span class="status-badge status-renewed">Client renewed</span>
-                                        {% elif company.status == 'upgraded' %}
-                                            <span class="status-badge status-upgraded">Client upgraded</span>
                                         {% else %}
                                             <span class="status-badge">{{ company.status|replace('_', ' ')|title }}</span>
                                         {% endif %}
@@ -735,12 +731,11 @@
                     <div class="mb-3">
                         <label for="companyStatus" class="form-label">Status</label>
                         <select class="form-select" id="companyStatus" name="status">
-                            <option value="lead">Referral form completed</option>
+                            <option value="referral_form_completed">Referral form completed</option>
                             <option value="demo_scheduled">Demo scheduled</option>
                             <option value="demo_completed">Demo completed</option>
-                            <option value="client_signed">Client signed up</option>
-                            <option value="renewed">Client renewed</option>
-                            <option value="upgraded">Client upgraded</option>
+                            <option value="client_signed_up">Client signed up</option>
+                            <option value="client_renewed">Client renewed</option>
                         </select>
                     </div>
                     

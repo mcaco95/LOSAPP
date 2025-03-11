@@ -34,30 +34,26 @@ class Company(db.Model):
 
     # Valid statuses
     VALID_STATUSES = [
-        'lead',
         'referral_form_completed',
-        'filled_out_form',
         'demo_scheduled',
         'demo_completed',
-        'client_renewed',
-        'client_signed_up'
+        'client_signed_up',
+        'client_renewed'
     ]
 
     # Status order for validation
     STATUS_ORDER = {
-        'lead': 0,
-        'referral_form_completed': 1,
-        'filled_out_form': 2,
-        'demo_scheduled': 3,
-        'demo_completed': 4,
-        'client_signed_up': 5,
-        'client_renewed': 6
+        'referral_form_completed': 0,
+        'demo_scheduled': 1,
+        'demo_completed': 2,
+        'client_signed_up': 3,
+        'client_renewed': 4
     }
 
     # Relationships
     user = db.relationship('User', backref=db.backref('companies', lazy='dynamic'))
 
-    def __init__(self, name, user_id, status='lead', metadata=None, **kwargs):
+    def __init__(self, name, user_id, status='referral_form_completed', metadata=None, **kwargs):
         self.name = name
         self.user_id = user_id
         self.status = status
@@ -123,9 +119,7 @@ class Company(db.Model):
     def get_status_display(status):
         """Get human readable status from status code"""
         return {
-            'lead': 'Lead',
             'referral_form_completed': 'Referral form completed',
-            'filled_out_form': 'Filled out form',
             'demo_scheduled': 'Demo scheduled',
             'demo_completed': 'Demo completed',
             'client_renewed': 'Client renewed',
@@ -207,6 +201,7 @@ class Company(db.Model):
         # Create a completely new dictionary to ensure SQLAlchemy detects the change
         new_requests = {'requests': list(self.recruitment_requests['requests'])}
         request = dict(new_requests['requests'][request_index])
+        old_status = request['status']
         
         # Update fields
         if 'position' in updates:
@@ -217,6 +212,63 @@ class Company(db.Model):
             request['notes'] = updates['notes']
         if 'status' in updates:
             request['status'] = updates['status']
+            
+            # Generate commission when request is completed
+            if updates['status'] == 'completed' and old_status != 'completed':
+                from ..models.commission import Commission
+                from ..models.commission_partner import CommissionPartner
+                
+                # Get or create partner
+                partner = CommissionPartner.query.filter_by(user_id=self.user_id).first()
+                if not partner:
+                    partner = CommissionPartner(
+                        user_id=self.user_id,
+                        commission_tier='standard',
+                        metadata={'temporary': True, 'created_for_commission': True}
+                    )
+                    db.session.add(partner)
+                    db.session.commit()
+                
+                # Create direct commission (10%)
+                commission = Commission(
+                    partner_id=partner.id,
+                    company_id=self.id,
+                    amount=request['charge'] * 0.10,  # 10% commission
+                    service_type='recruitment',
+                    commission_type='recruitment',
+                    is_initial_month=True,
+                    month_number=1,
+                    status='pending',
+                    metadata={
+                        'recruitment_role': request['role'],
+                        'recruitment_request_id': request['id'],
+                        'charge': request['charge']
+                    }
+                )
+                db.session.add(commission)
+                
+                # Create network commission (2.5%) if applicable
+                if partner.referrer_id:
+                    referrer_partner = CommissionPartner.query.get(partner.referrer_id)
+                    if referrer_partner and referrer_partner.is_active:
+                        network_commission = Commission(
+                            partner_id=referrer_partner.id,
+                            company_id=self.id,
+                            amount=request['charge'] * 0.025,  # 2.5% network commission
+                            service_type='recruitment',
+                            commission_type='recruitment',
+                            is_initial_month=True,
+                            month_number=1,
+                            status='pending',
+                            metadata={
+                                'network_commission': True,
+                                'referred_partner_id': partner.id,
+                                'recruitment_role': request['role'],
+                                'recruitment_request_id': request['id'],
+                                'charge': request['charge']
+                            }
+                        )
+                        db.session.add(network_commission)
         
         request['updated_at'] = datetime.utcnow().isoformat()
         new_requests['requests'][request_index] = request

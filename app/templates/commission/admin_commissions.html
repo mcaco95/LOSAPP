@@ -145,15 +145,15 @@
 
                     <!-- Table -->
                     <div class="table-responsive">
-                        <table class="table table-striped table-hover" id="commissionsTable">
+                        <table class="table table-hover">
                             <thead>
                                 <tr>
                                     <th>ID</th>
                                     <th>Partner</th>
                                     <th>Company</th>
-                                    <th>Service Type</th>
-                                    <th>Month</th>
+                                    <th>Type</th>
                                     <th>Amount</th>
+                                    <th>Details</th>
                                     <th>Status</th>
                                     <th>Created</th>
                                     <th>Actions</th>
@@ -163,61 +163,70 @@
                                 {% for commission in commissions %}
                                 <tr>
                                     <td>#{{ commission.id }}</td>
-                                    <td>{{ commission.partner.user.name or commission.partner.user.username }}</td>
+                                    <td>{{ commission.partner.user.name }}</td>
                                     <td>{{ commission.company.name }}</td>
-                                    <td>{{ commission.service_type }}</td>
                                     <td>
-                                        {% if commission.is_initial_month %}
-                                            Initial Month
+                                        {% if commission.commission_type == 'safety' %}
+                                            <span class="badge bg-primary">Safety Service</span>
+                                            {% if commission.is_initial_month %}
+                                                <span class="badge bg-info">Initial Month</span>
+                                            {% endif %}
+                                            {% if commission.commission_metadata.get('network_commission') %}
+                                                <span class="badge bg-secondary">Network</span>
+                                            {% endif %}
                                         {% else %}
-                                            Month {{ commission.month_number }}
+                                            <span class="badge bg-success">Recruitment</span>
+                                            {% if commission.commission_metadata.get('network_commission') %}
+                                                <span class="badge bg-secondary">Network</span>
+                                            {% endif %}
                                         {% endif %}
                                     </td>
-                                    <td>${{ "{:,.2f}".format(commission.amount) }}</td>
+                                    <td>${{ "%.2f"|format(commission.amount) }}</td>
+                                    <td>
+                                        {% if commission.commission_type == 'safety' %}
+                                            {% if commission.commission_metadata.get('network_commission') %}
+                                                Network commission for referred partner
+                                                <br>
+                                                Referred Partner: {{ commission.commission_metadata.get('referred_partner_id') }}
+                                            {% else %}
+                                                {{ commission.commission_metadata.get('truck_count', 0) }} trucks @ ${{ "%.2f"|format(commission.commission_metadata.get('price_per_truck', 0)) }}/truck
+                                                {% if commission.month_number %}
+                                                    <br>Month {{ commission.month_number }}
+                                                {% endif %}
+                                            {% endif %}
+                                        {% else %}
+                                            {% if commission.commission_metadata.get('network_commission') %}
+                                                Network commission for recruitment
+                                                <br>
+                                                Referred Partner: {{ commission.commission_metadata.get('referred_partner_id') }}
+                                            {% else %}
+                                                Recruitment commission for completed request
+                                            {% endif %}
+                                            <br>
+                                            Position: {{ commission.commission_metadata.get('position', 'N/A') }}
+                                            <br>
+                                            Request ID: {{ commission.commission_metadata.get('recruitment_request_id', 'N/A') }}
+                                        {% endif %}
+                                    </td>
                                     <td>
                                         {% if commission.status == 'pending' %}
                                             <span class="badge bg-warning">Pending</span>
                                         {% elif commission.status == 'paid' %}
                                             <span class="badge bg-success">Paid</span>
                                         {% else %}
-                                            <span class="badge bg-danger">Cancelled</span>
-                                            {% if commission.commission_metadata and commission.commission_metadata.cancellation_reason %}
-                                                <i class="fas fa-info-circle" data-bs-toggle="tooltip" title="{{ commission.commission_metadata.cancellation_reason }}"></i>
-                                            {% endif %}
+                                            <span class="badge bg-secondary">{{ commission.status|title }}</span>
                                         {% endif %}
                                     </td>
                                     <td>{{ commission.created_at.strftime('%Y-%m-%d') }}</td>
                                     <td>
-                                        <div class="dropdown">
-                                            <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" id="dropdownMenuButton{{ commission.id }}" data-bs-toggle="dropdown" aria-expanded="false">
-                                                Actions
+                                        {% if commission.status == 'pending' %}
+                                            <button class="btn btn-sm btn-success mark-paid" data-commission-id="{{ commission.id }}">
+                                                Mark Paid
                                             </button>
-                                            <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton{{ commission.id }}">
-                                                <li>
-                                                    <a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#viewCommissionModal" 
-                                                       data-commission-id="{{ commission.id }}">
-                                                        <i class="fas fa-eye me-1"></i> View Details
-                                                    </a>
-                                                </li>
-                                                {% if commission.status == 'pending' %}
-                                                <li>
-                                                    <a class="dropdown-item text-success" href="#" data-bs-toggle="modal" data-bs-target="#markPaidModal" 
-                                                       data-commission-id="{{ commission.id }}"
-                                                       data-commission-amount="{{ commission.amount }}"
-                                                       data-partner-name="{{ commission.partner.user.name or commission.partner.user.username }}">
-                                                        <i class="fas fa-check-circle me-1"></i> Mark as Paid
-                                                    </a>
-                                                </li>
-                                                <li>
-                                                    <a class="dropdown-item text-danger" href="#" data-bs-toggle="modal" data-bs-target="#cancelCommissionModal" 
-                                                       data-commission-id="{{ commission.id }}"
-                                                       data-partner-name="{{ commission.partner.user.name or commission.partner.user.username }}">
-                                                        <i class="fas fa-ban me-1"></i> Cancel Commission
-                                                    </a>
-                                                </li>
-                                                {% endif %}
-                                            </ul>
-                                        </div>
+                                            <button class="btn btn-sm btn-danger mark-cancelled" data-commission-id="{{ commission.id }}">
+                                                Cancel
+                                            </button>
+                                        {% endif %}
                                     </td>
                                 </tr>
                                 {% else %}

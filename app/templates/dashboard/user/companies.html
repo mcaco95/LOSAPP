@@ -295,18 +295,16 @@
                                         </div>
                                     </td>
                                     <td>
-                                        {% if company.status == 'lead' %}
+                                        {% if company.status == 'referral_form_completed' %}
                                             <span class="status-badge action-form-completed">Referral form completed</span>
                                         {% elif company.status == 'demo_scheduled' %}
                                             <span class="status-badge action-demo-scheduled">Demo scheduled</span>
                                         {% elif company.status == 'demo_completed' %}
                                             <span class="status-badge action-demo-completed">Demo completed</span>
-                                        {% elif company.status == 'client_signed' %}
+                                        {% elif company.status == 'client_signed_up' %}
                                             <span class="status-badge action-client-signed">Client signed up</span>
-                                        {% elif company.status == 'renewed' %}
+                                        {% elif company.status == 'client_renewed' %}
                                             <span class="status-badge action-client-renewed">Client renewed</span>
-                                        {% elif company.status == 'upgraded' %}
-                                            <span class="status-badge action-client-upgraded">Client upgraded plan</span>
                                         {% else %}
                                             <span class="status-badge status-{{ company.status }}">{{ company.status|replace('_', ' ')|title }}</span>
                                         {% endif %}
