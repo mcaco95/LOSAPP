@@ -217,9 +217,9 @@ def create_companies(users, num_companies=20):
             'user_id': user_id,
             'status': current_status,
             'company_metadata': {
-                'industry': fake.job()[:50],
-                'size': random.choice(['small', 'medium', 'large']),
-                'region': fake.state(),
+            'industry': fake.job()[:50],
+            'size': random.choice(['small', 'medium', 'large']),
+            'region': fake.state(),
                 'status_history': history
             },
             'created_at': base_date
@@ -406,9 +406,9 @@ def create_companies(users, num_companies=20):
                 truck_count=company_data.get('truck_count', 0),
                 price_per_truck=company_data.get('price_per_truck', 0),
                 payment_date=company_data['created_at'] if company_data['status'] in ['client_signed_up', 'client_renewed'] else None
-            )
-            companies.append(company)
-            db.session.add(company)
+        )
+        companies.append(company)
+        db.session.add(company)
     
     db.session.commit()
     
@@ -481,8 +481,8 @@ def create_commissions(partners, companies):
                     
                     # Create direct commission
                     create_commission(
-                        partner_id=partner.id,
-                        company_id=company.id,
+                partner_id=partner.id,
+                company_id=company.id,
                         amount=amount,
                         service_type='safety',
                         commission_type='safety',
@@ -524,13 +524,13 @@ def create_commissions(partners, companies):
                         
                         # Create direct commission (10%)
                         create_commission(
-                            partner_id=partner.id,
-                            company_id=company.id,
+                partner_id=partner.id,
+                company_id=company.id,
                             amount=request['charge'] * 0.10,
                             service_type='recruitment',
                             commission_type='recruitment',
-                            is_initial_month=True,
-                            month_number=1,
+                is_initial_month=True,
+                month_number=1,
                             status=status,
                             metadata={
                                 'recruitment_role': request['role'],
@@ -540,10 +540,10 @@ def create_commissions(partners, companies):
                         )
                         
                         # Create network commission if partner was referred (2.5%)
-                        if partner.referrer_id:
+                if partner.referrer_id:
                             create_commission(
-                                partner_id=partner.referrer_id,
-                                company_id=company.id,
+                        partner_id=partner.referrer_id,
+                        company_id=company.id,
                                 amount=request['charge'] * 0.025,
                                 service_type='recruitment',
                                 commission_type='recruitment',
