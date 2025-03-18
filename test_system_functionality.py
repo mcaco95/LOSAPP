@@ -27,7 +27,7 @@ class SystemTester:
         if not partner or not company:
             print("Error: No test data found. Run test_data_generator.py first.")
             return
-
+        
         print("\nTesting Company Data Validation:")
         # Verify company data
         companies = Company.query.filter_by(status='client_signed_up').all()

@@ -446,10 +446,10 @@
     }
 
     @media (max-width: 768px) {
-        .form-section {
+    .form-section {
             padding: 40px 20px;
             margin: -30px 15px 60px;
-            border-radius: 20px;
+        border-radius: 20px;
         }
 
         .form-section h2 {
@@ -467,23 +467,21 @@
     }
 
     .features-section {
-        padding: 120px 0;
-        background: linear-gradient(135deg, #f8f9fa, #ffffff);
+        padding: 100px 0 80px;
+        background: linear-gradient(135deg, #ffffff, #f8f9fa);
         position: relative;
-        overflow: hidden;
     }
 
-    .features-section::before {
+    .features-section::after {
         content: '';
         position: absolute;
-        top: 0;
+        bottom: 0;
         left: 0;
         right: 0;
-        height: 2px;
+        height: 1px;
         background: linear-gradient(90deg, 
             transparent 0%, 
-            rgba(196, 30, 58, 0.1) 25%, 
-            rgba(27, 54, 93, 0.1) 75%, 
+            rgba(27, 54, 93, 0.1) 50%, 
             transparent 100%
         );
     }
@@ -665,8 +663,8 @@
     }
 
     @media (max-width: 767.98px) {
-        .features-section .section-title {
-            margin-bottom: 40px;
+        .features-section {
+            padding: 60px 0;
         }
         
         .feature-card {
@@ -1173,7 +1171,21 @@
         padding: 80px 0;
         background: #f8f9fa;
         position: relative;
-        border-top: 1px solid rgba(0,0,0,0.05);
+        margin-top: 0;
+    }
+
+    .key-features-section::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 1px;
+        background: linear-gradient(90deg, 
+            transparent 0%, 
+            rgba(27, 54, 93, 0.1) 50%, 
+            transparent 100%
+        );
     }
 
     .key-features-card {
@@ -1346,192 +1358,17 @@
 
     /* Mobile Optimization Updates */
     @media (max-width: 767.98px) {
-        /* Hero Section Mobile */
-        .hero-section {
-            padding: 100px 0;
-            min-height: auto;
-        }
-
-        .hero-content h1 {
-            font-size: 2.2rem;
-            margin-bottom: 1rem;
-        }
-
-        .hero-content .lead {
-            font-size: 1.1rem;
-            margin-bottom: 2rem;
-        }
-
-        .hero-watermark {
-            width: 90%;
-            opacity: 0.08;
-        }
-
-        .hero-buttons {
-            flex-direction: column;
-            gap: 0.75rem;
-        }
-
-        .btn-hero {
-            width: 100%;
-            padding: 0.875rem 1.5rem;
-            font-size: 1rem;
-        }
-
-        /* Stats Section Mobile */
-        .stats-section {
-            padding: 40px 0;
-        }
-
-        .stat-card {
-            padding: 1.5rem 1rem;
-            margin-bottom: 1rem;
-        }
-
-        .stat-number {
-            font-size: 2.5rem;
-        }
-
-        .stat-label {
-            font-size: 1rem;
-        }
-
-        .stat-icon {
-            width: 50px;
-            height: 50px;
-            font-size: 1.25rem;
-        }
-
-        /* Features Section Mobile */
-        .features-section {
-            padding: 60px 0;
-        }
-
-        .section-title-unified h2 {
-            font-size: 2rem;
-            margin-bottom: 2rem;
-        }
-
-        .section-title-unified .lead {
-            font-size: 1rem;
-            padding: 0 1rem;
-        }
-
-        .feature-card {
-            padding: 30px 20px;
-            margin-bottom: 20px;
-        }
-
-        .feature-icon {
-            width: 60px;
-            height: 60px;
-            margin-bottom: 20px;
-        }
-
-        .feature-card h4 {
-            font-size: 1.2rem;
-        }
-
-        /* Key Features Section Mobile */
+        .features-section,
         .key-features-section {
+            padding: 60px 0;
+        }
+
+        .form-section-wrapper {
             padding: 40px 0;
         }
 
-        .key-features-card {
-            padding: 30px 20px;
-            margin-bottom: 20px;
-        }
-
-        .feature-list h4 {
-            font-size: 1rem;
-        }
-
-        .feature-list p {
-            font-size: 0.9rem;
-        }
-
-        /* Video Section Mobile */
-        .video-section {
-            padding: 60px 0;
-        }
-
-        .video-container {
-            margin: 0 -15px;
-            border-radius: 0;
-        }
-
-        .play-button {
-            width: 60px;
-            height: 60px;
-        }
-
-        .play-button::after {
-            border-width: 12px 0 12px 20px;
-        }
-
-        .video-features {
-            flex-direction: column;
-            align-items: center;
-            gap: 15px;
-        }
-
-        /* Form Section Mobile */
         .form-section {
-            padding: 30px 20px;
-            margin: -20px 15px 40px;
-            border-radius: 15px;
-        }
-
-        .form-section h2 {
-            font-size: 1.8rem;
-        }
-
-        .form-section .lead {
-            font-size: 1rem;
-        }
-
-        .form-group {
-            margin-bottom: 1rem;
-        }
-
-        .form-control, .form-select {
-            padding: 0.7rem 0.875rem;
-            font-size: 0.95rem;
-        }
-
-        /* Testimonial Section Mobile */
-        .testimonial-section {
-            padding: 60px 0;
-        }
-
-        .testimonial-card {
-            padding: 1.5rem;
-            margin: 10px 0;
-        }
-
-        .testimonial-content {
-            font-size: 0.95rem;
-            line-height: 1.6;
-        }
-
-        .client-image {
-            width: 50px;
-            height: 50px;
-            border-radius: 12px;
-        }
-
-        .client-details h5 {
-            font-size: 1.1rem;
-        }
-
-        .client-details small {
-            font-size: 0.85rem;
-        }
-
-        /* Container padding for all sections */
-        .container {
-            padding-left: 20px;
-            padding-right: 20px;
+            margin: 0 15px;
         }
     }
 
@@ -1611,37 +1448,37 @@
             <div class="col-md-3">
                 <div class="stat-card" data-animation-delay="0">
                     <div class="stat-icon">
-                        <i class="fas fa-building"></i>
+                        <i class="fas fa-chart-line"></i>
                     </div>
-                    <div class="stat-number" data-count="500">0</div>
-                    <div class="stat-label">Happy Clients</div>
+                    <div class="stat-number" data-count="24">0</div>
+                    <div class="stat-label">HOS Violation Reduction %</div>
                 </div>
             </div>
             <div class="col-md-3">
                 <div class="stat-card" data-animation-delay="200">
                     <div class="stat-icon">
-                        <i class="fas fa-handshake"></i>
+                        <i class="fas fa-tachometer-alt"></i>
                     </div>
-                    <div class="stat-number" data-count="95">0</div>
-                    <div class="stat-label">Client Retention %</div>
+                    <div class="stat-number" data-count="31">0</div>
+                    <div class="stat-label">K+ Telematics Events Monthly</div>
                 </div>
             </div>
             <div class="col-md-3">
                 <div class="stat-card" data-animation-delay="400">
                     <div class="stat-icon">
-                        <i class="fas fa-truck"></i>
+                        <i class="fas fa-users"></i>
                     </div>
-                    <div class="stat-number" data-count="15">0</div>
-                    <div class="stat-label">Years Experience</div>
+                    <div class="stat-number" data-count="86">0</div>
+                    <div class="stat-label">Drivers Recruited Monthly</div>
                 </div>
             </div>
             <div class="col-md-3">
                 <div class="stat-card" data-animation-delay="600">
                     <div class="stat-icon">
-                        <i class="fas fa-map-marked-alt"></i>
+                        <i class="fas fa-award"></i>
                     </div>
-                    <div class="stat-number" data-count="24">0</div>
-                    <div class="stat-label">Global Locations</div>
+                    <div class="stat-number" data-count="16">0</div>
+                    <div class="stat-label">Years Combined Experience</div>
                 </div>
             </div>
         </div>
@@ -1673,7 +1510,7 @@
                     <div class="video-feature">
                         <i class="fas fa-clock"></i>
                         <span>2-Minute Overview</span>
-                    </div>
+            </div>
                     <div class="video-feature">
                         <i class="fas fa-chart-bar"></i>
                         <span>Real Results Showcase</span>
@@ -1688,7 +1525,7 @@
     </div>
 </section>
 
-<!-- Features Section -->
+<!-- Why Choose Logistics One Source Section -->
 <section class="features-section" id="learn-more">
     <div class="container">
         <div class="row">
@@ -1697,12 +1534,56 @@
                 <p class="lead text-muted">Experience the difference with our comprehensive logistics solutions</p>
             </div>
         </div>
+        <div class="row">
+            <div class="col-md-4">
+                <div class="feature-card" data-animation-delay="0">
+                    <div class="feature-icon">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <h4>Industry Expertise</h4>
+                    <p>Benefit from our years of experience and deep industry knowledge in logistics management.</p>
+                    <a href="#schedule-demo" class="learn-more">
+                        Learn More <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="feature-card" data-animation-delay="200">
+                    <div class="feature-icon">
+                        <i class="fas fa-cogs"></i>
+                    </div>
+                    <h4>Custom Solutions</h4>
+                    <p>Tailored logistics solutions designed specifically for your business needs and goals.</p>
+                    <a href="#schedule-demo" class="learn-more">
+                        Learn More <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="feature-card" data-animation-delay="400">
+                    <div class="feature-icon">
+                        <i class="fas fa-headset"></i>
+                    </div>
+                    <h4>24/7 Support</h4>
+                    <p>Round-the-clock support to ensure your operations run smoothly at all times.</p>
+                    <a href="#schedule-demo" class="learn-more">
+                        Learn More <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
     </div>
 </section>
 
-<!-- Key Features Section -->
+<!-- Our Services Section -->
 <section class="key-features-section">
     <div class="container">
+        <div class="row">
+            <div class="col-12 text-center section-title section-title-unified mb-5">
+                <h2>Comprehensive Logistics Solutions</h2>
+                <p class="lead text-muted">Streamline your operations with our specialized safety and recruitment services</p>
+            </div>
+        </div>
         <div class="row justify-content-center">
             <div class="col-lg-6 mb-4">
                 <div class="key-features-card safety-card">
@@ -1759,107 +1640,70 @@
                 </div>
             </div>
         </div>
-        <div class="row">
-            <div class="col-md-4">
-                <div class="feature-card" data-animation-delay="0">
-                    <div class="feature-icon">
-                        <i class="fas fa-chart-line"></i>
-                    </div>
-                    <h4>Industry Expertise</h4>
-                    <p>Benefit from our years of experience and deep industry knowledge in logistics management.</p>
-                    <a href="#schedule-demo" class="learn-more">
-                        Learn More <i class="fas fa-arrow-right"></i>
-                    </a>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="feature-card" data-animation-delay="200">
-                    <div class="feature-icon">
-                        <i class="fas fa-cogs"></i>
-                    </div>
-                    <h4>Custom Solutions</h4>
-                    <p>Tailored logistics solutions designed specifically for your business needs and goals.</p>
-                    <a href="#schedule-demo" class="learn-more">
-                        Learn More <i class="fas fa-arrow-right"></i>
-                    </a>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="feature-card" data-animation-delay="400">
-                    <div class="feature-icon">
-                        <i class="fas fa-headset"></i>
-                    </div>
-                    <h4>24/7 Support</h4>
-                    <p>Round-the-clock support to ensure your operations run smoothly at all times.</p>
-                    <a href="#schedule-demo" class="learn-more">
-                        Learn More <i class="fas fa-arrow-right"></i>
-                    </a>
-                </div>
-            </div>
-        </div>
     </div>
 </section>
 
 <!-- Form Section -->
+<section class="form-section-wrapper py-5">
 <div class="container" id="schedule-demo">
     <div class="row justify-content-center">
         <div class="col-lg-8">
             <div class="form-section">
                 {% if form_submitted %}
-                <div class="success-message">
-                    <div class="feature-icon">
+                    <div class="success-message">
+                        <div class="feature-icon">
                         <i class="fas fa-check"></i>
                     </div>
                     <h2>Thank You!</h2>
-                    <p class="lead">We've received your information and will contact you shortly to discuss how we can help transform your logistics operations.</p>
+                        <p class="lead">We've received your information and will contact you shortly to discuss how we can help transform your logistics operations.</p>
                 </div>
                 {% else %}
-                <div class="text-center mb-5 section-title-unified">
+                    <div class="text-center mb-5 section-title-unified">
                     <h2>Get Started Today</h2>
-                    <p class="lead">Take the first step towards optimizing your logistics operations. Our experts are ready to help.</p>
+                        <p class="lead">Take the first step towards optimizing your logistics operations. Our experts are ready to help.</p>
                 </div>
 
-                <form action="{{ url_for('referrals.submit_lead_form') }}" method="post" class="needs-validation" novalidate>
+                    <form action="{{ url_for('referrals.submit_lead_form') }}" method="post" class="needs-validation" novalidate>
                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                     <input type="hidden" name="partner_id" value="{{ partner_id }}">
                     
                     <div class="row">
-                        <div class="col-md-6">
-                            <div class="form-group mb-4">
+                            <div class="col-md-6">
+                                <div class="form-group mb-4">
                             <label class="form-label">Company Name *</label>
                             <input type="text" class="form-control" name="company_name" required>
-                                <div class="invalid-feedback">Please provide your company name.</div>
-                            </div>
+                                    <div class="invalid-feedback">Please provide your company name.</div>
+                                </div>
                         </div>
                         
-                        <div class="col-md-6">
-                            <div class="form-group mb-4">
+                            <div class="col-md-6">
+                                <div class="form-group mb-4">
                             <label class="form-label">Contact Name *</label>
                             <input type="text" class="form-control" name="contact_name" required>
-                                <div class="invalid-feedback">Please provide your name.</div>
-                            </div>
+                                    <div class="invalid-feedback">Please provide your name.</div>
+                                </div>
                         </div>
                     </div>
 
                     <div class="row">
-                        <div class="col-md-6">
-                            <div class="form-group mb-4">
+                            <div class="col-md-6">
+                                <div class="form-group mb-4">
                             <label class="form-label">Email Address *</label>
                             <input type="email" class="form-control" name="email" required>
-                                <div class="invalid-feedback">Please provide a valid email address.</div>
-                            </div>
+                                    <div class="invalid-feedback">Please provide a valid email address.</div>
+                                </div>
                         </div>
                         
-                        <div class="col-md-6">
-                            <div class="form-group mb-4">
+                            <div class="col-md-6">
+                                <div class="form-group mb-4">
                             <label class="form-label">Phone Number</label>
-                                <input type="tel" class="form-control" name="phone" pattern="[0-9]{10}">
-                                <div class="invalid-feedback">Please provide a valid 10-digit phone number.</div>
-                            </div>
+                                    <input type="tel" class="form-control" name="phone" pattern="[0-9]{10}">
+                                    <div class="invalid-feedback">Please provide a valid 10-digit phone number.</div>
+                                </div>
                         </div>
                     </div>
 
-                    <div class="form-group mb-4">
+                        <div class="form-group mb-4">
                         <label class="form-label">Service Interest *</label>
                         <select class="form-select" name="service_interest" required>
                             <option value="" selected disabled>Select a service</option>
@@ -1872,15 +1716,15 @@
                             <strong>Recruitment Service:</strong> Tailored recruitment solutions for your needs.<br>
                             <strong>Both Services:</strong> Complete safety and recruitment package with integrated management.
                         </div>
-                        <div class="invalid-feedback">Please select a service.</div>
+                            <div class="invalid-feedback">Please select a service.</div>
                     </div>
 
-                    <div class="form-group mb-4">
+                        <div class="form-group mb-4">
                         <label class="form-label">Additional Information</label>
-                        <textarea class="form-control" name="message" rows="4" placeholder="Tell us about your specific needs or challenges..."></textarea>
+                            <textarea class="form-control" name="message" rows="4" placeholder="Tell us about your specific needs or challenges..."></textarea>
                     </div>
 
-                    <div class="form-group mb-5">
+                        <div class="form-group mb-5">
                         <label class="form-label">Preferred Contact Time</label>
                         <select class="form-select" name="preferred_contact_time">
                             <option value="morning">Morning (9am - 12pm)</option>
@@ -1890,16 +1734,17 @@
                     </div>
 
                     <div class="d-grid">
-                        <button type="submit" class="btn btn-primary btn-lg">
-                            Get Started
-                        </button>
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                Get Started
+                            </button>
                     </div>
                 </form>
                 {% endif %}
+                </div>
             </div>
         </div>
     </div>
-</div>
+</section>
 
 <!-- Testimonial Section -->
 <section class="testimonial-section">
@@ -1978,7 +1823,7 @@
 
                 if (progress < 1) {
                     current = target * easeOutQuad(progress);
-                    stat.textContent = Math.round(current);
+                stat.textContent = Math.round(current);
                     requestAnimationFrame(updateNumber);
                 } else {
                     stat.textContent = target;
