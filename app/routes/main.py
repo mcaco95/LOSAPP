@@ -5,6 +5,7 @@ from sqlalchemy import func, text
 from app.services.points import PointService
 from app.services.company import CompanyService
 from app.services.reward import RewardService
+from app.services.monitoring import MonitoringService
 from app.decorators import admin_required
 from app.models.company import Company
 from app.models.user import User
@@ -81,6 +82,7 @@ def admin_dashboard():
     try:
         # Get system metrics
         metrics = PointService.get_system_metrics()
+        system_metrics = MonitoringService.get_system_metrics()
         
         # Get point transactions
         point_transactions_query = text("""
@@ -109,6 +111,7 @@ def admin_dashboard():
         return render_template(
             'dashboard/admin_dashboard.html',
             metrics=metrics,
+            system_metrics=system_metrics,
             point_transactions=point_transactions,
             recent_changes=recent_changes,
             top_performers=top_performers
@@ -119,6 +122,7 @@ def admin_dashboard():
         return render_template(
             'dashboard/admin_dashboard.html',
             metrics={},
+            system_metrics=None,
             point_transactions=[],
             recent_changes=[],
             top_performers=[]
@@ -397,3 +401,17 @@ def admin_company_details(company_id):
     """Display detailed view of a company"""
     company = Company.query.get_or_404(company_id)
     return render_template('dashboard/admin/company_details.html', company=company)
+
+@main.route('/admin/system-metrics')
+@login_required
+@admin_required
+def get_system_metrics():
+    """Get current system metrics"""
+    try:
+        metrics = MonitoringService.get_system_metrics()
+        if metrics:
+            return jsonify(metrics)
+        return jsonify({'error': 'Failed to get system metrics'}), 500
+    except Exception as e:
+        current_app.logger.error(f"Error getting system metrics: {str(e)}")
+        return jsonify({'error': str(e)}), 500

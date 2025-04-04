@@ -78,7 +78,7 @@
 
     <!-- Core -->
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.min.js"></script>
+    <script src="{{ url_for('static', filename='js/bootstrap.bundle.min.js') }}"></script>
 
     <!-- Vendor JS -->
     <script src="https://cdn.jsdelivr.net/npm/onscreen@1.4.0/dist/on-screen.umd.min.js"></script>
@@ -120,11 +120,6 @@
     <!-- Toast Container -->
     <div class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 11000">
     </div>
-
-    <!-- Core JS -->
-    <script src="{{ url_for('static', filename='js/bootstrap.bundle.min.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/volt.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/utils/modal-utils.js') }}"></script>
 
     <!-- Toast Notification System -->
     <script>

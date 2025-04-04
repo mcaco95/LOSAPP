@@ -3,6 +3,7 @@ from ..models.point_config import PointConfig
 from ..models.user import User
 from .. import db
 from sqlalchemy.sql import text
+from sqlalchemy import func
 
 class PointService:
     """Service for handling point-related operations"""
@@ -343,10 +344,13 @@ class PointService:
     def get_system_metrics():
         """Get system-wide metrics including growth rates"""
         try:
-            # Get all users and calculate totals
-            users = User.query.all()
-            total_users = len(users)
-            total_points = sum(user.points for user in users)
+            # Use count instead of loading all users
+            total_users = User.query.count()
+            
+            # Use SQL aggregation instead of Python
+            total_points = db.session.query(
+                func.sum(User.points)
+            ).scalar() or 0
             
             # Calculate growth rates
             now = datetime.utcnow()
@@ -356,8 +360,8 @@ class PointService:
             # Query points from point_transaction table
             query = """
                 SELECT 
-                    SUM(CASE WHEN timestamp >= :start_of_month THEN amount ELSE 0 END) as current_month_points,
-                    SUM(CASE WHEN timestamp >= :start_of_last_month AND timestamp < :start_of_month THEN amount ELSE 0 END) as last_month_points
+                    COALESCE(SUM(CASE WHEN timestamp >= :start_of_month THEN amount ELSE 0 END), 0) as current_month_points,
+                    COALESCE(SUM(CASE WHEN timestamp >= :start_of_last_month AND timestamp < :start_of_month THEN amount ELSE 0 END), 0) as last_month_points
                 FROM point_transaction
             """
             
@@ -366,8 +370,8 @@ class PointService:
                 'start_of_last_month': start_of_last_month
             }).first()
             
-            current_month_points = result.current_month_points or 0
-            last_month_points = result.last_month_points or 0
+            current_month_points = result.current_month_points
+            last_month_points = result.last_month_points
             
             # Calculate points growth
             points_growth = (
@@ -375,7 +379,7 @@ class PointService:
                 if last_month_points > 0 else 0
             )
             
-            # User growth (simplified - just compare current vs last month)
+            # User growth using direct SQL count
             last_month_users = User.query.filter(
                 User.created_at < start_of_month
             ).count()
@@ -392,6 +396,7 @@ class PointService:
                 'points_growth': round(points_growth, 1)
             }
         except Exception as e:
+            current_app.logger.error(f"Error getting system metrics: {str(e)}")
             raise ValueError(f"Error getting system metrics: {str(e)}")
 
     @staticmethod

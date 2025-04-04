@@ -1,4 +1,4 @@
-from flask import Blueprint, redirect, request, render_template, flash, url_for, jsonify
+from flask import Blueprint, redirect, request, render_template, flash, url_for, jsonify, current_app
 import json
 from flask_login import login_required, current_user
 import geoip2.database
@@ -10,6 +10,8 @@ from ..models.company import Company
 from ..decorators import admin_required
 from .. import db
 from ..forms import RedirectUrlForm
+from ..services.email import EmailService
+from ..services.teams import TeamsService
 
 class CustomJSONEncoder(json.JSONEncoder):
     def default(self, obj):
@@ -40,9 +42,10 @@ def handle_referral(unique_link):
             # If multiple IPs in X-Forwarded-For, take the first one (original client)
             visitor_ip = visitor_ip.split(',')[0].strip()
             
-        # Prepare tracking metadata
+        # Prepare tracking metadata - only store essential headers
+        essential_headers = ['User-Agent', 'Accept-Language', 'Referer']
         tracking_metadata = {
-            'headers': dict(request.headers),
+            'headers': {k: v for k, v in request.headers.items() if k in essential_headers},
             'platform': request.user_agent.platform,
             'browser': request.user_agent.browser,
             'version': request.user_agent.version,
@@ -112,6 +115,8 @@ def submit_lead_form():
         flash('Error: Invalid partner information', 'danger')
         return redirect(url_for('referrals.landing_page'))
     
+    current_app.logger.info(f"Processing form submission for partner ID: {partner_id}")
+    
     # Create new company from form data
     company = Company(
         name=request.form.get('company_name'),
@@ -138,9 +143,41 @@ def submit_lead_form():
     try:
         db.session.add(company)
         db.session.commit()
+        current_app.logger.info(f"Successfully created company record: {company.name}")
         
-        # Award points for lead generation (will be implemented in Phase 2)
-        # PointService.award_points_for_lead(partner_id)
+        # Prepare data for notifications
+        company_data = {
+            'name': company.name,
+            'contact_name': company.contact_name,
+            'email': company.email,
+            'phone': company.phone,
+            'service_type': company.service_type,
+            'preferred_contact_time': company.preferred_contact_time,
+            'additional_info': company.additional_info
+        }
+        
+        partner_data = {
+            'name': partner.name or partner.username,
+            'email': partner.email
+        }
+        
+        # Send email notification
+        current_app.logger.info("Attempting to send email notification...")
+        email_sent = EmailService.send_lead_notification(company_data, partner_data)
+        
+        if email_sent:
+            current_app.logger.info("Email notification sent successfully")
+        else:
+            current_app.logger.warning("Failed to send email notification")
+            
+        # Send Teams notification
+        current_app.logger.info("Attempting to send Teams notification...")
+        teams_sent = TeamsService.send_lead_notification(company_data, partner_data)
+        
+        if teams_sent:
+            current_app.logger.info("Teams notification sent successfully")
+        else:
+            current_app.logger.warning("Failed to send Teams notification")
         
         # Show success page
         return render_template('landing/lead_form.html',
@@ -148,6 +185,7 @@ def submit_lead_form():
                               partner_name=partner.name or partner.username,
                               form_submitted=True)
     except Exception as e:
+        current_app.logger.error(f"Error in form submission: {str(e)}")
         db.session.rollback()
         flash(f'Error: Could not save your information. {str(e)}', 'danger')
         return redirect(url_for('referrals.landing_page', partner_id=partner_id))

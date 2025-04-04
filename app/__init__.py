@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, g
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
 from flask_mail import Mail
@@ -28,7 +28,18 @@ def create_app():
     mail.init_app(app)
     migrate.init_app(app, db)
     csrf.init_app(app)
-
+    
+    # Request cleanup
+    @app.teardown_request
+    def cleanup_request(exception=None):
+        if hasattr(g, 'db_session'):
+            g.db_session.remove()
+        db.session.remove()
+    
+    @app.teardown_appcontext
+    def shutdown_session(exception=None):
+        db.session.remove()
+    
     with app.app_context():
         # Import models and routes
         from .models import user, link_tracking, company, point_config, reward, oauth, commission_partner, commission, commission_settings

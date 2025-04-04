@@ -26,3 +26,5 @@ black==23.3.0
 flake8==6.0.0
 gunicorn==20.1.0
 Faker==19.13.0
+sendgrid
+requests>=2.31.0

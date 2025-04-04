@@ -8,6 +8,11 @@ worker_connections = 1000
 timeout = 30
 keepalive = 2
 
+# Worker management
+max_requests = 1000
+max_requests_jitter = 50
+worker_tmp_dir = "/dev/shm"  # Use shared memory for temp files
+
 # Logging
 accesslog = "-"
 errorlog = "-"

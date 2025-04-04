@@ -4,6 +4,107 @@
 
 {% block content %}
 <div class="py-4">
+    <!-- System Metrics Row -->
+    {% if system_metrics %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow">
+                <div class="card-header">
+                    <div class="row align-items-center">
+                        <div class="col">
+                            <h2 class="fs-5 fw-bold mb-0">System Metrics</h2>
+                        </div>
+                        <div class="col text-end">
+                            <small class="text-muted system-metrics-timestamp">Last updated: {{ system_metrics.timestamp }}</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <!-- CPU Usage -->
+                        <div class="col-12 col-sm-6 col-xl-3 mb-4">
+                            <div class="card border-0 shadow-sm">
+                                <div class="card-body">
+                                    <div class="row d-block d-xl-flex align-items-center">
+                                        <div class="col-12 col-xl-5 text-xl-center mb-3 mb-xl-0 d-flex align-items-center justify-content-xl-center">
+                                            <div class="icon-shape icon-shape-{{ 'danger' if system_metrics.cpu.percent > 80 else 'warning' if system_metrics.cpu.percent > 60 else 'success' }} rounded me-4 me-sm-0">
+                                                <i class="fas fa-microchip"></i>
+                                            </div>
+                                        </div>
+                                        <div class="col-12 col-xl-7 px-xl-0">
+                                            <h2 class="h6 text-gray-400 mb-0">CPU Usage</h2>
+                                            <h3 class="fw-extrabold mb-1 metric-value">{{ system_metrics.cpu.percent }}%</h3>
+                                            <small class="text-gray-500 metric-detail">{{ system_metrics.cpu.cores }} Cores</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Memory Usage -->
+                        <div class="col-12 col-sm-6 col-xl-3 mb-4">
+                            <div class="card border-0 shadow-sm">
+                                <div class="card-body">
+                                    <div class="row d-block d-xl-flex align-items-center">
+                                        <div class="col-12 col-xl-5 text-xl-center mb-3 mb-xl-0 d-flex align-items-center justify-content-xl-center">
+                                            <div class="icon-shape icon-shape-{{ 'danger' if system_metrics.memory.percent > 80 else 'warning' if system_metrics.memory.percent > 60 else 'success' }} rounded me-4 me-sm-0">
+                                                <i class="fas fa-memory"></i>
+                                            </div>
+                                        </div>
+                                        <div class="col-12 col-xl-7 px-xl-0">
+                                            <h2 class="h6 text-gray-400 mb-0">Memory Usage</h2>
+                                            <h3 class="fw-extrabold mb-1 metric-value">{{ system_metrics.memory.percent }}%</h3>
+                                            <small class="text-gray-500 metric-detail">{{ system_metrics.memory.used_gb }}/{{ system_metrics.memory.total_gb }} GB</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Disk Usage -->
+                        <div class="col-12 col-sm-6 col-xl-3 mb-4">
+                            <div class="card border-0 shadow-sm">
+                                <div class="card-body">
+                                    <div class="row d-block d-xl-flex align-items-center">
+                                        <div class="col-12 col-xl-5 text-xl-center mb-3 mb-xl-0 d-flex align-items-center justify-content-xl-center">
+                                            <div class="icon-shape icon-shape-{{ 'danger' if system_metrics.disk.percent > 80 else 'warning' if system_metrics.disk.percent > 60 else 'success' }} rounded me-4 me-sm-0">
+                                                <i class="fas fa-hdd"></i>
+                                            </div>
+                                        </div>
+                                        <div class="col-12 col-xl-7 px-xl-0">
+                                            <h2 class="h6 text-gray-400 mb-0">Disk Usage</h2>
+                                            <h3 class="fw-extrabold mb-1 metric-value">{{ system_metrics.disk.percent }}%</h3>
+                                            <small class="text-gray-500 metric-detail">{{ system_metrics.disk.used_gb }}/{{ system_metrics.disk.total_gb }} GB</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Process Info -->
+                        <div class="col-12 col-sm-6 col-xl-3 mb-4">
+                            <div class="card border-0 shadow-sm">
+                                <div class="card-body">
+                                    <div class="row d-block d-xl-flex align-items-center">
+                                        <div class="col-12 col-xl-5 text-xl-center mb-3 mb-xl-0 d-flex align-items-center justify-content-xl-center">
+                                            <div class="icon-shape icon-shape-info rounded me-4 me-sm-0">
+                                                <i class="fas fa-tasks"></i>
+                                            </div>
+                                        </div>
+                                        <div class="col-12 col-xl-7 px-xl-0">
+                                            <h2 class="h6 text-gray-400 mb-0">App Process</h2>
+                                            <h3 class="fw-extrabold mb-1 metric-value">{{ system_metrics.process.memory_mb }} MB</h3>
+                                            <small class="text-gray-500 metric-detail">{{ system_metrics.process.threads }} Threads</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Existing Stats Row -->
     <div class="row">
         <div class="col-12 col-sm-6 col-xl-3 mb-4">
             <div class="card border-0 shadow">
@@ -162,4 +263,66 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function updateSystemMetrics() {
+    fetch('/admin/system-metrics')
+        .then(response => response.json())
+        .then(metrics => {
+            if (metrics.error) {
+                console.error('Error fetching metrics:', metrics.error);
+                return;
+            }
+
+            // Update timestamp
+            document.querySelector('.system-metrics-timestamp').textContent = `Last updated: ${metrics.timestamp}`;
+
+            // Update CPU metrics
+            const cpuCard = document.querySelector('.cpu-metrics');
+            cpuCard.querySelector('.metric-value').textContent = `${metrics.cpu.percent}%`;
+            cpuCard.querySelector('.metric-detail').textContent = `${metrics.cpu.cores} Cores`;
+            updateCardColor(cpuCard, metrics.cpu.percent);
+
+            // Update Memory metrics
+            const memoryCard = document.querySelector('.memory-metrics');
+            memoryCard.querySelector('.metric-value').textContent = `${metrics.memory.percent}%`;
+            memoryCard.querySelector('.metric-detail').textContent = 
+                `${metrics.memory.used_gb}/${metrics.memory.total_gb} GB`;
+            updateCardColor(memoryCard, metrics.memory.percent);
+
+            // Update Disk metrics
+            const diskCard = document.querySelector('.disk-metrics');
+            diskCard.querySelector('.metric-value').textContent = `${metrics.disk.percent}%`;
+            diskCard.querySelector('.metric-detail').textContent = 
+                `${metrics.disk.used_gb}/${metrics.disk.total_gb} GB`;
+            updateCardColor(diskCard, metrics.disk.percent);
+
+            // Update Process metrics
+            const processCard = document.querySelector('.process-metrics');
+            processCard.querySelector('.metric-value').textContent = `${metrics.process.memory_mb} MB`;
+            processCard.querySelector('.metric-detail').textContent = `${metrics.process.threads} Threads`;
+        })
+        .catch(error => console.error('Error:', error));
+}
+
+function updateCardColor(card, percent) {
+    const icon = card.querySelector('.icon-shape');
+    icon.classList.remove('icon-shape-success', 'icon-shape-warning', 'icon-shape-danger');
+    if (percent > 80) {
+        icon.classList.add('icon-shape-danger');
+    } else if (percent > 60) {
+        icon.classList.add('icon-shape-warning');
+    } else {
+        icon.classList.add('icon-shape-success');
+    }
+}
+
+// Update metrics every 30 seconds
+setInterval(updateSystemMetrics, 30000);
+
+// Initial update
+document.addEventListener('DOMContentLoaded', updateSystemMetrics);
+</script>
 {% endblock %} 
