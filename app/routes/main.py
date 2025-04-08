@@ -6,9 +6,10 @@ from app.services.points import PointService
 from app.services.company import CompanyService
 from app.services.reward import RewardService
 from app.services.monitoring import MonitoringService
-from app.decorators import admin_required
+from app.decorators import admin_required, referral_required, operations_required
 from app.models.company import Company
 from app.models.user import User
+from app.models.point_config import PointConfig
 from .. import db
 import json
 
@@ -28,10 +29,13 @@ def index():
 def dashboard():
     if current_user.is_admin:
         return redirect(url_for('main.admin_dashboard'))
+    if hasattr(current_user, 'operations_profile') and current_user.operations_profile:
+        return redirect(url_for('main.operations_dashboard'))
     return redirect(url_for('main.user_dashboard'))
 
 @main.route('/dashboard/user')
 @login_required
+@referral_required
 def user_dashboard():
     point_service = PointService()
     company_service = CompanyService()
@@ -63,6 +67,9 @@ def user_dashboard():
     # Get top performers
     top_users = point_service.get_top_users(limit=5)
 
+    # Get points trend data for the last month
+    trend_data = point_service.get_points_trend(current_user.id, period='month')
+
     return render_template('dashboard/user/index.html',
         total_points=points_summary['total_points'],
         points_change=points_summary['monthly_change'],
@@ -72,7 +79,8 @@ def user_dashboard():
         next_reward_progress=next_reward_data['progress_percentage'],
         companies=companies,
         companies_json=json.dumps(companies),
-        top_users=top_users
+        top_users=top_users,
+        trend_data=trend_data
     )
 
 @main.route('/admin/dashboard')
@@ -128,25 +136,32 @@ def admin_dashboard():
             top_performers=[]
         )
 
-@main.route('/dashboard/admin/points')
+@main.route('/admin/points')
 @login_required
 @admin_required
 def admin_points():
-    point_service = PointService()
+    """Points & Rewards Admin Panel"""
+    # Get all point rules
+    point_rules = PointService.get_point_rules()
     
-    # Get point rules
-    point_rules = point_service.get_point_rules()
+    # Get distribution data
+    distribution_data = PointService.get_points_distribution()
     
-    # Get points distribution data
-    distribution_data = point_service.get_points_distribution()
+    # Get click points configuration
+    click_config = {
+        'click': PointConfig.get_value('click', 1),
+        'unique_click': PointConfig.get_value('unique_click', 5)
+    }
     
-    # Get top earners
-    top_earners = point_service.get_top_users(limit=5)
-
-    return render_template('dashboard/admin/points.html',
+    # Check if click points are enabled
+    click_points_enabled = PointService.is_click_points_enabled()
+    
+    return render_template(
+        'dashboard/admin/points.html',
         point_rules=point_rules,
         distribution_data=distribution_data,
-        top_earners=top_earners
+        click_config=click_config,
+        click_points_enabled=click_points_enabled
     )
 
 @main.route('/dashboard/admin/rewards')
@@ -168,6 +183,7 @@ def admin_rewards():
 
 @main.route('/dashboard/points')
 @login_required
+@referral_required
 def points_dashboard():
     # Get user's points summary
     points_service = PointService()
@@ -205,6 +221,7 @@ def settings():
 
 @main.route('/dashboard/user/rewards')
 @login_required
+@referral_required
 def user_rewards():
     reward_service = RewardService()
     point_service = PointService()
@@ -246,6 +263,7 @@ def user_rewards():
 
 @main.route('/dashboard/user/companies')
 @login_required
+@referral_required
 def user_companies():
     company_service = CompanyService()
     
@@ -415,3 +433,17 @@ def get_system_metrics():
     except Exception as e:
         current_app.logger.error(f"Error getting system metrics: {str(e)}")
         return jsonify({'error': str(e)}), 500
+
+@main.route('/dashboard/operations')
+@login_required
+@operations_required
+def operations_dashboard():
+    if not hasattr(current_user, 'operations_profile') or not current_user.operations_profile:
+        flash('Access denied. Operations profile required.', 'error')
+        return redirect(url_for('main.dashboard'))
+    
+    return render_template('dashboard/operations/index.html',
+        user=current_user,
+        role=current_user.operations_profile.role,
+        extension=current_user.operations_profile.extension
+    )

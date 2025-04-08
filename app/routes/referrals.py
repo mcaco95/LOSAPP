@@ -7,7 +7,7 @@ from sqlalchemy import desc
 from ..models.link_tracking import GlobalRedirect, LinkClick
 from ..models.user import User
 from ..models.company import Company
-from ..decorators import admin_required
+from ..decorators import admin_required, referral_required
 from .. import db
 from ..forms import RedirectUrlForm
 from ..services.email import EmailService
@@ -27,62 +27,50 @@ except:
 
 bp = Blueprint('referrals', __name__)
 
-@bp.route('/r/<unique_link>')
-def handle_referral(unique_link):
-    """Handle referral links and track clicks"""
-    # Get the global redirect URL first
-    redirect_url = GlobalRedirect.get_active_url()
-    
-    # If we have a valid user, record the click
-    user = User.query.filter_by(unique_link=unique_link).first()
-    if user:
-        # Get real IP address, checking X-Forwarded-For header first (for proxy scenarios like Ngrok)
-        visitor_ip = request.headers.get('X-Forwarded-For', request.remote_addr)
-        if visitor_ip and ',' in visitor_ip:
-            # If multiple IPs in X-Forwarded-For, take the first one (original client)
-            visitor_ip = visitor_ip.split(',')[0].strip()
-            
-        # Prepare tracking metadata - only store essential headers
-        essential_headers = ['User-Agent', 'Accept-Language', 'Referer']
-        tracking_metadata = {
-            'headers': {k: v for k, v in request.headers.items() if k in essential_headers},
-            'platform': request.user_agent.platform,
-            'browser': request.user_agent.browser,
-            'version': request.user_agent.version,
-            'language': request.accept_languages.best,
-            'referrer': request.referrer,
-            'timestamp_utc': datetime.utcnow().isoformat()
-        }
-
-        click = LinkClick(
-            user_id=user.id,
-            visitor_ip=visitor_ip,
-            user_agent=request.user_agent.string,
-            tracking_metadata=tracking_metadata
-        )
-        
-        # Set device type
-        click.set_device_type()
-        
-        # Add geographic data if GeoIP reader is available
-        if geo_reader and visitor_ip:
-            try:
-                geo_data = geo_reader.city(visitor_ip)
-                click.country = geo_data.country.iso_code
-                click.city = geo_data.city.name
-                click.region = geo_data.subdivisions.most_specific.name
-            except:
-                # If IP lookup fails, continue without geo data
-                pass
-        
-        db.session.add(click)
+@bp.route('/referrals')
+@login_required
+@referral_required
+def index():
+    """Display user's referral dashboard"""
+    if not current_user.unique_link:
+        current_user.generate_unique_link()
         db.session.commit()
-        
-        # Instead of redirecting to the global URL, redirect to our landing page
-        return redirect(url_for('referrals.landing_page', partner_id=user.id))
     
-    # If no valid user, redirect to the global redirect URL
-    return redirect(redirect_url)
+    referral_link = f"{request.host_url}r/{current_user.unique_link}"
+    stats = LinkClick.get_stats_for_user(current_user.id)
+    
+    return render_template('referrals/index.html',
+                          referral_link=referral_link,
+                          stats=stats)
+
+@bp.route('/r/<unique_link>')
+def redirect_link(unique_link):
+    """Handle referral link clicks and redirects"""
+    user = User.query.filter_by(unique_link=unique_link).first()
+    if not user:
+        flash('Invalid referral link.', 'error')
+        return redirect(url_for('main.index'))
+    
+    # Record the click
+    click = LinkClick(
+        user_id=user.id,
+        visitor_ip=request.remote_addr,
+        user_agent=request.user_agent.string
+    )
+    
+    # Set device type
+    click.set_device_type()
+    
+    db.session.add(click)
+    
+    try:
+        db.session.commit()
+    except Exception as e:
+        db.session.rollback()
+        current_app.logger.error(f"Error recording click: {str(e)}")
+    
+    # Redirect to the landing page with the partner ID
+    return redirect(url_for('referrals.landing_page', partner_id=user.id))
 
 @bp.route('/landing')
 def landing_page():

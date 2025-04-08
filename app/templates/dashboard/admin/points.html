@@ -207,6 +207,56 @@
                 });
             });
         });
+
+        function toggleClickPoints(enabled) {
+            // Update UI immediately
+            const label = document.querySelector('label[for="clickPointsToggle"] span');
+            if (enabled) {
+                label.textContent = 'Enabled';
+                label.className = 'text-success';
+            } else {
+                label.textContent = 'Disabled';
+                label.className = 'text-danger';
+            }
+            
+            // Send request to the server to update the setting
+            fetch('/api/v1/points/settings/click_points_enabled', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ enabled: enabled })
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Show success notification
+                Notyf.success({
+                    message: `Points for clicks ${enabled ? 'enabled' : 'disabled'} successfully`,
+                    duration: 3000,
+                    position: {
+                        x: 'right',
+                        y: 'top',
+                    }
+                });
+            })
+            .catch(error => {
+                console.error('Error updating click points setting:', error);
+                // Show error notification
+                Notyf.error({
+                    message: 'Failed to update setting. Please try again.',
+                    duration: 3000,
+                    position: {
+                        x: 'right',
+                        y: 'top',
+                    }
+                });
+                
+                // Revert the toggle if there was an error
+                document.getElementById('clickPointsToggle').checked = !enabled;
+                label.textContent = enabled ? 'Disabled' : 'Enabled';
+                label.className = enabled ? 'text-danger' : 'text-success';
+            });
+        }
     </script>
 {% endblock %}
 
@@ -323,6 +373,52 @@
                             </td>
                         </tr>
                         {% endfor %}
+                        <tr data-rule-id="click_points_enabled">
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="icon-shape icon-sm me-3 bg-primary rounded-circle">
+                                        <i class="fas fa-mouse-pointer text-white"></i>
+                                    </div>
+                                    <div class="d-block">
+                                        <span class="fw-bold">Enable Points for Link Clicks</span>
+                                        <div class="small text-gray">When enabled, users earn points when their referral links are clicked</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="fw-normal">{{ click_config.click }} / {{ click_config.unique_click }}</span>
+                                <div class="small text-gray">Regular / Unique</div>
+                            </td>
+                            <td>
+                                <span class="fw-normal">N/A</span>
+                            </td>
+                            <td>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="clickPointsToggle" 
+                                           {% if click_points_enabled %}checked{% endif %}
+                                           onchange="toggleClickPoints(this.checked)">
+                                    <label class="form-check-label" for="clickPointsToggle">
+                                        {% if click_points_enabled %}
+                                        <span class="text-success">Enabled</span>
+                                        {% else %}
+                                        <span class="text-danger">Disabled</span>
+                                        {% endif %}
+                                    </label>
+                                </div>
+                            </td>
+                            <td>
+                                <button type="button" class="btn btn-sm btn-primary" 
+                                        title="Configure click point values"
+                                        data-bs-toggle="modal" 
+                                        data-bs-target="#editPointRule" 
+                                        data-rule-id="click"
+                                        data-rule-name="Click Points"
+                                        data-rule-value="{{ click_config.click }}"
+                                        data-rule-description="Points earned when a user's referral link is clicked">
+                                    <i class="fas fa-cog"></i>
+                                </button>
+                            </td>
+                        </tr>
                     </tbody>
                 </table>
             </div>

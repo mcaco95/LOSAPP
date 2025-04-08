@@ -1,0 +1,50 @@
+# Flask configuration
+FLASK_APP=app
+FLASK_ENV=development
+
+# Use local database for development
+DATABASE_URL=postgresql://postgres:31012662@localhost:5432/los_referral
+
+# Secret key
+SECRET_KEY=here-is-a-secure-key-8a4c6d3e3f1b2a5d8c4a7f3b6a5d2c6f
+
+# Email configuration
+MAIL_SERVER=smtp.gmail.com
+MAIL_PORT=587
+MAIL_USE_TLS=True
+MAIL_USERNAME=your-email@gmail.com
+MAIL_PASSWORD=your-app-password
+
+# OAuth configuration
+GOOGLE_CLIENT_ID=your-google-client-id
+GOOGLE_CLIENT_SECRET=your-google-client-secret
+
+# Admin settings
+ADMIN_EMAIL=simon@logisticsonesource.com
+ADMIN_PASSWORD=admin123
+
+# Debug settings
+FLASK_DEBUG=1
+
+# SendGrid Configuration
+SENDGRID_API_KEY=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
+SENDGRID_FROM_EMAIL=simon@logisticsonesource.com
+SALES_TEAM_EMAIL=nicolas@logisticsonesource.com
+TEAMS_WEBHOOK_URL=https://losglobal.webhook.office.com/webhookb2/894a40f0-a984-4fa3-8d17-aac74ee0bafe@c60aeb79-4c2e-4f95-ad33-df9fc4d90eb0/IncomingWebhook/a67e95eddac14299a40df4dc6584df73/9bc5ac1b-6d20-4617-8307-03c287332959/V2PPAovwv-0L6ZLzbtmpSHAuPNoSZ2LF91gEBULt2u0Us1
+
+# Twilio Credentials
+TWILIO_ACCOUNT_SID=ACe9000a728c60e9efd3d522fd4e53a8a6
+TWILIO_AUTH_TOKEN=4ef86bad4ac26cdb362c3745ea45c0f6
+TWILIO_PHONE_NUMBER=+17756183039
+
+# Webhook Configuration
+TWILIO_WEBHOOK_BASE_URL=https://app.logisticsonesource.com
+
+# Call Recording Settings
+CALL_RECORDING_ENABLED=True
+CALL_RECORDING_PATH=recordings
+
+# Twilio API Key (for Voice SDK)
+TWILIO_API_KEY_SID=SKd4a225be4dd3344a13afb9b83b18300c
+TWILIO_API_KEY_SECRET=2zxCAyxRIJsqgbB35DzzTNRFiRBpS36K
+TWILIO_TWIML_APP_SID=APe42f1e65039e9d88186dc6bb7896a41f

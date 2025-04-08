@@ -12,6 +12,7 @@ import base64
 from ..decorators import admin_required
 from ..models.user import User, db
 from ..forms import AdminUserForm, AdminUserEditForm, ChangePasswordForm, ProfilePictureForm
+from ..models.operations_user import OperationsUser
 
 users = Blueprint('users', __name__)
 
@@ -53,15 +54,45 @@ def edit(id):
     if form.validate_on_submit():
         user.name = form.name.data
         user.email = form.email.data
+        user.is_admin = form.is_admin.data
+        
         if form.password.data:
             user.set_password(form.password.data)
+            
+        # Handle operations user settings
+        if form.is_operations.data:
+            # Create or update operations profile
+            if not user.operations_profile:
+                ops_user = OperationsUser(
+                    user_id=user.id,
+                    phone_number=form.phone_number.data,
+                    extension=form.extension.data,
+                    role=form.operations_role.data
+                )
+                db.session.add(ops_user)
+            else:
+                user.operations_profile.phone_number = form.phone_number.data
+                user.operations_profile.extension = form.extension.data
+                user.operations_profile.role = form.operations_role.data
+        else:
+            # Remove operations profile if exists
+            if user.operations_profile:
+                db.session.delete(user.operations_profile)
+        
         try:
             db.session.commit()
             flash('User updated successfully!', 'success')
             return redirect(url_for('users.index'))
         except Exception as e:
             db.session.rollback()
-            flash('Error updating user. Email might be already taken.', 'error')
+            flash('Error updating user. The email might be already taken or extension is in use.', 'error')
+    
+    # Pre-populate operations fields if user has operations profile
+    if user.operations_profile:
+        form.is_operations.data = True
+        form.phone_number.data = user.operations_profile.phone_number
+        form.extension.data = user.operations_profile.extension
+        form.operations_role.data = user.operations_profile.role
     
     return render_template('users/edit.html', form=form, user=user)
 

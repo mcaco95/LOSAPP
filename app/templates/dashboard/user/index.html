@@ -1022,7 +1022,6 @@
                             <th>Status</th>
                             <th>Progress</th>
                             <th>Last Updated</th>
-                            <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -1114,27 +1113,7 @@
                                         {{ company.payment_date }}
                                     </small>
                                     {% endif %}
-                                </div>
-                            </td>
-                            <td>
-                                <div class="btn-group">
-                                    <button class="btn btn-sm btn-outline-primary dropdown-toggle" type="button" data-bs-toggle="dropdown">
-                                        <i class="fas fa-cog me-1"></i>
-                                        Actions
-                                    </button>
-                                    <ul class="dropdown-menu">
-                                        <li>
-                                            <a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#companyDetailsModal" data-company-id="{{ company.id }}">
-                                                <i class="fas fa-eye me-2"></i> View Details
-                                            </a>
-                                        </li>
-                                        <li>
-                                            <a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#updateStatus" data-company-id="{{ company.id }}">
-                                                <i class="fas fa-edit me-2"></i> Update Status
-                                            </a>
-                                        </li>
-                                    </ul>
-                                </div>
+
                             </td>
                         </tr>
                         {% endfor %}

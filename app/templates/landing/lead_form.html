@@ -766,6 +766,32 @@
     }
 
     .stat-number::after {
+        content: '';
+    }
+    
+    .stat-number.percent-suffix::after {
+        content: '%+';
+        font-size: 1.5rem;
+        position: absolute;
+        top: 0;
+        right: -2.5rem;
+        background: linear-gradient(45deg, var(--los-blue), var(--los-light-blue));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+    
+    .stat-number.k-suffix::after {
+        content: 'K+';
+        font-size: 1.5rem;
+        position: absolute;
+        top: 0;
+        right: -2.5rem;
+        background: linear-gradient(45deg, var(--los-blue), var(--los-light-blue));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+    
+    .stat-number.plus-suffix::after {
         content: '+';
         font-size: 1.5rem;
         position: absolute;
@@ -1450,8 +1476,8 @@
                     <div class="stat-icon">
                         <i class="fas fa-chart-line"></i>
                     </div>
-                    <div class="stat-number" data-count="24">0</div>
-                    <div class="stat-label">HOS Violation Reduction %</div>
+                    <div class="stat-number percent-suffix" data-count="24">0</div>
+                    <div class="stat-label">HOS Violation Reduction</div>
                 </div>
             </div>
             <div class="col-md-3">
@@ -1459,8 +1485,8 @@
                     <div class="stat-icon">
                         <i class="fas fa-tachometer-alt"></i>
                     </div>
-                    <div class="stat-number" data-count="31">0</div>
-                    <div class="stat-label">K+ Telematics Events Monthly</div>
+                    <div class="stat-number k-suffix" data-count="31">0</div>
+                    <div class="stat-label">Telematics Events Monthly</div>
                 </div>
             </div>
             <div class="col-md-3">
@@ -1468,7 +1494,7 @@
                     <div class="stat-icon">
                         <i class="fas fa-users"></i>
                     </div>
-                    <div class="stat-number" data-count="86">0</div>
+                    <div class="stat-number plus-suffix" data-count="86">0</div>
                     <div class="stat-label">Drivers Recruited Monthly</div>
                 </div>
             </div>
@@ -1477,7 +1503,7 @@
                     <div class="stat-icon">
                         <i class="fas fa-award"></i>
                     </div>
-                    <div class="stat-number" data-count="16">0</div>
+                    <div class="stat-number plus-suffix" data-count="16">0</div>
                     <div class="stat-label">Years Combined Experience</div>
                 </div>
             </div>

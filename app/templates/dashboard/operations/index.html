@@ -1,0 +1,1004 @@
+{% extends "base.html" %}
+
+{% block head %}
+<!-- Add jQuery first -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<!-- We'll load Twilio dynamically -->
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <div class="col-12 mb-4">
+            <div class="card border-0 shadow">
+                <div class="card-header">
+                    <div class="row align-items-center">
+                        <div class="col">
+                            <h2 class="fs-5 fw-bold mb-0">Operations Dashboard</h2>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-12 col-xl-8">
+                            <div class="mb-4">
+                                <h3 class="h5 mb-3">Welcome, {{ user.name }}</h3>
+                                <p class="mb-0">
+                                    <span class="fw-bold">Role:</span> {{ role | title }}
+                                    <br>
+                                    <span class="fw-bold">Extension:</span> {{ extension or 'Not set' }}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Call Management Section -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <div class="card border-0 shadow">
+                                <div class="card-header">
+                                    <h5 class="mb-0">Call Management</h5>
+                                </div>
+                                <div class="card-body">
+                                    <!-- Device Setup -->
+                                    <div class="mb-4">
+                                        <div class="d-flex justify-content-between align-items-center mb-2">
+                                            <h6 class="mb-0">Browser Phone</h6>
+                                            <div>
+                                                <span id="deviceStatus" class="badge bg-secondary">Offline</span>
+                                                <button id="setupDevice" class="btn btn-sm btn-primary ms-2">
+                                                    <i class="fas fa-headset me-1"></i> Set Up Phone
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <div id="deviceSetupError" class="alert alert-danger d-none">
+                                            Failed to set up device. Please check your browser permissions and try again.
+                                        </div>
+                                    </div>
+
+                                    <!-- Make Call Form -->
+                                    <form id="makeCallForm" class="mb-4">
+                                        <div class="row align-items-center">
+                                            <div class="col-md-6">
+                                                <div class="input-group">
+                                                    <span class="input-group-text">
+                                                        <i class="fas fa-phone"></i>
+                                                    </span>
+                                                    <input type="tel" class="form-control" id="phoneNumber" 
+                                                           placeholder="Enter phone number (e.g. +1234567890)" required
+                                                           pattern="\+[1-9]\d{10,14}"
+                                                           title="Please enter phone number in E.164 format (e.g. +1234567890)">
+                                                </div>
+                                                <small class="form-text text-muted">Enter number in E.164 format starting with + and country code (e.g. +1234567890)</small>
+                                            </div>
+                                            <div class="col-md-6 d-flex align-items-center">
+                                                <div class="form-check me-3">
+                                                    <input class="form-check-input" type="checkbox" id="recordCall">
+                                                    <label class="form-check-label" for="recordCall">
+                                                        Record Call
+                                                    </label>
+                                                </div>
+                                                <div class="form-check me-3">
+                                                    <input class="form-check-input" type="checkbox" id="useBrowser" checked>
+                                                    <label class="form-check-label" for="useBrowser">
+                                                        Use Browser Phone
+                                                    </label>
+                                                </div>
+                                                <button type="submit" class="btn btn-primary" id="callButton">
+                                                    <i class="fas fa-phone-volume me-2"></i> Make Call
+                                                </button>
+                                                <button type="button" class="btn btn-danger d-none" id="endCallButton">
+                                                    <i class="fas fa-phone-slash me-2"></i> End Call
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </form>
+
+                                    <!-- Active Call Controls -->
+                                    <div id="callControls" class="d-none mb-4">
+                                        <div class="card">
+                                            <div class="card-body">
+                                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                                    <h6 class="mb-0"><i class="fas fa-phone-alt me-2"></i> <span id="activeCallLabel">Active Call</span></h6>
+                                                    <div>
+                                                        <button id="muteButton" class="btn btn-outline-secondary me-2">
+                                                            <i class="fas fa-microphone"></i> Mute
+                                                        </button>
+                                                        <button id="hangupButton" class="btn btn-danger">
+                                                            <i class="fas fa-phone-slash"></i> Hang Up
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                                <div class="text-center">
+                                                    <div id="callTimer" class="fs-4 mb-2">00:00</div>
+                                                    <div id="callStatus" class="badge bg-success mb-2">Connected</div>
+                                                </div>
+                                                <div id="activeLogs" class="small text-muted mt-2 bg-light p-2 rounded" style="height: 100px; overflow-y: auto;">
+                                                    <!-- Call logs will appear here -->
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Active Call Status -->
+                                    <div id="activeCallStatus" class="alert alert-info d-none">
+                                        <div class="d-flex align-items-center">
+                                            <div class="spinner-border spinner-border-sm me-2" role="status">
+                                                <span class="visually-hidden">Loading...</span>
+                                            </div>
+                                            <span id="callStatusText">Initiating call...</span>
+                                        </div>
+                                    </div>
+
+                                    <!-- Recent Calls Table -->
+                                    <div class="card border-0 shadow mb-4">
+                                        <div class="card-header">
+                                            <h5 class="mb-0">Recent Calls</h5>
+                                        </div>
+                                        <div class="card-body">
+                                            <div class="table-responsive">
+                                                <table class="table table-centered table-nowrap mb-0 rounded" id="callHistoryTable">
+                                                    <thead class="thead-light">
+                                                        <tr>
+                                                            <th class="border-0">Direction</th>
+                                                            <th class="border-0">Number</th>
+                                                            <th class="border-0">Status</th>
+                                                            <th class="border-0">Duration</th>
+                                                            <th class="border-0">Time</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        <tr>
+                                                            <td colspan="5" class="text-center">Loading call history...</td>
+                                                        </tr>
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Call Metrics -->
+                    <div class="row">
+                        <div class="col-12 col-sm-6 col-xl-3 mb-4">
+                            <div class="card border-0 shadow">
+                                <div class="card-body">
+                                    <div class="row d-block d-xl-flex align-items-center">
+                                        <div class="col-12 col-xl-5 text-xl-center mb-3 mb-xl-0 d-flex align-items-center justify-content-xl-center">
+                                            <div class="icon-shape icon-shape-primary rounded me-4 me-sm-0">
+                                                <i class="fas fa-phone"></i>
+                                            </div>
+                                        </div>
+                                        <div class="col-12 col-xl-7 px-xl-0">
+                                            <div class="d-none d-sm-block">
+                                                <h2 class="h6 text-gray-400 mb-0">Total Calls</h2>
+                                                <h3 class="fw-extrabold mb-2" id="totalCalls">0</h3>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-12 col-sm-6 col-xl-3 mb-4">
+                            <div class="card border-0 shadow">
+                                <div class="card-body">
+                                    <div class="row d-block d-xl-flex align-items-center">
+                                        <div class="col-12 col-xl-5 text-xl-center mb-3 mb-xl-0 d-flex align-items-center justify-content-xl-center">
+                                            <div class="icon-shape icon-shape-success rounded me-4 me-sm-0">
+                                                <i class="fas fa-check"></i>
+                                            </div>
+                                        </div>
+                                        <div class="col-12 col-xl-7 px-xl-0">
+                                            <div class="d-none d-sm-block">
+                                                <h2 class="h6 text-gray-400 mb-0">Completed</h2>
+                                                <h3 class="fw-extrabold mb-2" id="completedCalls">0</h3>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-12 col-sm-6 col-xl-3 mb-4">
+                            <div class="card border-0 shadow">
+                                <div class="card-body">
+                                    <div class="row d-block d-xl-flex align-items-center">
+                                        <div class="col-12 col-xl-5 text-xl-center mb-3 mb-xl-0 d-flex align-items-center justify-content-xl-center">
+                                            <div class="icon-shape icon-shape-tertiary rounded me-4 me-sm-0">
+                                                <i class="fas fa-chart-line"></i>
+                                            </div>
+                                        </div>
+                                        <div class="col-12 col-xl-7 px-xl-0">
+                                            <div class="d-none d-sm-block">
+                                                <h2 class="h6 text-gray-400 mb-0">Completion Rate</h2>
+                                                <h3 class="fw-extrabold mb-2" id="completionRate">0%</h3>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-12 col-sm-6 col-xl-3 mb-4">
+                            <div class="card border-0 shadow">
+                                <div class="card-body">
+                                    <div class="row d-block d-xl-flex align-items-center">
+                                        <div class="col-12 col-xl-5 text-xl-center mb-3 mb-xl-0 d-flex align-items-center justify-content-xl-center">
+                                            <div class="icon-shape icon-shape-info rounded me-4 me-sm-0">
+                                                <i class="fas fa-clock"></i>
+                                            </div>
+                                        </div>
+                                        <div class="col-12 col-xl-7 px-xl-0">
+                                            <div class="d-none d-sm-block">
+                                                <h2 class="h6 text-gray-400 mb-0">Avg Duration</h2>
+                                                <h3 class="fw-extrabold mb-2" id="avgDuration">0m</h3>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Move the document.ready handler to the top
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOM loaded, setting up event listeners');
+    
+    // Initial fetch of call history and metrics
+    setTimeout(() => {
+        fetchCallHistory();
+        fetchCallMetrics();
+    }, 1000);
+});
+
+// Global variables for call management
+let currentCallSid = null;
+let statusCheckInterval = null;
+let callStartTime = null;
+let callTimerInterval = null;
+let isRecording = false;
+let device = null;
+let currentConnection = null;
+let deviceIsReady = false;
+let uiUpdateRetries = 0;
+const MAX_UI_UPDATE_RETRIES = 10;
+
+// Initialize page
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOM loaded, setting up event listeners');
+    
+    // Get UI elements once at startup
+    const elements = {
+        setupButton: document.getElementById('setupDevice'),
+        deviceStatus: document.getElementById('deviceStatus'),
+        deviceError: document.getElementById('deviceSetupError'),
+        makeCallButton: document.getElementById('callButton')
+    };
+    
+    // Setup device button click handler
+    if (elements.setupButton) {
+        elements.setupButton.addEventListener('click', async () => {
+            console.log('Setup button clicked');
+            
+            // Disable button and show loading state
+            elements.setupButton.disabled = true;
+            elements.setupButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Setting up...';
+            
+            try {
+                // Load Twilio if needed
+                if (typeof Twilio === 'undefined') {
+                    console.log('Loading Twilio script...');
+                    await new Promise((resolve, reject) => {
+                        const script = document.createElement('script');
+                        script.src = 'https://sdk.twilio.com/js/client/releases/1.14.0/twilio.min.js';
+                        script.onload = resolve;
+                        script.onerror = reject;
+                        document.head.appendChild(script);
+                    });
+                    console.log('Twilio script loaded');
+                }
+                
+                // Get token
+                const response = await fetch('/operations/token');
+                const data = await response.json();
+                if (!data.success) throw new Error(data.message || 'Failed to get token');
+                
+                // Initialize device
+                device = new Twilio.Device();
+                
+                // Setup device handlers
+                device.on('ready', () => {
+                    console.log('Device ready');
+                    deviceIsReady = true;
+                    
+                    // Update UI
+                    elements.deviceStatus.textContent = 'Ready';
+                    elements.deviceStatus.classList.remove('bg-secondary', 'bg-danger');
+                    elements.deviceStatus.classList.add('bg-success');
+                    
+                    elements.setupButton.textContent = 'Phone Ready';
+                    elements.setupButton.disabled = true;
+                    elements.setupButton.classList.remove('btn-secondary', 'btn-danger');
+                    elements.setupButton.classList.add('btn-success');
+                    
+                    elements.makeCallButton.disabled = false;
+                    elements.deviceError.classList.add('d-none');
+                    
+                    // Fetch initial call history
+                    fetchCallHistory();
+                });
+                
+                device.on('error', (error) => {
+                    console.error('Device error:', error);
+                    deviceIsReady = false;
+                    
+                    // Handle transport error
+                    if (error.code === 31009) {
+                        elements.deviceError.classList.remove('d-none');
+                        elements.deviceError.textContent = 'Please ensure you have granted microphone permissions.';
+                        
+                        // Reset button state
+                        elements.setupButton.disabled = false;
+                        elements.setupButton.textContent = 'Retry Setup';
+                        elements.setupButton.classList.remove('btn-success');
+                        elements.setupButton.classList.add('btn-danger');
+                        return;
+                    }
+                    
+                    // Update UI for other errors
+                    elements.deviceStatus.textContent = 'Error';
+                    elements.deviceStatus.classList.remove('bg-success', 'bg-secondary');
+                    elements.deviceStatus.classList.add('bg-danger');
+                    
+                    elements.setupButton.disabled = false;
+                    elements.setupButton.textContent = 'Retry Setup';
+                    elements.setupButton.classList.remove('btn-success');
+                    elements.setupButton.classList.add('btn-danger');
+                    
+                    elements.makeCallButton.disabled = true;
+                    elements.deviceError.classList.remove('d-none');
+                    elements.deviceError.textContent = `Error: ${error.message || 'Failed to set up device'}`;
+                });
+                
+                // Initialize device with token
+                await device.setup(data.token);
+                console.log('Device setup complete');
+                
+            } catch (error) {
+                console.error('Setup error:', error);
+                deviceIsReady = false;
+                
+                elements.deviceError.classList.remove('d-none');
+                elements.deviceError.textContent = `Error: ${error.message || 'Failed to set up device'}`;
+                
+                elements.setupButton.disabled = false;
+                elements.setupButton.textContent = 'Retry Setup';
+                elements.setupButton.classList.remove('btn-success');
+                elements.setupButton.classList.add('btn-danger');
+            }
+        });
+    }
+    
+    // Make call form submission
+    document.getElementById('makeCallForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const phoneNumber = document.getElementById('phoneNumber').value.trim();
+        const recordCall = document.getElementById('recordCall').checked;
+        const useBrowser = document.getElementById('useBrowser').checked;
+        
+        // Ensure phone number is in E.164 format
+        if (!phoneNumber.startsWith('+')) {
+            alert('Phone number must start with + and include country code');
+            return;
+        }
+        
+        // Check if we should use browser phone
+        if (useBrowser) {
+            if (!deviceIsReady || !device) {
+                elements.deviceError.textContent = 'Browser phone is not ready. Please set up the phone first.';
+                elements.deviceError.classList.remove('d-none');
+                return;
+            }
+            
+            // Make the call using Twilio Device
+            makeBrowserCall(phoneNumber, recordCall);
+        } else {
+            // Make a regular call using REST API
+            makeRegularCall(phoneNumber, recordCall);
+        }
+    });
+});
+
+// Make a call using Twilio Device
+function makeBrowserCall(phoneNumber, record) {
+    // Show loading state
+    const callButton = document.getElementById('callButton');
+    const originalText = callButton.innerHTML;
+    callButton.disabled = true;
+    callButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Connecting...';
+    
+    try {
+        // Make the call with parameters directly in the options object
+        currentConnection = device.connect({
+            To: phoneNumber,
+            Record: record
+        });
+        
+        // Set up connection event listeners
+        setupConnectionListeners(currentConnection);
+        
+        // Show call controls
+        showCallControls(phoneNumber);
+        
+        logMessage(`Calling ${phoneNumber}...`);
+        
+    } catch (error) {
+        console.error('Error making browser call:', error);
+        alert(`Failed to connect call: ${error.message || 'Unknown error'}`);
+        
+        // Reset button state
+        callButton.disabled = false;
+        callButton.innerHTML = originalText;
+    }
+}
+
+// Set up connection event listeners
+function setupConnectionListeners(connection) {
+    // When the call is connecting
+    connection.on('connecting', function() {
+        logMessage('Call is connecting...');
+        document.getElementById('callStatus').textContent = 'Connecting';
+        document.getElementById('callStatus').className = 'badge bg-info mb-2';
+    });
+
+    // When the call starts ringing
+    connection.on('ringing', function() {
+        logMessage('Phone is ringing...');
+        document.getElementById('callStatus').textContent = 'Ringing';
+        document.getElementById('callStatus').className = 'badge bg-warning mb-2';
+    });
+    
+    // When the call is accepted and connecting
+    connection.on('accept', function() {
+        logMessage('Call connected');
+        document.getElementById('callStatus').textContent = 'Connected';
+        document.getElementById('callStatus').className = 'badge bg-success mb-2';
+        
+        // Start call timer
+        callStartTime = new Date();
+        callTimerInterval = setInterval(updateCallTimer, 1000);
+    });
+    
+    // When the call is disconnected
+    connection.on('disconnect', function() {
+        console.log('Call disconnected');
+        currentConnection = null;
+        
+        // Stop the timer
+        if (callTimerInterval) {
+            clearInterval(callTimerInterval);
+            callTimerInterval = null;
+        }
+        
+        // Reset UI
+        updateUIState(true);
+        document.getElementById('callStatus').textContent = 'Disconnected';
+        document.getElementById('callStatus').className = 'badge bg-secondary mb-2';
+        document.getElementById('callTimer').textContent = '00:00';
+        
+        // Clear logs
+        logMessage('Call disconnected');
+        
+        // Update call history and metrics after a short delay
+        setTimeout(() => {
+            fetchCallHistory();
+            fetchCallMetrics();
+        }, 1000);
+        
+        // Refresh call history after disconnect
+        setTimeout(fetchCallHistory, 1000);
+    });
+    
+    // Handle connection errors
+    connection.on('error', function(error) {
+        console.error('Device error:', error);
+        currentConnection = null;
+        updateUIState(true); // Reset UI to ready state
+        $('#call-button').removeClass('btn-danger').addClass('btn-primary')
+            .html('<i class="fas fa-phone"></i> Make Call')
+            .prop('disabled', false);
+        $('#connecting-spinner').hide();
+        updateCallStatus('Error: ' + error.message, 'danger');
+    });
+
+    // Handle call rejection
+    connection.on('reject', function() {
+        logMessage('Call was rejected');
+        document.getElementById('callStatus').textContent = 'Rejected';
+        document.getElementById('callStatus').className = 'badge bg-danger mb-2';
+        endCurrentBrowserCall();
+    });
+
+    // Handle call cancellation
+    connection.on('cancel', function() {
+        logMessage('Call was cancelled');
+        document.getElementById('callStatus').textContent = 'Cancelled';
+        document.getElementById('callStatus').className = 'badge bg-warning mb-2';
+        endCurrentBrowserCall();
+    });
+}
+
+// Show call controls
+function showCallControls(phoneNumber) {
+    // Hide call form controls
+    document.getElementById('callButton').classList.add('d-none');
+    document.getElementById('phoneNumber').disabled = true;
+    document.getElementById('recordCall').disabled = true;
+    document.getElementById('useBrowser').disabled = true;
+    
+    // Show call controls
+    document.getElementById('callControls').classList.remove('d-none');
+    document.getElementById('activeCallLabel').textContent = `Call with ${phoneNumber}`;
+    
+    // Update button handlers
+    document.getElementById('muteButton').addEventListener('click', toggleMute);
+    document.getElementById('hangupButton').addEventListener('click', endCurrentBrowserCall);
+}
+
+// Toggle mute
+function toggleMute() {
+    if (!currentConnection) return;
+    
+    const muteButton = document.getElementById('muteButton');
+    
+    if (currentConnection.isMuted()) {
+        currentConnection.mute(false);
+        muteButton.innerHTML = '<i class="fas fa-microphone"></i> Mute';
+        logMessage('Microphone unmuted');
+    } else {
+        currentConnection.mute(true);
+        muteButton.innerHTML = '<i class="fas fa-microphone-slash"></i> Unmute';
+        logMessage('Microphone muted');
+    }
+}
+
+// Log message to call logs
+function logMessage(message) {
+    const logElement = document.getElementById('activeLogs');
+    const timestamp = new Date().toLocaleTimeString();
+    const logEntry = document.createElement('div');
+    logEntry.textContent = `${timestamp}: ${message}`;
+    logElement.appendChild(logEntry);
+    logElement.scrollTop = logElement.scrollHeight;
+}
+
+// End current browser call
+function endCurrentBrowserCall() {
+    if (currentConnection) {
+        currentConnection.disconnect();
+        currentConnection = null;
+    }
+    
+    // Stop the timer
+    if (callTimerInterval) {
+        clearInterval(callTimerInterval);
+        callTimerInterval = null;
+    }
+    
+    // Reset UI
+    document.getElementById('callControls').classList.add('d-none');
+    document.getElementById('callButton').classList.remove('d-none');
+    document.getElementById('phoneNumber').disabled = false;
+    document.getElementById('recordCall').disabled = false;
+    document.getElementById('useBrowser').disabled = false;
+    document.getElementById('callTimer').textContent = '00:00';
+    
+    // Clear event listeners
+    document.getElementById('muteButton').removeEventListener('click', toggleMute);
+    document.getElementById('hangupButton').removeEventListener('click', endCurrentBrowserCall);
+    
+    // Reset mute button
+    document.getElementById('muteButton').innerHTML = '<i class="fas fa-microphone"></i> Mute';
+    
+    // Update metrics
+    fetchCallMetrics();
+    fetchCallHistory();
+    
+    logMessage('Call ended');
+}
+
+// Make a regular call using REST API
+function makeRegularCall(phoneNumber, recordCall) {
+    // Show loading state
+    const callButton = document.getElementById('callButton');
+    const originalText = callButton.innerHTML;
+    callButton.disabled = true;
+    callButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Making call...';
+    
+    fetch('/operations/call', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            to_number: phoneNumber,
+            record: recordCall
+        })
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+    })
+    .then(data => {
+        if (data.success) {
+            currentCallSid = data.call_sid;
+            isRecording = recordCall;
+            
+            // Show active call status
+            const statusElem = document.getElementById('activeCallStatus');
+            statusElem.classList.remove('d-none');
+            
+            // Show recording indicator if recording
+            if (isRecording) {
+                const recordingIndicator = document.createElement('div');
+                recordingIndicator.id = 'recordingIndicator';
+                recordingIndicator.className = 'mt-2 text-danger';
+                recordingIndicator.innerHTML = '<i class="fas fa-circle-dot fa-beat me-1"></i> Recording in progress';
+                document.getElementById('callStatusText').parentNode.appendChild(recordingIndicator);
+            }
+            
+            document.getElementById('callButton').classList.add('d-none');
+            document.getElementById('endCallButton').classList.remove('d-none');
+            document.getElementById('phoneNumber').disabled = true;
+            
+            // Start checking call status
+            statusCheckInterval = setInterval(checkCallStatus, 2000);
+        } else {
+            alert(data.message || 'Failed to make call');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Failed to make call: ' + error.message);
+    })
+    .finally(() => {
+        // Reset button state
+        callButton.disabled = false;
+        callButton.innerHTML = originalText;
+    });
+}
+
+// Format duration in seconds to minutes and seconds
+function formatDuration(seconds) {
+    if (!seconds) return '0m';
+    if (seconds < 60) return Math.round(seconds) + 's';
+    return Math.round(seconds / 60) + 'm';
+}
+
+// Format timestamp to local time
+function formatTimestamp(isoString) {
+    return new Date(isoString).toLocaleTimeString();
+}
+
+// Add this function to update metrics display
+function updateMetricsDisplay(metrics) {
+    document.getElementById('totalCalls').textContent = metrics.total_calls;
+    document.getElementById('completedCalls').textContent = metrics.completed_calls;
+    document.getElementById('completionRate').textContent = metrics.completion_rate + '%';
+    document.getElementById('avgDuration').textContent = formatDuration(metrics.average_duration);
+}
+
+// Add this function to fetch metrics
+function fetchCallMetrics() {
+    console.log('Fetching call metrics...');
+    fetch('/operations/calls/metrics')
+        .then(response => response.json())
+        .then(metrics => {
+            console.log('Call metrics response:', metrics);
+            updateMetricsDisplay(metrics);
+        })
+        .catch(error => {
+            console.error('Error fetching call metrics:', error);
+        });
+}
+
+// Update call metrics
+function updateCallMetrics() {
+    fetch('/operations/calls/metrics')
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('totalCalls').textContent = data.total_calls;
+            document.getElementById('completedCalls').textContent = data.completed_calls;
+            document.getElementById('completionRate').textContent = `${Math.round(data.completion_rate)}%`;
+            document.getElementById('avgDuration').textContent = formatDuration(data.average_duration);
+        });
+}
+
+// Update recent calls table
+function updateRecentCalls() {
+    fetch('/operations/calls/recent')
+        .then(response => response.json())
+        .then(data => {
+            const tbody = document.getElementById('recentCallsTable');
+            tbody.innerHTML = '';
+            
+            data.calls.forEach(call => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>
+                        <span class="badge bg-${call.direction === 'outbound' ? 'primary' : 'success'}">
+                            ${call.direction}
+                        </span>
+                    </td>
+                    <td>${call.direction === 'outbound' ? call.to_number : call.from_number}</td>
+                    <td>
+                        <span class="badge bg-${call.status === 'completed' ? 'success' : 'info'}">
+                            ${call.status}
+                        </span>
+                    </td>
+                    <td>${formatDuration(call.duration)}</td>
+                    <td>${formatTimestamp(call.timestamp)}</td>
+                `;
+                tbody.appendChild(row);
+            });
+        });
+}
+
+// Check call status
+function checkCallStatus() {
+    if (!currentCallSid) return;
+    
+    fetch(`/operations/call/${currentCallSid}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                let statusText = `Call status: ${data.status}`;
+                if (data.status === 'in-progress') {
+                    statusText += ' (Call is active)';
+                    document.getElementById('activeCallStatus').classList.remove('alert-info');
+                    document.getElementById('activeCallStatus').classList.add('alert-success');
+                    // Add a timer if it doesn't exist yet
+                    if (!document.getElementById('callTimer')) {
+                        const timerElem = document.createElement('div');
+                        timerElem.id = 'callTimer';
+                        timerElem.className = 'mt-2';
+                        timerElem.innerHTML = 'Call time: 0:00';
+                        document.getElementById('callStatusText').parentNode.appendChild(timerElem);
+                        
+                        // Start timer
+                        callStartTime = new Date();
+                        callTimerInterval = setInterval(updateCallTimer, 1000);
+                    }
+                } else if (['completed', 'failed', 'busy', 'no-answer', 'canceled'].includes(data.status)) {
+                    statusText += ' (Call ended)';
+                    endCurrentCall();
+                } else if (data.status === 'ringing') {
+                    statusText += ' (Phone is ringing)';
+                }
+                
+                document.getElementById('callStatusText').textContent = statusText;
+            }
+        });
+}
+
+// Update call timer
+function updateCallTimer() {
+    if (!callStartTime) return;
+    
+    const now = new Date();
+    const diffSeconds = Math.floor((now - callStartTime) / 1000);
+    const minutes = Math.floor(diffSeconds / 60).toString().padStart(2, '0');
+    const seconds = (diffSeconds % 60).toString().padStart(2, '0');
+    
+    // Update the appropriate timer element
+    if (document.getElementById('callControls').classList.contains('d-none')) {
+        // Regular call timer
+        if (document.getElementById('callTimer')) {
+            document.getElementById('callTimer').textContent = `Call time: ${minutes}:${seconds}`;
+        }
+    } else {
+        // Browser call timer
+        document.getElementById('callTimer').textContent = `${minutes}:${seconds}`;
+    }
+}
+
+// End current call
+function endCurrentCall() {
+    if (statusCheckInterval) {
+        clearInterval(statusCheckInterval);
+        statusCheckInterval = null;
+    }
+    
+    if (callTimerInterval) {
+        clearInterval(callTimerInterval);
+        callTimerInterval = null;
+        callStartTime = null;
+    }
+    
+    // Remove timer and recording indicator if they exist
+    const callTimer = document.getElementById('callTimer');
+    if (callTimer) {
+        callTimer.remove();
+    }
+    
+    const recordingIndicator = document.getElementById('recordingIndicator');
+    if (recordingIndicator) {
+        recordingIndicator.remove();
+    }
+    
+    document.getElementById('activeCallStatus').classList.remove('alert-success');
+    document.getElementById('activeCallStatus').classList.add('alert-info');
+    document.getElementById('activeCallStatus').classList.add('d-none');
+    document.getElementById('callButton').classList.remove('d-none');
+    document.getElementById('endCallButton').classList.add('d-none');
+    document.getElementById('phoneNumber').disabled = false;
+    
+    currentCallSid = null;
+    isRecording = false;
+    
+    // Update metrics and recent calls
+    fetchCallMetrics();
+    fetchCallHistory();
+}
+
+// Add this function near the top with other global functions
+function updateUIState(isReady) {
+    const elements = {
+        deviceStatus: document.getElementById('deviceStatus'),
+        setupButton: document.getElementById('setupDevice'),
+        makeCallButton: document.getElementById('callButton'),
+        deviceError: document.getElementById('deviceSetupError'),
+        callControls: document.getElementById('callControls'),
+        phoneInput: document.getElementById('phoneNumber'),
+        recordCheck: document.getElementById('recordCall'),
+        useBrowserCheck: document.getElementById('useBrowser')
+    };
+
+    if (isReady) {
+        // Device is ready
+        elements.deviceStatus.textContent = 'Ready';
+        elements.deviceStatus.classList.remove('bg-secondary', 'bg-danger');
+        elements.deviceStatus.classList.add('bg-success');
+        
+        elements.setupButton.textContent = 'Phone Ready';
+        elements.setupButton.disabled = true;
+        elements.setupButton.classList.remove('btn-secondary', 'btn-danger');
+        elements.setupButton.classList.add('btn-success');
+        
+        elements.makeCallButton.disabled = false;
+        elements.deviceError.classList.add('d-none');
+        
+        // Reset call controls
+        elements.callControls.classList.add('d-none');
+        elements.phoneInput.disabled = false;
+        elements.recordCheck.disabled = false;
+        elements.useBrowserCheck.disabled = false;
+        elements.makeCallButton.classList.remove('d-none');
+    } else {
+        // Device is not ready
+        elements.deviceStatus.textContent = 'Offline';
+        elements.deviceStatus.classList.remove('bg-success', 'bg-danger');
+        elements.deviceStatus.classList.add('bg-secondary');
+        
+        elements.setupButton.textContent = 'Set Up Phone';
+        elements.setupButton.disabled = false;
+        elements.setupButton.classList.remove('btn-success', 'btn-danger');
+        elements.setupButton.classList.add('btn-primary');
+        
+        elements.makeCallButton.disabled = true;
+    }
+}
+
+// Update the fetchCallHistory function to use vanilla JavaScript
+function fetchCallHistory() {
+    console.log('Fetching call history...');
+    const tableBody = document.querySelector('#callHistoryTable tbody');
+    
+    fetch('/operations/calls/recent')
+        .then(response => response.json())
+        .then(response => {
+            console.log('Call history response:', response);
+            if (response.success) {
+                updateCallHistory(response.calls);
+            } else {
+                console.error('Failed to fetch call history:', response.error);
+                // Show error state in table
+                tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="5" class="text-center text-danger">
+                            Failed to load call history: ${response.error || 'Unknown error'}
+                        </td>
+                    </tr>
+                `;
+            }
+        })
+        .catch(error => {
+            console.error('Error fetching call history:', error);
+            // Show error state in table
+            tableBody.innerHTML = `
+                <tr>
+                    <td colspan="5" class="text-center text-danger">
+                        Error loading call history. Please try refreshing the page.
+                    </td>
+                </tr>
+            `;
+        });
+}
+
+// Update the updateCallHistory function to use vanilla JavaScript
+function updateCallHistory(calls) {
+    const tableBody = document.querySelector('#callHistoryTable tbody');
+    tableBody.innerHTML = '';
+    
+    if (!calls || calls.length === 0) {
+        tableBody.innerHTML = `
+            <tr>
+                <td colspan="5" class="text-center">No calls found</td>
+            </tr>
+        `;
+        return;
+    }
+    
+    calls.forEach(call => {
+        const duration = call.duration ? `${call.duration}s` : '0s';
+        const timestamp = new Date(call.timestamp).toLocaleString();
+        
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td>
+                <span class="badge bg-${call.direction === 'outbound' ? 'primary' : 'info'}">
+                    ${call.direction}
+                </span>
+            </td>
+            <td>${call.to_number}</td>
+            <td>
+                <span class="badge bg-${getStatusBadgeColor(call.status)}">
+                    ${call.status}
+                </span>
+            </td>
+            <td>${duration}</td>
+            <td>${timestamp}</td>
+        `;
+        tableBody.appendChild(row);
+    });
+}
+
+function getStatusBadgeColor(status) {
+    switch (status.toLowerCase()) {
+        case 'completed':
+            return 'success';
+        case 'in-progress':
+            return 'primary';
+        case 'ringing':
+            return 'warning';
+        case 'busy':
+        case 'failed':
+        case 'no-answer':
+            return 'danger';
+        default:
+            return 'secondary';
+    }
+}
+
+// Set up periodic refresh for both history and metrics
+setInterval(() => {
+    fetchCallHistory();
+    fetchCallMetrics();
+}, 30000);
+</script>
+{% endblock %} 

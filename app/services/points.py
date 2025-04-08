@@ -660,16 +660,49 @@ class PointService:
         """Delete a point configuration"""
         try:
             config = PointConfig.query.get(config_id)
-            if not config:
-                return False
-                
-            db.session.delete(config)
-            db.session.commit()
-            return True
+            if config:
+                db.session.delete(config)
+                db.session.commit()
+                return True
+            return False
         except Exception as e:
             db.session.rollback()
             print(f"Error deleting point config: {str(e)}")
             return False
+
+    @staticmethod
+    def set_click_points_enabled(enabled=False):
+        """Enable or disable awarding points for clicks"""
+        try:
+            # Update or create the click_points_enabled setting
+            config = PointConfig.query.filter_by(key='click_points_enabled').first()
+            if config:
+                config.value = 1 if enabled else 0
+            else:
+                config = PointConfig(
+                    key='click_points_enabled',
+                    value=1 if enabled else 0,
+                    display_name='Enable Points for Clicks',
+                    description='When enabled, users will earn points when their referral links are clicked',
+                    category='system',
+                    config_metadata={
+                        'type': 'boolean',
+                        'default': False
+                    }
+                )
+                db.session.add(config)
+            
+            db.session.commit()
+            return True
+        except Exception as e:
+            db.session.rollback()
+            print(f"Error setting click points enabled: {str(e)}")
+            return False
+            
+    @staticmethod
+    def is_click_points_enabled():
+        """Check if points for clicks is enabled"""
+        return PointConfig.get_value('click_points_enabled', default=False) == 1
 
     @staticmethod
     def award_points_for_partner_signup(user_id, referred_user_id):

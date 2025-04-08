@@ -30,6 +30,9 @@
     <!-- Global CSS -->
     <link type="text/css" href="{{ url_for('static', filename='css/global.css') }}" rel="stylesheet">
 
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+
     <!-- NOTICE: You can use the _analytics.html partial to include production code specific code & trackers -->
     {# Analytics partial is commented out as the file doesn't exist #}
     
@@ -66,7 +69,13 @@
 </head>
 
 <body>
-    {% include 'partials/sidenav.html' %}
+    {% if current_user.is_authenticated %}
+        {% if current_user.operations_profile %}
+            {% include 'partials/operations_sidenav.html' %}
+        {% else %}
+            {% include 'partials/sidenav.html' %}
+        {% endif %}
+    {% endif %}
 
     <main class="content">
         {% include 'partials/topbar.html' %}

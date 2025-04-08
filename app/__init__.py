@@ -43,11 +43,12 @@ def create_app():
     with app.app_context():
         # Import models and routes
         from .models import user, link_tracking, company, point_config, reward, oauth, commission_partner, commission, commission_settings
-        from .routes import auth
-        from .routes import main
-        from .routes import referrals
-        from .routes.users import users
-        from .routes import commission
+        from .routes import main as main_routes
+        from .routes import auth as auth_routes
+        from .routes import users as users_routes
+        from .routes import commission as commission_routes
+        from .routes import referrals as referrals_routes
+        from .routes import operations as operations_routes
         from .api.v1 import bp as api_v1_bp
         
         # Initialize OAuth
@@ -65,12 +66,13 @@ def create_app():
             print(f"Couldn't set admin flag: {str(e)}")
         
         # Register blueprints
-        app.register_blueprint(auth.bp)
-        app.register_blueprint(main.main)
-        app.register_blueprint(users)
-        app.register_blueprint(referrals.bp)
-        app.register_blueprint(commission.bp)
-        app.register_blueprint(api_v1_bp)
+        app.register_blueprint(main_routes.main)
+        app.register_blueprint(auth_routes.bp)
+        app.register_blueprint(users_routes.users)
+        app.register_blueprint(commission_routes.bp)
+        app.register_blueprint(referrals_routes.bp)
+        app.register_blueprint(operations_routes.bp)
+        app.register_blueprint(api_v1_bp)  # Register the API blueprint
         
         # Add context processors
         @app.context_processor

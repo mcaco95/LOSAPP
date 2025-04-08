@@ -1,6 +1,6 @@
 from flask_wtf import FlaskForm
 from flask_wtf.file import FileField, FileAllowed
-from wtforms import StringField, PasswordField, BooleanField, SubmitField, HiddenField
+from wtforms import StringField, PasswordField, BooleanField, SubmitField, HiddenField, SelectField
 from wtforms.validators import DataRequired, Email, Length, EqualTo, Optional
 
 class LoginForm(FlaskForm):
@@ -34,16 +34,37 @@ class AdminUserForm(FlaskForm):
         EqualTo('password', message='Passwords must match')
     ])
 
-class AdminUserEditForm(AdminUserForm):
+class AdminUserEditForm(FlaskForm):
     id = HiddenField('ID')
-    password = PasswordField('Password (leave empty to keep current)', validators=[
-        Optional(),
-        Length(min=6, message='Password must be at least 6 characters long')
-    ])
-    confirm_password = PasswordField('Confirm Password', validators=[
-        Optional(),
-        EqualTo('password', message='Passwords must match')
-    ])
+    name = StringField('Name', validators=[DataRequired()])
+    email = StringField('Email', validators=[DataRequired(), Email()])
+    password = PasswordField('Password', validators=[Optional()])
+    is_admin = BooleanField('Admin Access')
+    
+    # Operations User Fields
+    is_operations = BooleanField('Operations Access')
+    phone_number = StringField('Phone Number', validators=[Optional()])
+    extension = StringField('Extension', validators=[Optional()])
+    operations_role = SelectField('Operations Role', 
+        choices=[
+            ('', 'Not Operations'),
+            ('operator', 'Operator'),
+            ('supervisor', 'Supervisor'),
+            ('manager', 'Manager')
+        ], 
+        validators=[Optional()]
+    )
+
+    def __init__(self, *args, **kwargs):
+        super(AdminUserEditForm, self).__init__(*args, **kwargs)
+        # If user is operations, populate operations fields
+        if hasattr(kwargs.get('obj', None), 'operations_profile'):
+            ops_profile = kwargs['obj'].operations_profile
+            if ops_profile:
+                self.is_operations.data = True
+                self.phone_number.data = ops_profile.phone_number
+                self.extension.data = ops_profile.extension
+                self.operations_role.data = ops_profile.role
 
 class ResetPasswordForm(FlaskForm):
     password = PasswordField('New Password', validators=[

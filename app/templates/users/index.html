@@ -1,116 +1,88 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="py-4">
-    <nav aria-label="breadcrumb" class="d-none d-md-inline-block">
-        <ol class="breadcrumb breadcrumb-dark breadcrumb-transparent">
-            <li class="breadcrumb-item"><a href="{{ url_for('main.dashboard') }}">Dashboard</a></li>
-            <li class="breadcrumb-item active">Users</li>
-        </ol>
-    </nav>
-    <div class="d-flex justify-content-between w-100 flex-wrap">
-        <div class="mb-3 mb-lg-0">
-            <h1 class="h4">Users</h1>
-        </div>
-        <div>
-            <a href="{{ url_for('users.create') }}" class="btn btn-primary d-inline-flex align-items-center">
-                <svg class="icon icon-xs me-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
-                </svg>
-                New User
-            </a>
-        </div>
-    </div>
-</div>
-
-<div class="card border-0 shadow mb-4">
-    <div class="card-body">
-        <div class="table-responsive">
-            <table class="table table-centered table-nowrap mb-0 rounded">
-                <thead class="thead-light">
-                    <tr>
-                        <th class="border-0 rounded-start">Name</th>
-                        <th class="border-0">Email</th>
-                        <th class="border-0">Unique Link</th>
-                        <th class="border-0">Created</th>
-                        <th class="border-0 rounded-end">Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for user in users %}
-                    <tr>
-                        <td>{{ user.name }}</td>
-                        <td>{{ user.email }}</td>
-                        <td>
-                            <div class="d-flex align-items-center">
-                                <input type="text" class="form-control form-control-sm" value="{{ user.unique_link }}" readonly>
-                                <button class="btn btn-sm btn-secondary ms-2" onclick="copyToClipboard(this)" data-link="{{ user.unique_link }}">
-                                    <svg class="icon icon-xs" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                                        <path d="M8 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z"></path>
-                                        <path d="M6 3a2 2 0 00-2 2v11a2 2 0 002 2h8a2 2 0 002-2V5a2 2 0 00-2-2 3 3 0 01-3 3H9a3 3 0 01-3-3z"></path>
-                                    </svg>
-                                </button>
-                            </div>
-                        </td>
-                        <td>{{ user.created_at.strftime('%Y-%m-%d') }}</td>
-                        <td>
-                            <div class="btn-group">
-                                <a href="{{ url_for('users.edit', id=user.id) }}" class="btn btn-sm btn-secondary">Edit</a>
-                                {% if user.email != 'simon@logisticsonesource.com' %}
-                                <button type="button" class="btn btn-sm btn-danger" onclick="confirmDelete({{ user.id }})">Delete</button>
-                                {% endif %}
-                            </div>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-    </div>
-</div>
-
-<!-- Delete Confirmation Modal -->
-<div class="modal fade" id="deleteModal" tabindex="-1" role="dialog" aria-labelledby="deleteModalLabel" aria-hidden="true">
-    <div class="modal-dialog" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="deleteModalLabel">Confirm Delete</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                Are you sure you want to delete this user?
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <form id="deleteForm" method="POST" style="display: inline;">
-                    <button type="submit" class="btn btn-danger">Delete</button>
-                </form>
+<div class="container">
+    <div class="row">
+        <div class="col-12">
+            <div class="card border-0 shadow mb-4">
+                <div class="card-header">
+                    <div class="row align-items-center">
+                        <div class="col">
+                            <h2 class="fs-5 fw-bold mb-0">Users</h2>
+                        </div>
+                        <div class="col text-end">
+                            <a href="{{ url_for('users.create') }}" class="btn btn-sm btn-primary">
+                                <i class="fas fa-plus"></i> Add User
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-centered table-nowrap mb-0 rounded">
+                            <thead class="thead-light">
+                                <tr>
+                                    <th class="border-0">Name</th>
+                                    <th class="border-0">Email</th>
+                                    <th class="border-0">Roles</th>
+                                    <th class="border-0">Operations Info</th>
+                                    <th class="border-0">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for user in users %}
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            {% if user.profile_picture %}
+                                            <img src="{{ url_for('static', filename=user.profile_picture) }}" class="avatar rounded-circle me-3">
+                                            {% endif %}
+                                            <div class="d-block">
+                                                <span class="fw-bold">{{ user.name }}</span>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>{{ user.email }}</td>
+                                    <td>
+                                        {% if user.is_admin %}
+                                        <span class="badge bg-primary">Admin</span>
+                                        {% endif %}
+                                        {% if user.operations_profile %}
+                                        <span class="badge bg-info">Operations</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if user.operations_profile %}
+                                        <small>
+                                            <strong>Role:</strong> {{ user.operations_profile.role }}<br>
+                                            <strong>Ext:</strong> {{ user.operations_profile.extension or 'N/A' }}
+                                        </small>
+                                        {% else %}
+                                        -
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <div class="btn-group">
+                                            <a href="{{ url_for('users.edit', id=user.id) }}" class="btn btn-sm btn-secondary">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            {% if not user.is_admin or current_user.id != user.id %}
+                                            <form action="{{ url_for('users.delete', id=user.id) }}" method="POST" class="d-inline">
+                                                <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure you want to delete this user?')">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </form>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 </div>
-
-{% endblock %}
-
-{% block scripts %}
-<script>
-function copyToClipboard(button) {
-    const link = button.getAttribute('data-link');
-    navigator.clipboard.writeText(link).then(() => {
-        // Change button color temporarily
-        button.classList.remove('btn-secondary');
-        button.classList.add('btn-success');
-        setTimeout(() => {
-            button.classList.remove('btn-success');
-            button.classList.add('btn-secondary');
-        }, 1000);
-    });
-}
-
-function confirmDelete(userId) {
-    const modal = new bootstrap.Modal(document.getElementById('deleteModal'));
-    document.getElementById('deleteForm').action = `/users/${userId}/delete`;
-    modal.show();
-}
-</script>
 {% endblock %}

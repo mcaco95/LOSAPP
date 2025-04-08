@@ -53,8 +53,8 @@ class PointConfig(db.Model):
         """Initialize default point configurations"""
         defaults = {
             # Basic click points
-            'click': 1,                    # Regular click
-            'unique_click': 1,             # Unique visitor click
+            'click': 0,                    # Regular click
+            'unique_click': 0,             # Unique visitor click
             
             # Sales cycle points
             'status_referral_form_completed': 2,  # Referral form completed

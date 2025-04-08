@@ -29,3 +29,4 @@ Faker==19.13.0
 sendgrid
 requests>=2.31.0
 psutil>=5.9.0
+twilio==9.5.1

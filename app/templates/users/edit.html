@@ -1,99 +1,109 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="py-4">
-    <nav aria-label="breadcrumb" class="d-none d-md-inline-block">
-        <ol class="breadcrumb breadcrumb-dark breadcrumb-transparent">
-            <li class="breadcrumb-item"><a href="{{ url_for('main.dashboard') }}">Dashboard</a></li>
-            <li class="breadcrumb-item"><a href="{{ url_for('users.index') }}">Users</a></li>
-            <li class="breadcrumb-item active">Edit User</li>
-        </ol>
-    </nav>
-    <div class="d-flex justify-content-between w-100 flex-wrap">
-        <div class="mb-3 mb-lg-0">
-            <h1 class="h4">Edit User</h1>
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-12 col-xl-8">
+            <div class="card border-0 shadow mb-4">
+                <div class="card-header">
+                    <h2 class="fs-5 fw-bold mb-0">Edit User</h2>
+                </div>
+                <div class="card-body">
+                    <form action="{{ url_for('users.edit', id=user.id) }}" method="post">
+                        {{ form.csrf_token }}
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="name">Name</label>
+                                {{ form.name(class="form-control", placeholder="Enter name") }}
+                            </div>
+                            <div class="col-md-6">
+                                <label for="email">Email</label>
+                                {{ form.email(class="form-control", placeholder="Enter email") }}
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="password">Password (leave empty to keep current)</label>
+                                {{ form.password(class="form-control", placeholder="Enter new password") }}
+                            </div>
+                        </div>
+
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <div class="form-check">
+                                    {{ form.is_admin(class="form-check-input") }}
+                                    <label class="form-check-label" for="is_admin">
+                                        Admin Access
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Operations Section -->
+                        <div class="card mb-4">
+                            <div class="card-header">
+                                <div class="form-check">
+                                    {{ form.is_operations(class="form-check-input") }}
+                                    <label class="form-check-label" for="is_operations">
+                                        Operations Access
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            <div class="card-body operations-fields" id="operationsFields">
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
+                                        <label for="operations_role">Role</label>
+                                        {{ form.operations_role(class="form-select") }}
+                                    </div>
+                                </div>
+                                
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
+                                        <label for="phone_number">Phone Number</label>
+                                        {{ form.phone_number(class="form-control", placeholder="Enter phone number") }}
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="extension">Extension</label>
+                                        {{ form.extension(class="form-control", placeholder="Enter extension") }}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-12">
+                                <button type="submit" class="btn btn-primary">Update User</button>
+                                <a href="{{ url_for('users.index') }}" class="btn btn-light">Cancel</a>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
         </div>
     </div>
 </div>
 
-<div class="row">
-    <div class="col-12 col-xl-6">
-        <div class="card card-body border-0 shadow mb-4">
-            <form action="{{ url_for('users.edit', id=user.id) }}" method="POST">
-                {{ form.csrf_token }}
-                {{ form.id }}
-                
-                <div class="row">
-                    <div class="col-12 mb-3">
-                        <div class="form-group">
-                            {{ form.name.label(class="form-label") }}
-                            {{ form.name(class="form-control") }}
-                            {% if form.name.errors %}
-                            <div class="invalid-feedback d-block">
-                                {% for error in form.name.errors %}
-                                <span>{{ error }}</span>
-                                {% endfor %}
-                            </div>
-                            {% endif %}
-                        </div>
-                    </div>
-                </div>
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const isOperationsCheckbox = document.getElementById('is_operations');
+    const operationsFields = document.getElementById('operationsFields');
 
-                <div class="row">
-                    <div class="col-12 mb-3">
-                        <div class="form-group">
-                            {{ form.email.label(class="form-label") }}
-                            {{ form.email(class="form-control") }}
-                            {% if form.email.errors %}
-                            <div class="invalid-feedback d-block">
-                                {% for error in form.email.errors %}
-                                <span>{{ error }}</span>
-                                {% endfor %}
-                            </div>
-                            {% endif %}
-                        </div>
-                    </div>
-                </div>
+    function toggleOperationsFields() {
+        if (isOperationsCheckbox.checked) {
+            operationsFields.style.display = 'block';
+        } else {
+            operationsFields.style.display = 'none';
+        }
+    }
 
-                <div class="row">
-                    <div class="col-12 mb-3">
-                        <div class="form-group">
-                            {{ form.password.label(class="form-label") }}
-                            {{ form.password(class="form-control") }}
-                            <small class="form-text text-muted">Leave blank to keep current password</small>
-                            {% if form.password.errors %}
-                            <div class="invalid-feedback d-block">
-                                {% for error in form.password.errors %}
-                                <span>{{ error }}</span>
-                                {% endfor %}
-                            </div>
-                            {% endif %}
-                        </div>
-                    </div>
-                </div>
+    isOperationsCheckbox.addEventListener('change', toggleOperationsFields);
+    toggleOperationsFields(); // Initial state
+});
+</script>
+{% endblock %}
 
-                <div class="row">
-                    <div class="col-12 mb-3">
-                        <div class="form-group">
-                            {{ form.confirm_password.label(class="form-label") }}
-                            {{ form.confirm_password(class="form-control") }}
-                            {% if form.confirm_password.errors %}
-                            <div class="invalid-feedback d-block">
-                                {% for error in form.confirm_password.errors %}
-                                <span>{{ error }}</span>
-                                {% endfor %}
-                            </div>
-                            {% endif %}
-                        </div>
-                    </div>
-                </div>
-
-                <div class="mt-3">
-                    <button type="submit" class="btn btn-primary">Update User</button>
-                    <a href="{{ url_for('users.index') }}" class="btn btn-gray-500">Cancel</a>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
 {% endblock %}

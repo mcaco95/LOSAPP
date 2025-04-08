@@ -49,12 +49,22 @@
         
         .reward-icon.silver {
             background: linear-gradient(135deg, #C0C0C0 0%, #e6e6e6 50%, #C0C0C0 100%);
-            box-shadow: 0 8px 20px rgba(253, 251, 242, 0.3);
+            box-shadow: 0 8px 20px rgba(192, 192, 192, 0.3);
         }
         
         .reward-icon.gold {
             background: linear-gradient(135deg, #FFD700 0%, #ffeeb2 50%, #FFD700 100%);
-            box-shadow: 0 8px 20px rgba(192, 192, 192, 0.3);
+            box-shadow: 0 8px 20px rgba(255, 215, 0, 0.3);
+        }
+
+        .reward-icon.platinum {
+            background: linear-gradient(135deg, #E5E4E2 0%, #ffffff 50%, #E5E4E2 100%);
+            box-shadow: 0 8px 20px rgba(229, 228, 226, 0.3);
+        }
+
+        .reward-icon.diamond {
+            background: linear-gradient(135deg, #B9F2FF 0%, #ffffff 50%, #B9F2FF 100%);
+            box-shadow: 0 8px 20px rgba(185, 242, 255, 0.3);
         }
         
         .points-badge {
@@ -309,7 +319,7 @@
                         <div class="col-md-6">
                             <div class="progress-bar-container">
                                 <div class="progress-segments">
-                                    {% set milestones = [0, 100, 500, 1000] %}
+                                    {% set milestones = [0, 100, 500, 1000, 2500, 5000] %}
                                     {% for i in range(milestones|length - 1) %}
                                         {% set segment_width = (100 / (milestones|length - 1))|round %}
                                         {% set is_current = total_points >= milestones[i] and total_points < milestones[i + 1] %}
@@ -321,9 +331,9 @@
                                     {% endfor %}
                                 </div>
                                 <div class="progress-labels">
-                                    {% set labels = ['Bronze', 'Silver', 'Gold'] %}
+                                    {% set labels = ['Jacket', 'Gift Card', 'Experience', 'Commission', 'MacBook'] %}
                                     {% for label in labels %}
-                                        {% set position = (loop.index0 * 50) %}
+                                        {% set position = (loop.index0 * 25) %}
                                         <span class="progress-label {{ 'completed' if total_points >= milestones[loop.index] }}" 
                                               style="left: {{ position if loop.first else (position if loop.last else position) }}%">
                                             {{ label }}
@@ -334,11 +344,9 @@
                             <div class="points-activity mt-5">
                                 <div class="d-flex flex-wrap justify-content-between">
                                     {% set activities = [
-                                        {'points': 2, 'text': 'Click Reward'},
                                         {'points': 80, 'text': 'Test 2 Has Signed Up As A Commission Partner'},
                                         {'points': 25, 'text': 'Signup: Simon Test 2 Has Completed Their Test'},
                                         {'points': 15, 'text': '2 Has Booked A Demo!'},
-                                        {'points': 5, 'text': 'Unique Click'},
                                         {'points': 1, 'text': 'Reward'}
                                     ] %}
                                     {% for activity in activities %}
@@ -367,71 +375,34 @@
             </div>
         </div>
         <div class="row">
-            {% for reward in next_rewards[:3] %}
+            {% for reward in [
+                {'name': 'Premium Jacket', 'points': 100, 'description': 'Exclusive premium jacket for your first sale', 'icon': 'tshirt'},
+                {'name': '$500 Gift Card', 'points': 500, 'description': 'Gift card to spend at your favorite retailers', 'icon': 'gift'},
+                {'name': 'Paid Experience', 'points': 1000, 'description': 'All-expenses-paid experience (spouse not included)', 'icon': 'plane'}
+            ] %}
             <div class="col-12 col-md-4 mb-4">
                 <div class="card reward-card h-100">
                     <div class="card-body text-center">
-                        {% set badge_order = ['bronze', 'silver', 'gold'] %}
-                        <div class="reward-icon {{ badge_order[loop.index0] }} mx-auto">
-                            <i class="fas fa-trophy text-white fa-2x"></i>
+                        <div class="reward-icon {{ ['bronze', 'silver', 'gold'][loop.index0] }} mx-auto">
+                            <i class="fas fa-{{ reward.icon }} text-white fa-2x"></i>
                         </div>
-                        {% if badge_order[loop.index0] == 'bronze' %}
-                            <h5 class="card-title mb-3">Bronze Badge</h5>
-                            <span class="points-badge mb-3 d-inline-block">100 pts</span>
-                            <p class="card-text text-muted mb-3">Digital badge for reaching bronze tier</p>
-                            {% if total_points >= 100 %}
-                            <button class="btn btn-primary w-100" onclick="redeemReward({{ reward.id }})">
-                                Redeem Now
-                            </button>
-                            <div class="reward-status available">
-                                <i class="fas fa-unlock me-1"></i> Available
-                            </div>
-                            {% else %}
-                            <button class="btn btn-secondary w-100" disabled>
-                                {{ 100 - total_points }} pts more needed
-                            </button>
-                            <div class="reward-status locked">
-                                <i class="fas fa-lock me-1"></i> Locked
-                            </div>
-                            {% endif %}
-                        {% elif badge_order[loop.index0] == 'silver' %}
-                            <h5 class="card-title mb-3">Silver Badge</h5>
-                            <span class="points-badge mb-3 d-inline-block">500 pts</span>
-                            <p class="card-text text-muted mb-3">Digital badge for reaching silver tier</p>
-                            {% if total_points >= 500 %}
-                            <button class="btn btn-primary w-100" onclick="redeemReward({{ reward.id }})">
-                                Redeem Now
-                            </button>
-                            <div class="reward-status available">
-                                <i class="fas fa-unlock me-1"></i> Available
-                            </div>
-                            {% else %}
-                            <button class="btn btn-secondary w-100" disabled>
-                                {{ 500 - total_points }} pts more needed
-                            </button>
-                            <div class="reward-status locked">
-                                <i class="fas fa-lock me-1"></i> Locked
-                            </div>
-                            {% endif %}
+                        <h5 class="card-title mb-3">{{ reward.name }}</h5>
+                        <span class="points-badge mb-3 d-inline-block">{{ reward.points }} pts</span>
+                        <p class="card-text text-muted mb-3">{{ reward.description }}</p>
+                        {% if total_points >= reward.points %}
+                        <button class="btn btn-primary w-100" onclick="redeemReward({{ reward.id }})">
+                            Redeem Now
+                        </button>
+                        <div class="reward-status available">
+                            <i class="fas fa-unlock me-1"></i> Available
+                        </div>
                         {% else %}
-                            <h5 class="card-title mb-3">Gold Badge</h5>
-                            <span class="points-badge mb-3 d-inline-block">1000 pts</span>
-                            <p class="card-text text-muted mb-3">Digital badge for reaching gold tier</p>
-                            {% if total_points >= 1000 %}
-                            <button class="btn btn-primary w-100" onclick="redeemReward({{ reward.id }})">
-                                Redeem Now
-                            </button>
-                            <div class="reward-status available">
-                                <i class="fas fa-unlock me-1"></i> Available
-                            </div>
-                            {% else %}
-                            <button class="btn btn-secondary w-100" disabled>
-                                {{ 1000 - total_points }} pts more needed
-                            </button>
-                            <div class="reward-status locked">
-                                <i class="fas fa-lock me-1"></i> Locked
-                            </div>
-                            {% endif %}
+                        <button class="btn btn-secondary w-100" disabled>
+                            {{ reward.points - total_points }} pts more needed
+                        </button>
+                        <div class="reward-status locked">
+                            <i class="fas fa-lock me-1"></i> Locked
+                        </div>
                         {% endif %}
                     </div>
                 </div>
@@ -449,19 +420,26 @@
                 </div>
                 <div class="card-body">
                     <div class="row">
-                        {% for reward in available_rewards %}
+                        {% set all_rewards = [
+                            {'name': 'Premium Jacket', 'points_required': 100, 'description': 'Exclusive premium jacket for your first sale', 'icon': 'tshirt'},
+                            {'name': '$500 Gift Card', 'points_required': 500, 'description': 'Gift card to spend at your favorite retailers', 'icon': 'gift'},
+                            {'name': 'Paid Experience', 'points_required': 1000, 'description': 'All-expenses-paid experience (spouse not included)', 'icon': 'plane'},
+                            {'name': 'Extra Commission', 'points_required': 2500, 'description': 'Earn extra 2% commission for all new clients', 'icon': 'percentage'},
+                            {'name': 'Premium Reward', 'points_required': 5000, 'description': 'Premium MacBook', 'icon': 'laptop'}
+                        ] %}
+                        {% for reward in all_rewards %}
                         <div class="col-12 col-md-6 col-xl-4 mb-4">
                             <div class="card reward-card h-100">
                                 <div class="card-body">
                                     <div class="d-flex align-items-center mb-3">
-                                        <div class="reward-icon {{ ['bronze', 'silver', 'gold'][loop.index0 % 3] }} me-3">
-                                            <i class="fas fa-gift text-white"></i>
+                                        <div class="reward-icon {{ ['bronze', 'silver', 'gold', 'platinum', 'diamond'][loop.index0] }} me-3">
+                                            <i class="fas fa-{{ reward.icon }} text-white"></i>
                                         </div>
                                         <div>
                                             <h6 class="mb-1">{{ reward.name }}</h6>
                                             <span class="points-badge">{{ reward.points_required }} pts</span>
-                            </div>
-                        </div>
+                                        </div>
+                                    </div>
                                     <p class="text-muted mb-3">{{ reward.description }}</p>
                                     {% if reward.points_required <= total_points %}
                                     <button class="btn btn-primary btn-sm w-100" onclick="redeemReward({{ reward.id }})">

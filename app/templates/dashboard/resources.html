@@ -17,6 +17,11 @@
             </a>
         </li>
         <li>
+            <a href="#recruitment-commission" class="nav-dot" data-bs-toggle="tooltip" data-bs-placement="left" title="Recruitment">
+                <i class="fas fa-user-plus"></i>
+            </a>
+        </li>
+        <li>
             <a href="#points-rewards" class="nav-dot" data-bs-toggle="tooltip" data-bs-placement="left" title="Points">
                 <i class="fas fa-gem"></i>
             </a>
@@ -50,7 +55,7 @@
             <div class="card-body p-3 p-md-4" style="background: linear-gradient(45deg, rgb(140, 8, 17), #1a1a1a);">
                 <h2 class="fs-5 fw-bold mb-3 text-white">Quick Navigation</h2>
                 <div class="row g-2 g-md-3">
-                    <div class="col-6 col-md-3">
+                    <div class="col-6 col-md-2">
                         <a href="#how-it-works" class="card bg-white h-100 text-decoration-none nav-card">
                             <div class="card-body p-2 p-md-3 text-center">
                                 <div class="icon-shape rounded-circle mx-auto mb-2">
@@ -67,6 +72,16 @@
                                     <i class="fas fa-percentage"></i>
                                 </div>
                                 <h5 class="fs-6 mb-0">Commission</h5>
+                            </div>
+                        </a>
+                    </div>
+                    <div class="col-6 col-md-2">
+                        <a href="#recruitment-commission" class="card bg-white h-100 text-decoration-none nav-card">
+                            <div class="card-body p-2 p-md-3 text-center">
+                                <div class="icon-shape rounded-circle mx-auto mb-2">
+                                    <i class="fas fa-user-plus"></i>
+                                </div>
+                                <h5 class="fs-6 mb-0">Recruitment</h5>
                             </div>
                         </a>
                     </div>
@@ -90,7 +105,7 @@
                             </div>
                         </a>
                     </div>
-                    <div class="col-12 col-md-3">
+                    <div class="col-6 col-md-2">
                         <a href="#faq" class="card bg-white h-100 text-decoration-none nav-card">
                             <div class="card-body p-2 p-md-3 text-center">
                                 <div class="icon-shape rounded-circle mx-auto mb-2">
@@ -154,7 +169,7 @@
     <div class="col-12">
         <div class="card border-0 shadow">
             <div class="card-header text-white" style="background-color: rgb(140, 8, 17);">
-                <h2 class="fs-5 fw-bold mb-0">Commission Structure</h2>
+                <h2 class="fs-5 fw-bold mb-0">Safety Commission Structure</h2>
             </div>
             <div class="card-body p-3 p-md-4">
                 <!-- Commission Rates Overview -->
@@ -393,101 +408,128 @@
     </div>
 </div>
 
-<style>
-.hover-lift {
-    transition: all 0.2s ease;
-}
-.hover-lift:hover {
-    transform: translateY(-5px);
-}
-.earnings-display {
-    transition: all 0.2s ease;
-}
-.card:hover .earnings-display {
-    background-color: rgba(13, 110, 253, 0.05) !important;
-}
-.icon-shape {
-    width: 48px;
-    height: 48px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-}
-.icon-md {
-    width: 56px;
-    height: 56px;
-}
-.bg-primary-soft {
-    background-color: rgb(140, 8, 17) !important;
-    color: white !important;
-    font-size: 1rem !important;
-    font-weight: 600 !important;
-    padding: 8px 16px !important;
-    border-radius: 6px !important;
-    box-shadow: 0 2px 4px rgba(140, 8, 17, 0.2) !important;
-}
-.bg-success-soft {
-    background-color: rgba(25, 135, 84, 0.1);
-}
+<!-- Recruitment Commission Section -->
+<div class="row mb-4" id="recruitment-commission">
+    <div class="col-12">
+        <div class="card border-0 shadow">
+            <div class="card-header text-white" style="background-color: rgb(140, 8, 17);">
+                <h2 class="fs-5 fw-bold mb-0">Recruitment Commission Structure</h2>
+            </div>
+            <div class="card-body p-3 p-md-4">
+                <div class="row g-3 mb-4">
+                    <div class="col-12">
+                        <div class="p-3 p-md-4 rounded-3 h-100" style="background-color: rgba(140, 8, 17, 0.05);">
+                            <div class="d-flex align-items-center mb-2">
+                                <div class="icon-shape rounded-circle me-3" style="background-color: rgb(140, 8, 17);">
+                                    <i class="fas fa-users text-white"></i>
+                                </div>
+                                <h3 class="fs-5 fw-bold mb-0">Partner Recruitment</h3>
+                            </div>
+                            <h2 class="display-4 fw-bold mb-0" style="color: rgb(140, 8, 17);">10%</h2>
+                            <p class="text-muted mb-2">One-time commission from each successful referral</p>
+                            <div class="alert alert-light mb-0">
+                                <div class="d-flex">
+                                    <div class="me-3">
+                                        <i class="fas fa-info-circle text-primary fs-5"></i>
+                                    </div>
+                                    <div>
+                                        <p class="mb-1"><strong>Unlike the safety commission:</strong></p>
+                                        <p class="mb-0 small">This recruitment commission is a one-time 10% payment for each successful referral your recruits bring in. It's a per-basis commission rather than the recurring safety commission structure.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
-/* Mobile Optimizations */
-@media (max-width: 768px) {
-    .mobile-collapse-header {
-        background-color: rgba(140, 8, 17, 0.05);
-        padding: 0.75rem;
-        border-radius: 0.5rem;
-        margin: 0.5rem 0;
-        cursor: pointer;
-    }
-    
-    .mobile-collapse-header i {
-        transition: transform 0.2s ease;
-    }
-    
-    .mobile-collapse.active .mobile-collapse-header i {
-        transform: rotate(180deg);
-    }
-    
-    .mobile-collapse-content {
-        padding-top: 0.5rem;
-    }
-    
-    .card-body {
-        padding: 1rem !important;
-    }
-    
-    .earnings-display {
-        margin-bottom: 0.5rem;
-    }
-    
-    .h4 {
-        font-size: 1.125rem !important;
-    }
-}
-</style>
-
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Mobile collapse functionality
-    const mobileCollapses = document.querySelectorAll('.mobile-collapse-header');
-    mobileCollapses.forEach(header => {
-        header.addEventListener('click', function() {
-            const parent = this.parentElement;
-            parent.classList.toggle('active');
-            
-            // Find the content element
-            const content = parent.querySelector('.mobile-collapse-content');
-            
-            // Toggle display with smooth animation
-            if (parent.classList.contains('active')) {
-                content.style.display = 'block';
-            } else {
-                content.style.display = 'none';
-            }
-        });
-    });
-});
-</script>
+                <!-- Example Earnings -->
+                <div class="row g-3">
+                    <div class="col-12">
+                        <h2 class="fs-5 fw-bold mb-3">How It Works</h2>
+                    </div>
+                    
+                    <div class="col-12">
+                        <div class="card border-0 shadow-sm">
+                            <div class="card-body p-4">
+                                <div class="row align-items-center">
+                                    <div class="col-md-7">
+                                        <div class="steps-container">
+                                            <div class="step d-flex mb-4">
+                                                <div class="step-icon me-3">
+                                                    <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px; background-color: rgba(140, 8, 17, 0.1);">
+                                                        <i class="fas fa-user-plus" style="color: rgb(140, 8, 17);"></i>
+                                                    </div>
+                                                </div>
+                                                <div class="step-content">
+                                                    <h4 class="fs-6 fw-bold">1. Recruit Partners</h4>
+                                                    <p class="text-muted mb-0 small">Share your network code with potential partners who could refer clients to LOS.</p>
+                                                </div>
+                                            </div>
+                                            
+                                            <div class="step d-flex mb-4">
+                                                <div class="step-icon me-3">
+                                                    <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px; background-color: rgba(140, 8, 17, 0.1);">
+                                                        <i class="fas fa-handshake" style="color: rgb(140, 8, 17);"></i>
+                                                    </div>
+                                                </div>
+                                                <div class="step-content">
+                                                    <h4 class="fs-6 fw-bold">2. They Refer Clients</h4>
+                                                    <p class="text-muted mb-0 small">When your recruited partners successfully refer clients who sign up for LOS services.</p>
+                                                </div>
+                                            </div>
+                                            
+                                            <div class="step d-flex">
+                                                <div class="step-icon me-3">
+                                                    <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px; background-color: rgba(140, 8, 17, 0.1);">
+                                                        <i class="fas fa-dollar-sign" style="color: rgb(140, 8, 17);"></i>
+                                                    </div>
+                                                </div>
+                                                <div class="step-content">
+                                                    <h4 class="fs-6 fw-bold">3. You Earn 10% Commission</h4>
+                                                    <p class="text-muted mb-0 small">You receive a one-time 10% commission from each successful referral.</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="col-md-5 mt-4 mt-md-0">
+                                        <div class="card border-0 bg-light">
+                                            <div class="card-body p-3">
+                                                <h4 class="fs-6 fw-bold mb-3">Example Earnings</h4>
+                                                
+                                                <div class="example mb-3">
+                                                    <div class="d-flex justify-content-between mb-1">
+                                                        <span class="text-muted small">Your recruit's client monthly fee:</span>
+                                                        <span class="fw-bold">$2,000</span>
+                                                    </div>
+                                                    <div class="d-flex justify-content-between mb-1">
+                                                        <span class="text-muted small">Your recruit earns (10%):</span>
+                                                        <span class="fw-bold">$200/month</span>
+                                                    </div>
+                                                    <div class="d-flex justify-content-between">
+                                                        <span class="text-muted small">You earn (10% of their commission):</span>
+                                                        <span class="fw-bold text-success">$20/month</span>
+                                                    </div>
+                                                </div>
+                                                
+                                                <div class="alert alert-success mb-0 p-2">
+                                                    <div class="d-flex align-items-center">
+                                                        <i class="fas fa-check-circle me-2"></i>
+                                                        <small><strong>Unlimited potential:</strong> The more partners you recruit, the more you can earn!</small>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 
 <!-- Points & Rewards Section -->
 <div class="row mb-4" id="points-rewards">
@@ -977,11 +1019,127 @@ document.addEventListener('DOMContentLoaded', function() {
         </div>
     </div>
 </div>
+
+<style>
+.hover-lift {
+    transition: all 0.2s ease;
+}
+.hover-lift:hover {
+    transform: translateY(-5px);
+}
+.earnings-display {
+    transition: all 0.2s ease;
+}
+.card:hover .earnings-display {
+    background-color: rgba(13, 110, 253, 0.05) !important;
+}
+.icon-shape {
+    width: 48px;
+    height: 48px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+.icon-md {
+    width: 56px;
+    height: 56px;
+}
+.bg-primary-soft {
+    background-color: rgb(140, 8, 17) !important;
+    color: white !important;
+    font-size: 1rem !important;
+    font-weight: 600 !important;
+    padding: 8px 16px !important;
+    border-radius: 6px !important;
+    box-shadow: 0 2px 4px rgba(140, 8, 17, 0.2) !important;
+}
+.bg-success-soft {
+    background-color: rgba(25, 135, 84, 0.1);
+}
+
+/* Mobile Optimizations */
+@media (max-width: 768px) {
+    .mobile-collapse-header {
+        background-color: rgba(140, 8, 17, 0.05);
+        padding: 0.75rem;
+        border-radius: 0.5rem;
+        margin: 0.5rem 0;
+        cursor: pointer;
+    }
+    
+    .mobile-collapse-header i {
+        transition: transform 0.2s ease;
+    }
+    
+    .mobile-collapse.active .mobile-collapse-header i {
+        transform: rotate(180deg);
+    }
+    
+    .mobile-collapse-content {
+        padding-top: 0.5rem;
+    }
+    
+    .card-body {
+        padding: 1rem !important;
+    }
+    
+    .earnings-display {
+        margin-bottom: 0.5rem;
+    }
+    
+    .h4 {
+        font-size: 1.125rem !important;
+    }
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Mobile collapse functionality
+    const mobileCollapses = document.querySelectorAll('.mobile-collapse-header');
+    mobileCollapses.forEach(header => {
+        header.addEventListener('click', function() {
+            const parent = this.parentElement;
+            parent.classList.toggle('active');
+            
+            // Find the content element
+            const content = parent.querySelector('.mobile-collapse-content');
+            
+            // Toggle display with smooth animation
+            if (parent.classList.contains('active')) {
+                content.style.display = 'block';
+            } else {
+                content.style.display = 'none';
+            }
+        });
+    });
+});
+</script>
 {% endblock %}
 
 {% block scripts %}
 {{ super() }}
 <script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Mobile collapse functionality
+    const mobileCollapses = document.querySelectorAll('.mobile-collapse-header');
+    mobileCollapses.forEach(header => {
+        header.addEventListener('click', function() {
+            const parent = this.parentElement;
+            parent.classList.toggle('active');
+            
+            // Find the content element
+            const content = parent.querySelector('.mobile-collapse-content');
+            
+            // Toggle display with smooth animation
+            if (parent.classList.contains('active')) {
+                content.style.display = 'block';
+            } else {
+                content.style.display = 'none';
+            }
+        });
+    });
+    
     // Animated number counter
     function animateValue(element, start, end, duration) {
         const range = end - start;
@@ -1100,8 +1258,11 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // Initialize with starter scenario
+    if (document.querySelector('[data-scenario="starter"]')) {
     document.querySelector('[data-scenario="starter"]').style.backgroundColor = 'rgb(140, 8, 17)';
     document.querySelector('[data-scenario="starter"]').style.color = 'white';
     updateCalculator('starter');
+    }
+});
 </script>
 {% endblock %} 

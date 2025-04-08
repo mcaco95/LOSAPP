@@ -3,7 +3,7 @@ from flask_login import login_required, current_user
 from ..services.commission import CommissionService
 from ..models.commission_partner import CommissionPartner
 from ..models.commission import Commission
-from ..decorators import admin_required
+from ..decorators import admin_required, referral_required
 from .. import db
 
 bp = Blueprint('commission', __name__, url_prefix='/commission')
