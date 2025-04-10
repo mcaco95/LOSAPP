@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LOS Phone - Operations Call System</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome for icons -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <!-- Twilio Client JavaScript SDK -->
+    <script type="text/javascript" src="https://sdk.twilio.com/js/client/releases/1.14.0/twilio.js"></script>
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        body {
+            background-color: #f8f9fa;
+            padding: 0;
+            margin: 0;
+            font-family: Arial, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        .phone-container {
+            width: 100%;
+            max-width: 320px;
+            margin: 0 auto;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.2);
+            background-color: white;
+            overflow: hidden;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        .phone-header {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .phone-body {
+            padding: 15px;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        .call-status {
+            text-align: center;
+            margin-bottom: 10px;
+        }
+        #phone-number {
+            margin-bottom: 10px;
+        }
+        .call-controls {
+            display: flex;
+            gap: 5px;
+            margin-top: 10px;
+        }
+        .call-timer {
+            text-align: center;
+            font-size: 1.2rem;
+            margin-top: 5px;
+            min-height: 30px;
+            font-weight: bold;
+        }
+        .status-badge {
+            font-size: 0.9rem;
+            padding: 4px 8px;
+        }
+        .hidden {
+            display: none;
+        }
+        .call-alert {
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+            text-align: center;
+            background-color: #f8d7da;
+            color: #721c24;
+            font-weight: bold;
+        }
+        .spacer {
+            flex-grow: 1;
+        }
+        .phone-footer {
+            padding: 10px;
+            background-color: #f8f9fa;
+            border-top: 1px solid #dee2e6;
+            text-align: center;
+            font-size: 0.75rem;
+            color: #6c757d;
+        }
+        .status-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 15px;
+            padding: 10px;
+            border-radius: 8px;
+            background-color: #f8f9fa;
+        }
+    </style>
+</head>
+<body>
+    <div class="phone-container">
+        <div class="phone-header">
+            <span><i class="fas fa-phone-alt me-2"></i> LOS Phone</span>
+            <div id="device-status-container">
+                <span id="device-status" class="badge bg-secondary">Offline</span>
+            </div>
+        </div>
+
+        <div class="phone-body">
+            <div id="reconnect-message" class="call-alert hidden">
+                Reconnecting to active call...
+            </div>
+            
+            <div class="alert alert-info" id="setup-instructions">
+                Click "Set Up Phone" to prepare the browser phone.
+            </div>
+            
+            <div id="error-container" class="alert alert-danger hidden">
+                <span id="error-message"></span>
+            </div>
+            
+            <div class="status-section">
+                <div class="call-status">
+                    Status: <span id="call-status-badge" class="badge bg-secondary status-badge">Ready</span>
+                </div>
+                <div class="call-timer" id="call-timer"></div>
+            </div>
+            
+            <div class="input-group" id="phone-number-container">
+                <span class="input-group-text"><i class="fas fa-phone"></i></span>
+                <input type="text" id="phone-number" class="form-control" placeholder="Enter phone number (+1234567890)">
+            </div>
+            
+            <div class="form-check mb-3">
+                <input class="form-check-input" type="checkbox" id="record-call">
+                <label class="form-check-label" for="record-call">Record Call</label>
+            </div>
+            
+            <div class="call-controls d-grid gap-2">
+                <button id="setup-device" class="btn btn-primary">
+                    <i class="fas fa-headset"></i> Set Up Phone
+                </button>
+                <div class="d-flex gap-2">
+                    <button id="make-call" class="btn btn-success flex-grow-1" disabled>
+                        <i class="fas fa-phone-alt"></i> Call
+                    </button>
+                    <button id="hangup-call" class="btn btn-danger flex-grow-1" disabled>
+                        <i class="fas fa-phone-slash"></i> Hang Up
+                    </button>
+                </div>
+            </div>
+            
+            <div class="spacer"></div>
+        </div>
+        
+        <div class="phone-footer">
+            Logistics One Source Operations Call System
+        </div>
+    </div>
+
+    <script>
+        let device;
+        let currentCall = null;
+        let callTimer = null;
+        let callStartTime = null;
+        let deviceReady = false;
+        
+        // Call state storage keys
+        const CALL_ACTIVE_KEY = 'twilio_call_active';
+        const CALL_NUMBER_KEY = 'twilio_call_number';
+        const CALL_START_TIME_KEY = 'twilio_call_start_time';
+        const CALL_RECORD_KEY = 'twilio_call_record';
+        const DEVICE_READY_KEY = 'twilio_device_ready';
+        
+        // Function to save call state
+        function saveCallState(isActive, phoneNumber = '', startTime = null, recordCall = false) {
+            localStorage.setItem(CALL_ACTIVE_KEY, isActive ? 'true' : 'false');
+            localStorage.setItem(CALL_NUMBER_KEY, phoneNumber);
+            localStorage.setItem(CALL_START_TIME_KEY, startTime ? startTime.toISOString() : '');
+            localStorage.setItem(CALL_RECORD_KEY, recordCall ? 'true' : 'false');
+        }
+        
+        // Function to save device state
+        function saveDeviceState(isReady) {
+            localStorage.setItem(DEVICE_READY_KEY, isReady ? 'true' : 'false');
+            deviceReady = isReady;
+        }
+        
+        // Function to load call state
+        function loadCallState() {
+            return {
+                isActive: localStorage.getItem(CALL_ACTIVE_KEY) === 'true',
+                phoneNumber: localStorage.getItem(CALL_NUMBER_KEY) || '',
+                startTime: localStorage.getItem(CALL_START_TIME_KEY) ? new Date(localStorage.getItem(CALL_START_TIME_KEY)) : null,
+                recordCall: localStorage.getItem(CALL_RECORD_KEY) === 'true',
+                deviceReady: localStorage.getItem(DEVICE_READY_KEY) === 'true'
+            };
+        }
+        
+        // Function to update window title with call status
+        function updateWindowTitle(status) {
+            document.title = `LOS Phone - ${status}`;
+        }
+        
+        // Function to update UI state based on device readiness
+        function updateUIState(isReady) {
+            if (isReady) {
+                $('#device-status').removeClass('bg-secondary bg-danger').addClass('bg-success').text('Ready');
+                $('#make-call').prop('disabled', false);
+                $('#setup-instructions').addClass('hidden');
+                $('#error-container').addClass('hidden');
+                saveDeviceState(true);
+                updateWindowTitle('Ready');
+            } else {
+                $('#device-status').removeClass('bg-success').addClass('bg-secondary').text('Offline');
+                $('#make-call').prop('disabled', true);
+                saveDeviceState(false);
+                updateWindowTitle('Offline');
+            }
+        }
+        
+        // Function to update call status
+        function updateCallStatus(status, badgeClass) {
+            $('#call-status-badge').removeClass('bg-secondary bg-info bg-warning bg-success bg-danger')
+                .addClass(badgeClass).text(status);
+            updateWindowTitle(status);
+        }
+        
+        // Function to start call timer
+        function startCallTimer(startTimeParam = null) {
+            if (startTimeParam) {
+                callStartTime = startTimeParam;
+            } else {
+                callStartTime = new Date();
+            }
+            saveCallState(true, $('#phone-number').val(), callStartTime, $('#record-call').is(':checked'));
+            callTimer = setInterval(updateCallTimer, 1000);
+            updateCallTimer();
+        }
+        
+        // Function to update call timer
+        function updateCallTimer() {
+            if (!callStartTime) return;
+            
+            const now = new Date();
+            const diff = new Date(now - callStartTime);
+            const minutes = diff.getUTCMinutes().toString().padStart(2, '0');
+            const seconds = diff.getUTCSeconds().toString().padStart(2, '0');
+            
+            $('#call-timer').text(`${minutes}:${seconds}`);
+        }
+        
+        // Function to stop call timer
+        function stopCallTimer() {
+            clearInterval(callTimer);
+            callTimer = null;
+            callStartTime = null;
+            $('#call-timer').text('');
+            saveCallState(false);
+        }
+        
+        // Function to end the current call
+        function endCurrentCall() {
+            if (currentCall) {
+                currentCall.disconnect();
+                currentCall = null;
+            }
+            updateCallStatus('Ready', 'bg-secondary');
+            $('#hangup-call').prop('disabled', true);
+            $('#make-call').prop('disabled', false);
+            $('#reconnect-message').addClass('hidden');
+            stopCallTimer();
+        }
+        
+        // Function to setup the Twilio device
+        function setupDevice(callback) {
+            console.log("Loading Twilio script...");
+            
+            // Get a token from the server
+            $.get('/operations/token', function(data) {
+                if (!data.token) {
+                    $('#error-message').text("Failed to get token from server");
+                    $('#error-container').removeClass('hidden');
+                    $('#setup-device').prop('disabled', false).html('<i class="fas fa-headset"></i> Retry Setup');
+                    return;
+                }
+                
+                console.log("Twilio script loaded");
+                
+                try {
+                    // Set up the Twilio device
+                    device = new Twilio.Device(data.token, {
+                        logLevel: 1,
+                        codecPreferences: ['opus', 'pcmu']
+                    });
+                    
+                    // Device ready handler
+                    device.on('ready', function() {
+                        console.log("Device ready");
+                        $('#setup-device').html('<i class="fas fa-check"></i> Phone Ready');
+                        updateUIState(true);
+                        if (callback) callback(device);
+                    });
+                    
+                    // Device error handler
+                    device.on('error', function(error) {
+                        console.error("Device error:", error);
+                        $('#error-message').text("Device error: " + error.message);
+                        $('#error-container').removeClass('hidden');
+                        updateUIState(false);
+                        $('#setup-device').prop('disabled', false).html('<i class="fas fa-headset"></i> Retry Setup');
+                    });
+                    
+                    // Register call event handlers
+                    device.on('connect', function(call) {
+                        console.log("Call connected");
+                        currentCall = call;
+                        $('#hangup-call').prop('disabled', false);
+                        $('#make-call').prop('disabled', true);
+                        updateCallStatus('Connected', 'bg-success');
+                        startCallTimer();
+                        
+                        // Call status change handlers
+                        call.on('disconnect', function() {
+                            console.log("Call disconnected");
+                            endCurrentCall();
+                        });
+                        
+                        call.on('error', function(error) {
+                            console.error("Call error:", error);
+                            $('#error-message').text("Call error: " + error.message);
+                            $('#error-container').removeClass('hidden');
+                            endCurrentCall();
+                        });
+                    });
+                    
+                    // Call connection in progress
+                    device.on('connecting', function(call) {
+                        console.log("Call connecting...");
+                        currentCall = call;
+                        $('#hangup-call').prop('disabled', false);
+                        $('#make-call').prop('disabled', true);
+                        updateCallStatus('Connecting', 'bg-info');
+                    });
+                    
+                    // Additional call states
+                    device.on('cancel', function() {
+                        console.log("Call cancelled");
+                        updateCallStatus('Cancelled', 'bg-warning');
+                        endCurrentCall();
+                    });
+                    
+                    device.on('disconnect', function() {
+                        console.log("Call disconnected");
+                        endCurrentCall();
+                    });
+                    
+                    device.on('reject', function() {
+                        console.log("Call rejected");
+                        updateCallStatus('Rejected', 'bg-danger');
+                        endCurrentCall();
+                    });
+                    
+                    console.log("Device setup complete");
+                } catch (err) {
+                    console.error("Error setting up device:", err);
+                    $('#error-message').text("Error setting up device: " + err.message);
+                    $('#error-container').removeClass('hidden');
+                    $('#setup-device').prop('disabled', false).html('<i class="fas fa-headset"></i> Retry Setup');
+                }
+            }).fail(function(jqXHR, textStatus, errorThrown) {
+                console.error("Error getting token:", textStatus, errorThrown);
+                $('#error-message').text("Failed to get token: " + errorThrown);
+                $('#error-container').removeClass('hidden');
+                $('#setup-device').prop('disabled', false).html('<i class="fas fa-headset"></i> Retry Setup');
+            });
+        }
+        
+        // Function to make a call
+        function makeCall(phoneNumber, recordCall) {
+            // Connect the call
+            try {
+                $('#make-call').prop('disabled', true);
+                updateCallStatus('Calling...', 'bg-info');
+                
+                // Make the call with the device
+                currentCall = device.connect({
+                    To: phoneNumber,
+                    Record: recordCall
+                });
+                
+                $('#hangup-call').prop('disabled', false);
+            } catch (err) {
+                console.error("Error making call:", err);
+                $('#error-message').text("Error making call: " + err.message);
+                $('#error-container').removeClass('hidden');
+                $('#make-call').prop('disabled', false);
+                updateCallStatus('Error', 'bg-danger');
+            }
+        }
+        
+        // Function to attempt reconnect to an active call
+        function attemptReconnect(callState) {
+            $('#reconnect-message').removeClass('hidden');
+            $('#phone-number').val(callState.phoneNumber);
+            $('#record-call').prop('checked', callState.recordCall);
+            updateCallStatus('Reconnecting...', 'bg-warning');
+            
+            setupDevice(function(readyDevice) {
+                console.log("Device ready, attempting to reconnect call");
+                makeCall(callState.phoneNumber, callState.recordCall);
+                // We'll start the timer with the original start time for continuity
+                if (callState.startTime) {
+                    startCallTimer(callState.startTime);
+                }
+            });
+        }
+
+        // Document ready
+        $(document).ready(function() {
+            console.log("DOM loaded, setting up event listeners");
+            
+            // Check for active call state
+            const callState = loadCallState();
+            if (callState.isActive) {
+                console.log("Found active call state, attempting to reconnect");
+                $('#setup-device').prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Reconnecting...');
+                attemptReconnect(callState);
+            } else if (callState.deviceReady) {
+                // If device was ready but no active call, just set up device
+                $('#setup-device').prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Setting up...');
+                setupDevice();
+            }
+            
+            // Set up device button click handler
+            $('#setup-device').click(function() {
+                console.log("Setup button clicked");
+                $(this).prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Setting up...');
+                
+                if (!device) {
+                    setupDevice();
+                }
+            });
+            
+            // Make call button click handler
+            $('#make-call').click(function() {
+                const phoneNumber = $('#phone-number').val().trim();
+                if (!phoneNumber) {
+                    $('#error-message').text("Please enter a phone number");
+                    $('#error-container').removeClass('hidden');
+                    return;
+                }
+                
+                // Ensure E.164 format
+                let formattedNumber = phoneNumber;
+                if (!formattedNumber.startsWith('+')) {
+                    formattedNumber = '+' + formattedNumber;
+                }
+                
+                const recordCall = $('#record-call').is(':checked');
+                
+                makeCall(formattedNumber, recordCall);
+            });
+            
+            // Hang up button click handler
+            $('#hangup-call').click(function() {
+                endCurrentCall();
+            });
+            
+            // Window close handler to clean up
+            window.addEventListener('beforeunload', function(e) {
+                if (currentCall) {
+                    // Actually warn the user if they're in an active call
+                    e.preventDefault();
+                    e.returnValue = 'You have an active call. Are you sure you want to close?';
+                } else {
+                    // Just clean up device
+                    if (device) {
+                        device.destroy();
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html> 

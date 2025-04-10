@@ -447,4 +447,11 @@ def outbound_voice_twiml():
     dial.number(to_number)
     response.append(dial)
     
-    return str(response) 
+    return str(response)
+
+@bp.route('/phone', methods=['GET'])
+@login_required
+@operations_required
+def phone_interface():
+    """Dedicated phone interface page that will be embedded in an iframe"""
+    return render_template('operations/phone.html') 
