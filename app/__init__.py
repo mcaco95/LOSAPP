@@ -6,6 +6,9 @@ from flask_migrate import Migrate
 from flask_wtf.csrf import CSRFProtect
 from werkzeug.middleware.proxy_fix import ProxyFix
 from .config import Config
+import logging
+from logging.handlers import RotatingFileHandler
+import os
 
 # Initialize extensions
 db = SQLAlchemy()
@@ -42,13 +45,14 @@ def create_app():
     
     with app.app_context():
         # Import models and routes
-        from .models import user, link_tracking, company, point_config, reward, oauth, commission_partner, commission, commission_settings
+        from .models import user, link_tracking, company, point_config, reward, oauth, commission_partner, commission, commission_settings, samsara
         from .routes import main as main_routes
         from .routes import auth as auth_routes
         from .routes import users as users_routes
         from .routes import commission as commission_routes
         from .routes import referrals as referrals_routes
         from .routes import operations as operations_routes
+        from .routes import samsara
         from .api.v1 import bp as api_v1_bp
         
         # Initialize OAuth
@@ -72,7 +76,14 @@ def create_app():
         app.register_blueprint(commission_routes.bp)
         app.register_blueprint(referrals_routes.bp)
         app.register_blueprint(operations_routes.bp)
+        app.register_blueprint(samsara.bp)
         app.register_blueprint(api_v1_bp)  # Register the API blueprint
+
+        # Exempt Samsara webhook routes from CSRF protection
+        csrf.exempt(samsara.webhook)
+        csrf.exempt(samsara.test_webhook)
+        csrf.exempt(samsara.update_client)
+        csrf.exempt(samsara.create_client)
         
         # Add context processors
         @app.context_processor
@@ -162,5 +173,21 @@ def create_app():
                 print(f'Reset password for admin user {admin_email} to: admin123')
             else:
                 print(f'Admin user {admin_email} not found')
+
+        # Set up logging
+        if not app.debug and not app.testing:
+            if not os.path.exists('logs'):
+                os.mkdir('logs')
+            file_handler = RotatingFileHandler('logs/app.log',
+                                             maxBytes=10240, backupCount=10)
+            file_handler.setFormatter(logging.Formatter(
+                '%(asctime)s %(levelname)s: %(message)s '
+                '[in %(pathname)s:%(lineno)d]'
+            ))
+            file_handler.setLevel(logging.INFO)
+            app.logger.addHandler(file_handler)
+
+            app.logger.setLevel(logging.INFO)
+            app.logger.info('Application startup')
 
         return app

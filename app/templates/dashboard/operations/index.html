@@ -161,6 +161,49 @@
                         </div>
                     </div>
 
+                    <!-- Samsara Alerts Section -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <div class="card border-0 shadow">
+                                <div class="card-header d-flex justify-content-between align-items-center">
+                                    <h5 class="mb-0">Samsara Alerts</h5>
+                                    <div class="d-flex align-items-center">
+                                        <div class="me-3">
+                                            <select id="alertsPerPage" class="form-select form-select-sm">
+                                                <option value="10">10 per page</option>
+                                                <option value="20">20 per page</option>
+                                                <option value="50">50 per page</option>
+                                                <option value="100">100 per page</option>
+                                            </select>
+                                        </div>
+                                        <button id="refreshAlerts" class="btn btn-sm btn-primary">
+                                            <i class="fas fa-sync-alt me-1"></i> Refresh
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="card-body">
+                                    <div class="table-responsive">
+                                        <table class="table align-items-center table-flush" id="alertsTable">
+                                            <thead class="thead-light">
+                                                <tr>
+                                                    <th>Time</th>
+                                                    <th>Client</th>
+                                                    <th>Vehicle</th>
+                                                    <th>Type</th>
+                                                    <th>Severity</th>
+                                                    <th>Description</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <!-- Alerts will be loaded here -->
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- Call Metrics -->
                     <div class="row">
                         <div class="col-12 col-sm-6 col-xl-3 mb-4">
@@ -1000,5 +1043,88 @@ setInterval(() => {
     fetchCallHistory();
     fetchCallMetrics();
 }, 30000);
+
+// Samsara Alerts
+function loadAlerts() {
+    const perPage = document.getElementById('alertsPerPage').value;
+    const tbody = document.querySelector('#alertsTable tbody');
+    
+    // Show loading state
+    tbody.innerHTML = '<tr><td colspan="6" class="text-center">Loading alerts...</td></tr>';
+    
+    fetch(`/samsara/alerts?per_page=${perPage}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.alerts && data.alerts.length > 0) {
+                tbody.innerHTML = data.alerts.map(alert => `
+                    <tr>
+                        <td>${new Date(alert.timestamp).toLocaleString()}</td>
+                        <td>${alert.client_name || 'Unknown'}</td>
+                        <td>${alert.vehicle_name || alert.vehicle_id || 'Unknown'}</td>
+                        <td>${alert.alert_type}</td>
+                        <td>
+                            <span class="badge bg-${getSeverityClass(alert.severity)}">
+                                ${alert.severity}
+                            </span>
+                        </td>
+                        <td>${alert.description}</td>
+                    </tr>
+                `).join('');
+            } else {
+                tbody.innerHTML = '<tr><td colspan="6" class="text-center">No alerts found</td></tr>';
+            }
+        })
+        .catch(error => {
+            console.error('Error loading alerts:', error);
+            tbody.innerHTML = '<tr><td colspan="6" class="text-center text-danger">Error loading alerts</td></tr>';
+        });
+}
+
+function getSeverityClass(severity) {
+    switch (severity.toLowerCase()) {
+        case 'critical':
+            return 'danger';
+        case 'high':
+            return 'warning';
+        case 'medium':
+            return 'info';
+        case 'low':
+            return 'secondary';
+        default:
+            return 'secondary';
+    }
+}
+
+// Load alerts when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    // Restore per-page selection from localStorage
+    const savedPerPage = localStorage.getItem('alertsPerPage');
+    if (savedPerPage) {
+        document.getElementById('alertsPerPage').value = savedPerPage;
+    }
+    
+    // Initial load
+    loadAlerts();
+    
+    // Refresh button click handler
+    document.getElementById('refreshAlerts').addEventListener('click', function() {
+        loadAlerts();
+    });
+    
+    // Per-page selector change handler
+    document.getElementById('alertsPerPage').addEventListener('change', function() {
+        // Store the selected value in localStorage
+        localStorage.setItem('alertsPerPage', this.value);
+        loadAlerts();
+    });
+    
+    // Auto-refresh every 30 seconds
+    let refreshInterval = setInterval(loadAlerts, 30000);
+    
+    // Clean up interval when page is unloaded
+    window.addEventListener('beforeunload', function() {
+        clearInterval(refreshInterval);
+    });
+});
 </script>
 {% endblock %} 
