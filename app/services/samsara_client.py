@@ -114,33 +114,59 @@ class SamsaraService:
                 
                 # Get vehicle from details
                 vehicle_data = None
-                if 'geofenceExit' in details:
-                    vehicle_data = details['geofenceExit'].get('vehicle')
-                elif 'geofenceEntry' in details:
-                    vehicle_data = details['geofenceEntry'].get('vehicle')
-                elif 'speeding' in details:
-                    vehicle_data = details['speeding'].get('vehicle')
-                
+                if details:
+                    # Handle DVIR alerts - check both dvir.vehicle and dvir.trailer
+                    if 'dvirSubmittedDevice' in details:
+                        dvir_data = details['dvirSubmittedDevice']
+                        if 'vehicle' in dvir_data:
+                            vehicle_data = dvir_data['vehicle']
+                        elif 'dvir' in dvir_data:
+                            if 'vehicle' in dvir_data['dvir']:
+                                vehicle_data = dvir_data['dvir']['vehicle']
+                            elif 'trailer' in dvir_data['dvir']:
+                                vehicle_data = dvir_data['dvir']['trailer']
+
+                    # Handle severe speeding alerts
+                    elif 'severeSpeeding' in details:
+                        speed_data = details['severeSpeeding'].get('data', {})
+                        if 'vehicle' in speed_data:
+                            vehicle_data = speed_data['vehicle']
+
+                    # Handle any other alert types
+                    else:
+                        # First check for direct vehicle data
+                        for key, value in details.items():
+                            if isinstance(value, dict):
+                                # Check direct vehicle data
+                                if 'vehicle' in value:
+                                    vehicle_data = value['vehicle']
+                                    break
+                                # Check nested data structure
+                                elif 'data' in value and isinstance(value['data'], dict):
+                                    if 'vehicle' in value['data']:
+                                        vehicle_data = value['data']['vehicle']
+                                        break
+
                 if not vehicle_data:
                     logger.warning(f"No vehicle data found in alert details: {details}")
                     continue
-                
+
                 vehicle_id = vehicle_data.get('id')
                 if not vehicle_id:
                     logger.warning(f"No vehicle ID found in vehicle data: {vehicle_data}")
                     continue
-                
+
                 # Get or create vehicle
                 vehicle = SamsaraVehicle.query.filter_by(vehicle_id=vehicle_id).first()
                 if not vehicle:
                     vehicle = SamsaraVehicle(
                         vehicle_id=vehicle_id,
                         name=vehicle_data.get('name', 'Unknown'),
-                        serial=vehicle_data.get('gateway', {}).get('serial'),
+                        serial=vehicle_data.get('serial') or vehicle_data.get('externalIds', {}).get('samsara.serial'),
                         vin=vehicle_data.get('vin'),
                         external_ids=vehicle_data.get('externalIds', {}),
                         data=vehicle_data,
-                        client_id=client.id  # Set the client_id for the vehicle
+                        company_id=None
                     )
                     db.session.add(vehicle)
                     db.session.commit()
@@ -267,7 +293,7 @@ class SamsaraService:
                     vehicle_id=vehicle_id,
                     name=vehicle_data.get('name', 'Unknown'),
                     data=vehicle_data,
-                    client_id=client.id  # Set the client_id for the vehicle
+                    company_id=client.id  # Use company_id instead of client_id
                 )
                 db.session.add(vehicle)
                 db.session.commit()
