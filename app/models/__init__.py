@@ -10,6 +10,7 @@ from .commission import Commission
 from .commission_settings import CommissionSettings
 from .operations_user import OperationsUser
 from .call_log import CallLog
+from .sales_user import SalesUser
 
 __all__ = [
     'User',
@@ -19,6 +20,9 @@ __all__ = [
     'Commission',
     'CommissionPartner',
     'CommissionSettings',
+    'OperationsUser',
+    'CallLog',
+    'SalesUser',
     'LinkClick',
     'OAuth'
 ] 

@@ -1,0 +1,20 @@
+{% extends "crm/layout.html" %}
+
+{% block page_title %}CRM Dashboard{% endblock %}
+
+{% block page_description %}Overview of your sales activities.{% endblock %}
+
+{% block page_content %}
+<div class="row">
+    <div class="col-12">
+        <div class="card border-0 shadow">
+            <div class="card-body">
+                 <h5 class="card-title">Welcome, {{ sales_profile.full_name if sales_profile else current_user.name }}!</h5>
+                 <p class="card-text">Your extension: {{ sales_profile.extension if sales_profile and sales_profile.extension else 'Not Assigned' }}</p>
+                 <p class="card-text">Content for the CRM dashboard goes here.</p>
+                 {# Add dashboard widgets and summary data here later #}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

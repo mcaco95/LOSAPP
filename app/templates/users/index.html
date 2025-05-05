@@ -50,14 +50,24 @@
                                         {% if user.operations_profile %}
                                         <span class="badge bg-info">Operations</span>
                                         {% endif %}
+                                        {% if user.sales_profile %}
+                                        <span class="badge bg-success">Sales</span>
+                                        {% endif %}
                                     </td>
                                     <td>
                                         {% if user.operations_profile %}
                                         <small>
-                                            <strong>Role:</strong> {{ user.operations_profile.role }}<br>
-                                            <strong>Ext:</strong> {{ user.operations_profile.extension or 'N/A' }}
+                                            <strong>Ops Role:</strong> {{ user.operations_profile.role }}<br>
+                                            <strong>Ops Ext:</strong> {{ user.operations_profile.extension or 'N/A' }}
                                         </small>
-                                        {% else %}
+                                        {% endif %}
+                                        {% if user.sales_profile %}
+                                        <small>
+                                            <strong>Sales Role:</strong> {{ user.sales_profile.role }}<br>
+                                            <strong>Sales Ext:</strong> {{ user.sales_profile.extension or 'N/A' }}
+                                        </small>
+                                        {% endif %}
+                                        {% if not user.operations_profile and not user.sales_profile %}
                                         -
                                         {% endif %}
                                     </td>

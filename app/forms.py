@@ -55,16 +55,37 @@ class AdminUserEditForm(FlaskForm):
         validators=[Optional()]
     )
 
+    # Sales User Fields
+    is_sales = BooleanField('Sales Access')
+    sales_phone_number = StringField('Sales Phone Number', validators=[Optional()])
+    sales_extension = StringField('Sales Extension', validators=[Optional()])
+    sales_role = SelectField('Sales Role',
+        choices=[
+            ('', 'Not Sales'),
+            ('sales_rep', 'Sales Rep'),
+            ('sales_manager', 'Sales Manager')
+        ],
+        validators=[Optional()]
+    )
+
     def __init__(self, *args, **kwargs):
         super(AdminUserEditForm, self).__init__(*args, **kwargs)
-        # If user is operations, populate operations fields
-        if hasattr(kwargs.get('obj', None), 'operations_profile'):
-            ops_profile = kwargs['obj'].operations_profile
+        user_obj = kwargs.get('obj', None)
+        if hasattr(user_obj, 'operations_profile'):
+            ops_profile = user_obj.operations_profile
             if ops_profile:
                 self.is_operations.data = True
                 self.phone_number.data = ops_profile.phone_number
                 self.extension.data = ops_profile.extension
                 self.operations_role.data = ops_profile.role
+        # Populate sales fields if user has sales profile
+        if hasattr(user_obj, 'sales_profile'):
+            sales_profile = user_obj.sales_profile
+            if sales_profile:
+                self.is_sales.data = True
+                self.sales_phone_number.data = sales_profile.phone_number
+                self.sales_extension.data = sales_profile.extension
+                self.sales_role.data = sales_profile.role
 
 class ResetPasswordForm(FlaskForm):
     password = PasswordField('New Password', validators=[

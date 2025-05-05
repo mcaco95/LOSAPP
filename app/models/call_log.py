@@ -1,12 +1,14 @@
 from datetime import datetime
 from .. import db
+from .sales_user import SalesUser
 
 class CallLog(db.Model):
     """Model for tracking call activities"""
     __tablename__ = 'call_logs'
 
     id = db.Column(db.Integer, primary_key=True)
-    operator_id = db.Column(db.Integer, db.ForeignKey('operations_user.id'), nullable=False)
+    operator_id = db.Column(db.Integer, db.ForeignKey('operations_user.id'), nullable=True, index=True)
+    sales_rep_id = db.Column(db.Integer, db.ForeignKey('sales_user.id'), nullable=True, index=True)
     call_sid = db.Column(db.String(100), unique=True)  # Twilio call ID
     from_number = db.Column(db.String(20))
     to_number = db.Column(db.String(20))
@@ -21,8 +23,14 @@ class CallLog(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
-    def __init__(self, operator_id, call_sid, from_number, to_number, status='queued', direction='outbound'):
+    def __init__(self, call_sid, from_number, to_number, status='queued', direction='outbound', operator_id=None, sales_rep_id=None):
+        if operator_id is None and sales_rep_id is None:
+            raise ValueError("Either operator_id or sales_rep_id must be provided.")
+        if operator_id is not None and sales_rep_id is not None:
+            raise ValueError("Provide either operator_id or sales_rep_id, not both.")
+            
         self.operator_id = operator_id
+        self.sales_rep_id = sales_rep_id
         self.call_sid = call_sid
         self.from_number = from_number
         self.to_number = to_number
@@ -64,11 +72,20 @@ class CallLog(db.Model):
             query = query.filter_by(status=status)
         return query.order_by(cls.created_at.desc()).all()
 
+    @classmethod
+    def get_sales_rep_calls(cls, sales_rep_id, status=None):
+        """Get all calls for a specific sales representative"""
+        query = cls.query.filter_by(sales_rep_id=sales_rep_id)
+        if status:
+            query = query.filter_by(status=status)
+        return query.order_by(cls.created_at.desc()).all()
+
     def to_dict(self):
         """Convert call log to dictionary"""
         return {
             'id': self.id,
             'operator_id': self.operator_id,
+            'sales_rep_id': self.sales_rep_id,
             'call_sid': self.call_sid,
             'from_number': self.from_number,
             'to_number': self.to_number,

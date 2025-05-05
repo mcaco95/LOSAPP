@@ -13,6 +13,7 @@ from ..decorators import admin_required
 from ..models.user import User, db
 from ..forms import AdminUserForm, AdminUserEditForm, ChangePasswordForm, ProfilePictureForm
 from ..models.operations_user import OperationsUser
+from ..models.sales_user import SalesUser
 
 users = Blueprint('users', __name__)
 
@@ -67,17 +68,37 @@ def edit(id):
                     user_id=user.id,
                     phone_number=form.phone_number.data,
                     extension=form.extension.data,
-                    role=form.operations_role.data
+                    role=form.operations_role.data or 'operator' # Default role
                 )
                 db.session.add(ops_user)
             else:
                 user.operations_profile.phone_number = form.phone_number.data
                 user.operations_profile.extension = form.extension.data
-                user.operations_profile.role = form.operations_role.data
+                user.operations_profile.role = form.operations_role.data or 'operator'
         else:
-            # Remove operations profile if exists
+            # Remove operations profile if exists and checkbox is unchecked
             if user.operations_profile:
                 db.session.delete(user.operations_profile)
+
+        # Handle sales user settings (mirroring operations logic)
+        if form.is_sales.data:
+            # Create or update sales profile
+            if not user.sales_profile:
+                sales_user = SalesUser(
+                    user_id=user.id,
+                    phone_number=form.sales_phone_number.data,
+                    extension=form.sales_extension.data,
+                    role=form.sales_role.data or 'sales_rep' # Default role
+                )
+                db.session.add(sales_user)
+            else:
+                user.sales_profile.phone_number = form.sales_phone_number.data
+                user.sales_profile.extension = form.sales_extension.data
+                user.sales_profile.role = form.sales_role.data or 'sales_rep'
+        else:
+            # Remove sales profile if exists and checkbox is unchecked
+            if user.sales_profile:
+                db.session.delete(user.sales_profile)
         
         try:
             db.session.commit()
@@ -85,15 +106,15 @@ def edit(id):
             return redirect(url_for('users.index'))
         except Exception as e:
             db.session.rollback()
-            flash('Error updating user. The email might be already taken or extension is in use.', 'error')
+            # Make error message more generic as conflicts could be email, ops ext, or sales ext
+            current_app.logger.error(f"Error updating user {id}: {str(e)}") 
+            flash('Error updating user. The email or extension might be already taken/in use.', 'error') 
     
     # Pre-populate operations fields if user has operations profile
-    if user.operations_profile:
-        form.is_operations.data = True
-        form.phone_number.data = user.operations_profile.phone_number
-        form.extension.data = user.operations_profile.extension
-        form.operations_role.data = user.operations_profile.role
-    
+    # (This logic is now handled in the form's __init__)
+    # Pre-populate sales fields if user has sales profile
+    # (This logic is now handled in the form's __init__)
+
     return render_template('users/edit.html', form=form, user=user)
 
 @users.route('/users/<int:id>/delete', methods=['POST'])

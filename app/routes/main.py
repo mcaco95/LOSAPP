@@ -29,8 +29,15 @@ def index():
 def dashboard():
     if current_user.is_admin:
         return redirect(url_for('main.admin_dashboard'))
+    # Check for Operations user first
     if hasattr(current_user, 'operations_profile') and current_user.operations_profile:
         return redirect(url_for('main.operations_dashboard'))
+    # Check for Sales user next
+    if hasattr(current_user, 'sales_profile') and current_user.sales_profile:
+        # Redirect to a future CRM dashboard route
+        # We will create the 'crm' blueprint and 'crm.dashboard' route later
+        return redirect(url_for('crm.dashboard')) 
+    # Default to user (referral) dashboard
     return redirect(url_for('main.user_dashboard'))
 
 @main.route('/dashboard/user')

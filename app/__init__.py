@@ -54,6 +54,8 @@ def create_app():
         from .routes import operations as operations_routes
         from .routes import samsara
         from .api.v1 import bp as api_v1_bp
+        # Import the new CRM blueprint correctly
+        from .routes import crm
         
         # Initialize OAuth
         from .oauth import init_oauth
@@ -78,6 +80,19 @@ def create_app():
         app.register_blueprint(operations_routes.bp)
         app.register_blueprint(samsara.bp)
         app.register_blueprint(api_v1_bp)  # Register the API blueprint
+        # Import the webhook blueprint
+        try:
+            # Check if webhook blueprint is imported and register it
+            from .routes import webhook
+            app.register_blueprint(webhook.bp)
+            app.logger.info("Registered webhook blueprint.")
+        except ImportError:
+            app.logger.warning("Webhook blueprint not found or failed to import.")
+        except AttributeError:
+            app.logger.warning("Webhook module found, but no 'bp' attribute.")
+       
+        # Register the CRM blueprint
+        app.register_blueprint(crm.crm_bp)
 
         # Exempt Samsara webhook routes from CSRF protection
         csrf.exempt(samsara.webhook)

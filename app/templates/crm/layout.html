@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+
+{% block head %}
+{{ super() }}
+{# Basic CSS for the floating button - consider moving to a CSS file #}
+<style>
+  .crm-fab {
+    position: fixed;
+    bottom: 25px;
+    right: 25px;
+    z-index: 1050; /* Ensure it's above most other elements */
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<main class="content">
+    {# Topbar is included by base.html #}
+    {# Main page content for CRM pages #}
+    <div class="py-4">
+        {# Optional: Add breadcrumbs or specific headers here if needed #}
+        <div class="d-flex justify-content-between w-100 flex-wrap">
+            <div class="mb-3 mb-lg-0">
+                <h1 class="h4">{% block page_title %}{% endblock %}</h1>
+                <p class="mb-0">{% block page_description %}{% endblock %}</p>
+            </div>
+            {# Optional: Add buttons or actions for the page header #}
+        </div>
+    </div>
+
+    {# Flash messages are handled by base.html or included partials usually #}
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+          </div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    {# Specific page content block #}
+    {% block page_content %}
+    {% endblock %}
+
+    {# Footer is included by base.html #}
+</main>
+
+{% endblock %}
+
+{% block extra_js %}
+{{ super() }} {# Include scripts from base.html #}
+
+{% if current_user.is_authenticated and current_user.sales_profile %}
+<!-- Floating Phone Widget Button for CRM -->
+{# Place the button HTML here, before its script #}
+<div id="crm-phone-widget" class="position-fixed bottom-0 end-0 mb-4 me-4" style="z-index: 1040;">
+    <button id="open-crm-phone-btn" class="btn btn-success rounded-circle" style="width: 60px; height: 60px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);" title="Open CRM Phone">
+        <i class="fas fa-headset" style="font-size: 24px;"></i> {# Use a different icon or color if desired #}
+    </button>
+</div>
+
+<script>
+    // JavaScript for the CRM Phone FAB
+    function openCrmPhoneWindow() {
+        const windowFeatures = 'width=320,height=650,resizable=yes,top=100,left=150,menubar=no,toolbar=no,location=no,status=no,titlebar=yes'; // Adjusted width slightly
+        const windowUrl = "{{ url_for('crm.phone_interface') }}"; // Use CRM phone route
+        const windowName = "LOS_CRM_Phone_Window"; // Use a distinct name
+        console.log('Attempting to open CRM phone window:', windowUrl);
+        const phoneWindow = window.open(windowUrl, windowName, windowFeatures);
+        if (phoneWindow) {
+            console.log('CRM Phone window opened successfully.');
+            phoneWindow.focus();
+        } else {
+            console.error('Failed to open CRM phone window. Pop-up blocker likely active.');
+            // Optionally, display a message to the user about pop-up blockers
+            alert('Could not open phone window. Please check your browser\'s pop-up blocker settings.');
+        }
+    }
+    
+    document.addEventListener('DOMContentLoaded', function() {
+        const crmPhoneBtn = document.getElementById('open-crm-phone-btn');
+        if (crmPhoneBtn) {
+             console.log('Attaching click listener to CRM phone button.');
+             crmPhoneBtn.addEventListener('click', openCrmPhoneWindow);
+        } else {
+             console.error('CRM phone button (open-crm-phone-btn) not found.');
+        }
+    });
+</script>
+{% endif %}
+
+{% endblock %} 

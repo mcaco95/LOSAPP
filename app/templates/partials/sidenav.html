@@ -101,7 +101,43 @@
       </li>
 
       {% else %}
-      <!-- User Navigation -->
+      {# Check if Sales user #}
+      {% if current_user.sales_profile %}
+      <!-- Sales/CRM Navigation -->
+      <li class="nav-item">
+        <span class="nav-link d-flex justify-content-between align-items-center" data-bs-toggle="collapse" data-bs-target="#submenu-crm" aria-expanded="true">
+          <span>
+            <span class="sidebar-icon">
+              <svg class="icon icon-xs me-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M10 9a3 3 0 100-6 3 3 0 000 6zM6 8a2 2 0 11-4 0 2 2 0 014 0zM1.465 16.99L2.75 14.207a.75.75 0 011.1-.223l.043.028a.75.75 0 00.641.246 5.493 5.493 0 013.975 0 .75.75 0 00.64-.246l.044-.028a.75.75 0 011.1.223L13.54 17h-1.085l-.793-1.585a.75.75 0 00-1.33.13l-.213.425a.75.75 0 01-1.33-.13L7.994 15.415H6.91l-.793 1.585H1.465z"></path><path fill-rule="evenodd" d="M17 8a2 2 0 11-4 0 2 2 0 014 0zM19 15a4 4 0 00-8 0v3h8v-3zM5 8a2 2 0 11-4 0 2 2 0 014 0zM3 15a4 4 0 00-3.75 2.906A.75.75 0 010 17.25v-2.5a4 4 0 014-4h2a4 4 0 014 4v.25a.75.75 0 01-1.5 0V15a2.5 2.5 0 00-2.5-2.5h-2A2.5 2.5 0 003 15z" clip-rule="evenodd"></path></svg>
+            </span>
+            <span class="sidebar-text">CRM</span>
+          </span>
+          <span class="link-arrow">
+            <svg class="icon icon-sm" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path></svg>
+          </span>
+        </span>
+        <div class="multi-level collapse show" role="list" id="submenu-crm" aria-expanded="false">
+          <ul class="flex-column nav">
+            <li class="nav-item {% if request.endpoint == 'crm.dashboard' %}active{% endif %}">
+              <a href="{{ url_for('crm.dashboard') }}" class="nav-link">
+                <span class="sidebar-text">CRM Dashboard</span>
+              </a>
+            </li>
+            <li class="nav-item {% if request.endpoint == 'crm.contacts' %}active{% endif %}">
+              <a href="{{ url_for('crm.contacts') }}" class="nav-link">
+                <span class="sidebar-text">Contacts</span>
+              </a>
+            </li>
+            <li class="nav-item {% if request.endpoint == 'crm.calls' %}active{% endif %}">
+              <a href="{{ url_for('crm.calls') }}" class="nav-link">
+                <span class="sidebar-text">Call Logs</span>
+              </a>
+            </li>
+          </ul>
+        </div>
+      </li>
+      {% else %}
+      {# Default User/Referral Navigation (Not Admin, Not Sales) #}
       <!-- Companies Section -->
       <li class="nav-item {% if request.endpoint == 'main.user_companies' %}active{% endif %}">
         <a href="{{ url_for('main.user_companies') }}" class="nav-link">
@@ -185,7 +221,7 @@
           </ul>
         </div>
       </li>
-      {% endif %}
+      {% endif %}{# End sales_profile check #}
 
       <!-- Profile Section - Always visible -->
       <li class="nav-item {% if request.endpoint == 'users.profile' %}active{% endif %}">
@@ -209,6 +245,7 @@
           {% endif %}
         </a>
       </li>
+      {% endif %}
     </ul>
   </div>
 </nav>

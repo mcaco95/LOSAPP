@@ -73,6 +73,38 @@
                             </div>
                         </div>
 
+                        <!-- Sales Section -->
+                        <div class="card mb-4">
+                            <div class="card-header">
+                                <div class="form-check">
+                                    {{ form.is_sales(class="form-check-input", id="is_sales") }}
+                                    <label class="form-check-label" for="is_sales">
+                                        Sales Access
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            <div class="card-body sales-fields" id="salesFields" style="display: none;">
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
+                                        <label for="sales_role">Role</label>
+                                        {{ form.sales_role(class="form-select") }}
+                                    </div>
+                                </div>
+                                
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
+                                        <label for="sales_phone_number">Phone Number</label>
+                                        {{ form.sales_phone_number(class="form-control", placeholder="Enter sales phone") }}
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="sales_extension">Extension</label>
+                                        {{ form.sales_extension(class="form-control", placeholder="Enter sales extension") }}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
                         <div class="row">
                             <div class="col-12">
                                 <button type="submit" class="btn btn-primary">Update User</button>
@@ -89,19 +121,35 @@
 {% block scripts %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // Operations Toggle
     const isOperationsCheckbox = document.getElementById('is_operations');
     const operationsFields = document.getElementById('operationsFields');
 
     function toggleOperationsFields() {
-        if (isOperationsCheckbox.checked) {
-            operationsFields.style.display = 'block';
-        } else {
-            operationsFields.style.display = 'none';
+        if (operationsFields && isOperationsCheckbox) {
+            operationsFields.style.display = isOperationsCheckbox.checked ? 'block' : 'none';
         }
     }
 
-    isOperationsCheckbox.addEventListener('change', toggleOperationsFields);
-    toggleOperationsFields(); // Initial state
+    if (isOperationsCheckbox) {
+        isOperationsCheckbox.addEventListener('change', toggleOperationsFields);
+        toggleOperationsFields(); // Initial state
+    }
+
+    // Sales Toggle
+    const isSalesCheckbox = document.getElementById('is_sales');
+    const salesFields = document.getElementById('salesFields');
+
+    function toggleSalesFields() {
+        if (salesFields && isSalesCheckbox) {
+            salesFields.style.display = isSalesCheckbox.checked ? 'block' : 'none';
+        }
+    }
+
+    if (isSalesCheckbox) {
+        isSalesCheckbox.addEventListener('change', toggleSalesFields);
+        toggleSalesFields(); // Initial state
+    }
 });
 </script>
 {% endblock %}
