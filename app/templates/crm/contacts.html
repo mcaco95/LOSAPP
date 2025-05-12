@@ -1,10 +1,17 @@
-{% extends "base.html" %}
+{% extends "crm/layout.html" %}
 {% from "partials/_pagination.html" import render_pagination %}
 {% from "_formhelpers.html" import render_field %}
 
 {% block title %}{{ title }}{% endblock %}
 
+{% block page_title %}{{ title }}{% endblock %}
+
+{% block page_description %}
+Manage your CRM contacts here. You can view, edit, or delete contacts.
+{% endblock %}
+
 {% block content %}
+{{ super() }}
 <div class="py-4">
     {# Optional: Breadcrumbs or Header #}
     <nav aria-label="breadcrumb" class="d-none d-md-inline-block">
@@ -109,6 +116,8 @@
 {% endblock %}
 
 {% block extra_js %}
+{{ super() }}
+{# Add any contacts-specific JS here if needed in the future #}
 <script>
     // JavaScript for setting data in the delete confirmation modal
     const confirmDeleteModal = document.getElementById('confirmDeleteModal');

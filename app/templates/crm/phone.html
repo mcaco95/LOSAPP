@@ -155,6 +155,12 @@
                     <button id="hangup-call" class="btn btn-danger flex-grow-1" disabled>
                         <i class="fas fa-phone-slash"></i> Hang Up
                     </button>
+                    <button id="accept-call" class="btn btn-info flex-grow-1 hidden">
+                        <i class="fas fa-phone-volume"></i> Accept
+                    </button>
+                    <button id="reject-call" class="btn btn-warning flex-grow-1 hidden">
+                        <i class="fas fa-times-circle"></i> Reject
+                    </button>
                 </div>
             </div>
             
@@ -347,6 +353,67 @@
                     endCurrentCall();
                 });
 
+                // *** ADD INCOMING CALL HANDLER ***
+                device.on('incoming', function(connection) {
+                    console.log('Incoming connection from ' + connection.parameters.From);
+                    // Automatically reject incoming calls if already in a call
+                    if (currentCall) {
+                        console.log('Rejecting incoming call because already in an active call.');
+                        connection.reject();
+                        return;
+                    }
+                    
+                    currentCall = connection;
+                    updateCallStatus('Incoming Call', 'bg-warning');
+                    // Update UI to show incoming call details and accept/reject buttons
+                    $('#call-status-badge').html(`Incoming: ${connection.parameters.From}`);
+                    // You'll need to add Accept/Reject buttons to your HTML, 
+                    // maybe replacing the standard Call/Hangup or showing them conditionally.
+                    // For now, let's assume buttons with IDs 'accept-call' and 'reject-call' exist.
+                    $('#make-call').addClass('hidden'); // Hide normal call button
+                    $('#hangup-call').addClass('hidden'); // Hide normal hangup button
+                    $('#accept-call').removeClass('hidden').prop('disabled', false); // Show/enable accept
+                    $('#reject-call').removeClass('hidden').prop('disabled', false); // Show/enable reject
+
+                    // Add listeners specific to this incoming connection
+                    $('#accept-call').off('click').on('click', function() {
+                        console.log("Accepting incoming call...");
+                        connection.accept();
+                        updateCallStatus('Connected', 'bg-success');
+                        startCallTimer(); 
+                        $('#accept-call').addClass('hidden');
+                        $('#reject-call').addClass('hidden');
+                        $('#hangup-call').removeClass('hidden').prop('disabled', false); // Show hangup
+                    });
+
+                    $('#reject-call').off('click').on('click', function() {
+                        console.log("Rejecting incoming call...");
+                        connection.reject();
+                        endCurrentCall(); // Resets UI to ready state
+                        $('#accept-call').addClass('hidden');
+                        $('#reject-call').addClass('hidden');
+                        $('#make-call').removeClass('hidden'); // Show normal call button
+                    });
+                    
+                    // Also handle if the caller hangs up before acceptance
+                    connection.on('cancel', function() {
+                         console.log("Incoming call cancelled by caller.");
+                         endCurrentCall(); 
+                         $('#accept-call').addClass('hidden');
+                         $('#reject-call').addClass('hidden');
+                         $('#make-call').removeClass('hidden');
+                    });
+                    connection.on('reject', function() { // Should not happen if we didn't reject, but good practice
+                         console.log("Incoming call was rejected (possibly by another client).");
+                         endCurrentCall(); 
+                         $('#accept-call').addClass('hidden');
+                         $('#reject-call').addClass('hidden');
+                         $('#make-call').removeClass('hidden');
+                    });
+
+                });
+                // *** END INCOMING CALL HANDLER ***
+                
                 // Attempt to reconnect if state indicates an active call
                 const state = loadCallState();
                 if (state.isActive && state.deviceReady) {
@@ -398,13 +465,17 @@
             
             try {
                 // Parameters to send to Twilio
-                const params = {
+                // REMOVED the params object wrapper
+                // const params = {
+                //     To: numberToCall,
+                //     Record: recordCall
+                // };
+                
+                // Make the call using Twilio Device, passing params directly
+                currentCall = await device.connect({
                     To: numberToCall,
                     Record: recordCall
-                };
-                
-                // Make the call using Twilio Device
-                currentCall = await device.connect({ params: params });
+                });
                 console.log("CRM Call initiated via Twilio.Device:", currentCall);
                 // Connection events will handle status updates
                 // Use CRM localStorage keys

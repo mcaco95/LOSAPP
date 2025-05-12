@@ -24,6 +24,7 @@ import io # For reading file stream
 from werkzeug.utils import secure_filename # For secure file handling
 import os # For os.path and os.makedirs
 import uuid # For unique filenames
+from urllib.parse import urlencode
 
 # Define the blueprint
 crm_bp = Blueprint(
@@ -140,25 +141,25 @@ def dashboard():
     recent_overdue_tasks = overdue_tasks_query.order_by(Task.due_date.asc()).limit(5).all()
 
     # Call Metrics (using filtered call_log_query_filtered)
-    total_calls = call_log_query_filtered.count()
-    total_call_duration_secs = db.session.query(func.sum(func.coalesce(CallLog.duration, 0)))\
-                                      .select_from(call_log_query_filtered.subquery())\
-                                      .scalar() or 0
+    call_subq = call_log_query_filtered.subquery() # Create subquery
+    total_calls = call_log_query_filtered.count() # Count can use the original query directly
+    total_call_duration_secs = db.session.query(func.sum(func.coalesce(call_subq.c.duration, 0)))\
+                                      .scalar() or 0 # Query directly from subquery columns
     total_call_duration_mins = round(total_call_duration_secs / 60)
 
     # Deal Metrics (using filtered deal_query_filtered)
     open_deal_stages = [s[0] for s in DEAL_STAGES if s[0] not in ('Closed Won', 'Closed Lost')]
     open_deals_query_filtered = deal_query_filtered.filter(Deal.stage.in_(open_deal_stages))
+    open_deals_subq = open_deals_query_filtered.subquery() # Create subquery for open deals
     
-    open_deals_count = open_deals_query_filtered.count()
-    total_pipeline_value = db.session.query(func.sum(func.coalesce(Deal.amount, 0)))\
-                                   .select_from(open_deals_query_filtered.subquery())\
-                                   .scalar() or 0
+    open_deals_count = open_deals_query_filtered.count() # Count can use the original query directly
+    total_pipeline_value = db.session.query(func.sum(func.coalesce(open_deals_subq.c.amount, 0)))\
+                                   .scalar() or 0 # Query directly from subquery columns
 
     # Deals by Stage (using filtered deal_query_filtered for the chart)
-    deals_by_stage_query = db.session.query(Deal.stage, func.count(Deal.id))\
-                                  .select_from(deal_query_filtered.subquery())\
-                                  .group_by(Deal.stage)
+    deals_filtered_subq = deal_query_filtered.subquery() # Create subquery for all filtered deals
+    deals_by_stage_query = db.session.query(deals_filtered_subq.c.stage, func.count(deals_filtered_subq.c.id))\
+                                  .group_by(deals_filtered_subq.c.stage) # Query and group by subquery columns
     deals_by_stage_data = {stage: count for stage, count in deals_by_stage_query.all()}
 
     # --- Recent Items (Fetch using potentially time-filtered queries) ---
@@ -1322,7 +1323,7 @@ def get_token():
         }), 500
     
     # Use sales_profile ID for identity
-    identity = f"client:sales-{current_user.sales_profile.id}" 
+    identity = f"sales-{current_user.sales_profile.id}" # REMOVED 'client:' prefix
     token = AccessToken(account_sid, api_key, api_secret, identity=identity)
     
     voice_grant = VoiceGrant(
@@ -1336,7 +1337,7 @@ def get_token():
     return jsonify({
         'success': True,
         'token': token.to_jwt(),
-        'identity': identity
+        'identity': identity # Identity returned to JS will now be 'sales-1'
     })
 
 @crm_bp.route('/call', methods=['POST'])
@@ -1359,9 +1360,18 @@ def make_call():
     to_number = data['to_number']
     record = data.get('record', False)
     # The identity used by Twilio when dialing out from the browser
-    from_identity = f"client:sales-{sales_rep_id}" 
+    # from_identity = f"client:sales-{sales_rep_id}" # We'll use the actual number now
+
+    # Determine the 'from' number to use
+    user_phone_number = current_user.sales_profile.phone_number
+    if user_phone_number:
+        from_number_to_use = user_phone_number
+        current_app.logger.info(f"Using assigned sales number: {from_number_to_use}")
+    else:
+        from_number_to_use = current_app.config['TWILIO_PHONE_NUMBER']
+        current_app.logger.info(f"Using default company number: {from_number_to_use}")
     
-    current_app.logger.info(f"CRM call attempt from {from_identity} to {to_number}")
+    current_app.logger.info(f"CRM call attempt from {from_number_to_use} to {to_number}")
 
     try:
         call_manager = CallManager()
@@ -1374,14 +1384,23 @@ def make_call():
         
         # Option 2: make_call only initiates, we log here (Closer to current operations.py)
         webhook_base = current_app.config['TWILIO_WEBHOOK_BASE_URL'].rstrip('/')
+        
+        # Encode parameters for the TwiML URL
+        twiml_params = urlencode({
+            'DialTo': to_number, # Use a distinct name like DialTo
+            'DialRecord': str(record).lower() # Pass record flag as string
+        })
+        twiml_url = f"{webhook_base}/webhooks/voice?{twiml_params}"
+        current_app.logger.info(f"Using TwiML URL: {twiml_url}")
+
         call = call_manager.client.calls.create(
             to=to_number,
-            from_=current_app.config['TWILIO_PHONE_NUMBER'], # Using the app's main Twilio number
-            # This TwiML app URL needs to handle the 'client:sales-{id}' identity
-            url=f"{webhook_base}/webhooks/voice", 
+            from_=from_number_to_use, # <<< Use determined number
+            # Provide the TwiML URL with parameters
+            url=twiml_url, 
             status_callback=f"{webhook_base}/webhooks/status",
-            status_callback_event=['initiated', 'ringing', 'answered', 'completed'],
-            record=record
+            status_callback_event=['initiated', 'ringing', 'answered', 'completed']
+            # Remove record=record here, TwiML will handle it based on DialRecord param
         )
         call_sid = call.sid
         
@@ -1391,10 +1410,10 @@ def make_call():
                 call_sid=call_sid,
                 status='initiated',
                 direction='outbound',
-                from_number=from_identity, # Log the client identity
+                from_number=from_number_to_use, # <<< Log the actual number used
                 to_number=to_number,
-                sales_rep_id=sales_rep_id, # Link to SalesUser
-                created_at=datetime.utcnow()
+                sales_rep_id=sales_rep_id # Link to SalesUser
+                # REMOVED created_at=datetime.utcnow()
             )
             db.session.add(call_log)
             db.session.commit()
@@ -1415,8 +1434,8 @@ def make_call():
 def phone_interface():
     """Render the dedicated CRM phone interface page (for pop-up window)"""
     # Pass necessary info like user identity if needed by the template JS
-    identity = f"client:sales-{current_user.sales_profile.id}"
-    return render_template('phone.html', identity=identity)
+    identity = f"sales-{current_user.sales_profile.id}"
+    return render_template('crm/phone.html', identity=identity) # Corrected template path
 
 # Helper function to get current sales rep's sales_user_id
 def get_current_sales_rep_id():
@@ -1798,7 +1817,7 @@ def create_deal():
             db.session.commit()
             flash(f'Deal "{new_deal.name}" created successfully!', 'success')
             return redirect(url_for('crm.list_deals'))
-        except Exception as e:
+        except Exception as e: # Added except block
             db.session.rollback()
             current_app.logger.error(f"Error creating deal: {e}")
             flash(f'Error creating deal: {str(e)}. Please check your input and try again.', 'error')

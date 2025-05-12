@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template, jsonify, request, current_app
 from flask_login import login_required, current_user
 from ..decorators import operations_required
-from ..services.call_manager import CallManager
+from ..services.operations_service.twilio.call_manager import CallManager
 from ..models.operations_user import OperationsUser
 from .. import db, csrf
 from twilio.jwt.access_token import AccessToken
@@ -9,6 +9,7 @@ from twilio.jwt.access_token.grants import VoiceGrant
 from twilio.twiml.voice_response import VoiceResponse, Dial
 from datetime import datetime
 from app.models.call_log import CallLog
+from app.models.sales_user import SalesUser
 
 bp = Blueprint('operations', __name__)
 
@@ -64,35 +65,25 @@ def make_call():
     
     try:
         call_manager = CallManager()
-        success, message, call_sid = call_manager.make_call(
-            from_extension=current_user.operations_profile.extension,
-            to_number=to_number,
-            operations_user=current_user.operations_profile,
-            record=record
+        call_log_obj = call_manager.initiate_call(
+            operator_id=current_user.operations_profile.id,
+            to_number=to_number
         )
+
+        success = bool(call_log_obj and call_log_obj.call_sid)
+        message = 'Call initiated successfully' if success else 'Failed to initiate call'
+        call_sid = call_log_obj.call_sid if success else None
         
         current_app.logger.info(f"Call attempt result - Success: {success}, Message: {message}, SID: {call_sid}")
-        
-        if success and call_sid:
-            # Create initial call log
-            call_log = CallLog(
-                call_sid=call_sid,
-                status='initiated',
-                direction='outbound',
-                from_number=f"client:operator-{current_user.operations_profile.id}",
-                to_number=to_number,
-                operator_id=current_user.operations_profile.id,
-                created_at=datetime.utcnow()
-            )
-            db.session.add(call_log)
-            db.session.commit()
-            current_app.logger.info(f"Created initial call log for SID: {call_sid}")
         
         return jsonify({
             'success': success,
             'message': message,
             'call_sid': call_sid
         })
+    except ValueError as ve:
+        current_app.logger.error(f"Error in make_call (ValueError): {str(ve)}")
+        return jsonify({'success': False, 'message': str(ve)}), 400
     except Exception as e:
         current_app.logger.error(f"Error in make_call: {str(e)}")
         return jsonify({'success': False, 'message': f'Error making call: {str(e)}'}), 400
@@ -384,185 +375,181 @@ def get_token():
 def voice_twiml():
     """Respond to Twilio webhook with TwiML for Voice SDK (Ops and Sales)"""
     current_app.logger.info("=== Voice TwiML Webhook Triggered ===")
-    current_app.logger.info(f"Request form data: {request.form}")
-    
-    # Get parameters from the request
-    to_number = request.form.get('To', '')
-    from_identity = request.form.get('From', '') # client:operator-id or client:sales-id
-    call_sid = request.form.get('CallSid')
-    
-    current_app.logger.info(f"Voice hook: Call {call_sid} from {from_identity} to {to_number}")
-    
-    operator_id = None
-    sales_rep_id = None
+    # Log all form data for debugging
+    log_msg = "Request form data details:\n"
+    for key, value in request.form.items():
+        log_msg += f"  - {key}: {value}\n"
+    current_app.logger.info(log_msg)
 
-    try:
-        # Extract operator ID or sales rep ID from client identity
-        if from_identity and from_identity.startswith('client:'):
-            identity_parts = from_identity.split(':')
-            if len(identity_parts) == 2:
-                user_part = identity_parts[1]
-                id_parts = user_part.split('-')
-                if len(id_parts) == 2:
-                    user_type = id_parts[0]
-                    user_id_str = id_parts[1]
-                    try:
-                        user_id = int(user_id_str)
-                        if user_type == 'operator':
-                            operator_id = user_id
-                        elif user_type == 'sales':
-                            sales_rep_id = user_id
-                        else:
-                             current_app.logger.warning(f"Unknown client type in From: {from_identity}")
-                    except ValueError:
-                        current_app.logger.warning(f"Invalid ID in From identity: {from_identity}")
-                else:
-                    current_app.logger.warning(f"Could not parse ID from client identity: {from_identity}")
-            else:
-                current_app.logger.warning(f"Could not parse type/ID from client identity: {from_identity}")
-
-        # Create initial call log for browser calls if SID and ID identified
-        if call_sid and (operator_id or sales_rep_id) and to_number:
-            # Check if log already exists to prevent duplicates from status webhook
-            existing_log = CallLog.query.filter_by(call_sid=call_sid).first()
-            if not existing_log:
-                call_log = CallLog(
-                    call_sid=call_sid,
-                    # Use actual phone number if available, else log identity
-                    from_number=current_app.config['TWILIO_PHONE_NUMBER'] if (operator_id or sales_rep_id) else from_identity, 
-                    to_number=to_number,
-                    status='initiated', # Or 'ringing' depending on when this hook fires
-                    direction='outbound',
-                    operator_id=operator_id, # Will be None if sales_rep_id is set
-                    sales_rep_id=sales_rep_id # Will be None if operator_id is set
-                )
-                db.session.add(call_log)
-                db.session.commit()
-                current_app.logger.info(f"Created call log via TwiML webhook for call {call_sid}")
-            else:
-                current_app.logger.info(f"Call log for {call_sid} already exists, skipping creation in TwiML webhook.")
-        elif call_sid:
-             current_app.logger.warning(f"Could not create CallLog via TwiML webhook for SID {call_sid}: Missing user ID or To number.")
-
-    except Exception as e:
-        # Log error but continue to generate TwiML if possible
-        db.session.rollback()
-        current_app.logger.error(f"Error creating call log in TwiML webhook: {str(e)}")
-    
-    # Create TwiML response
     response = VoiceResponse()
+    call_sid = request.form.get('CallSid')
+    from_number = request.form.get('From') # External number or client:identity
+    to_number = request.form.get('To')     # Your Twilio number (incoming) or Destination (outbound TwiML param)
+    direction = request.form.get('Direction') # 'incoming' or 'outbound-api', etc.
     
-    try:
-        # Check if it's a client-to-phone call
-        if to_number and to_number.startswith('+'):
-            # It's a call to a phone number
-            current_app.logger.info(f"Making outbound call to {to_number}")
-            dial = Dial(
-                caller_id=current_app.config['TWILIO_PHONE_NUMBER'],
-                record=request.form.get('Record', 'false').lower() == 'true'
-            )
-            dial.number(to_number)
-            response.append(dial)
-            current_app.logger.info(f"Dialing out to phone number: {to_number}")
+    # Check if it's an incoming call to one of your Twilio numbers
+    is_incoming_call = direction == 'incoming' or (from_number and not from_number.startswith('client:'))
+
+    if is_incoming_call:
+        current_app.logger.info(f"Incoming call detected: From={from_number}, To={to_number}")
+        target_client = None
+        
+        # Find user associated with the dialed Twilio number ('To')
+        if to_number:
+            sales_user = SalesUser.query.filter_by(phone_number=to_number).first()
+            if sales_user:
+                target_client = f"client:sales-{sales_user.id}"
+                current_app.logger.info(f"Routing incoming call to Sales User {sales_user.id} ({target_client}) based on dialed number {to_number}")
+            else:
+                ops_user = OperationsUser.query.filter_by(phone_number=to_number).first()
+                if ops_user:
+                    target_client = f"client:operator-{ops_user.id}"
+                    current_app.logger.info(f"Routing incoming call to Ops User {ops_user.id} ({target_client}) based on dialed number {to_number}")
+                else:
+                    current_app.logger.warning(f"No user found with assigned phone number matching the dialed number: {to_number}")
         else:
-            # Log why we hit the default case
-            current_app.logger.warning(f"Unrecognized 'To' format or empty. To: '{to_number}'")
-            current_app.logger.warning("Falling back to default message")
-            response.say("Thanks for calling. This call is powered by Twilio Voice SDK.")
-        
-        return str(response)
-        
-    except Exception as e:
-        current_app.logger.error(f"Error generating TwiML: {str(e)}")
-        current_app.logger.exception("Full exception:")
-        response = VoiceResponse()
-        response.say("An error occurred while processing your call.")
-        return str(response)
+             current_app.logger.warning("Incoming call webhook missing 'To' number (dialed Twilio number).")
 
-@bp.route('/webhooks/voice/outbound', methods=['POST'])
-@csrf.exempt
-def outbound_voice_twiml():
-    """Handle outbound call TwiML for Voice SDK (Ops and Sales)"""
-    current_app.logger.info("=== Outbound Voice TwiML Webhook ===")
-    
-    # Get the number to call from the request
-    to_number = request.form.get('To')
-    from_identity = request.form.get('From', '') # client:operator-id or client:sales-id
-    call_sid = request.form.get('CallSid')
-    record_call = request.form.get('Record', 'false').lower() == 'true'
-    
-    current_app.logger.info(f"Outbound hook: Call {call_sid} from {from_identity} to {to_number}")
-    
-    if not to_number:
-        current_app.logger.error("No 'To' number provided in outbound TwiML request")
-        response = VoiceResponse()
-        response.say("No phone number provided.")
-        return str(response)
-    
-    operator_id = None
-    sales_rep_id = None
-    
-    try:
-        # Extract operator ID or sales rep ID from client identity
-        if from_identity and from_identity.startswith('client:'):
-            identity_parts = from_identity.split(':')
-            if len(identity_parts) == 2:
-                user_part = identity_parts[1]
-                id_parts = user_part.split('-')
-                if len(id_parts) == 2:
-                    user_type = id_parts[0]
-                    user_id_str = id_parts[1]
-                    try:
-                        user_id = int(user_id_str)
-                        if user_type == 'operator':
-                            operator_id = user_id
-                        elif user_type == 'sales':
-                            sales_rep_id = user_id
-                        else:
-                             current_app.logger.warning(f"Unknown client type in From: {from_identity}")
-                    except ValueError:
-                        current_app.logger.warning(f"Invalid ID in From identity: {from_identity}")
-                else:
-                    current_app.logger.warning(f"Could not parse ID from client identity: {from_identity}")
-            else:
-                current_app.logger.warning(f"Could not parse type/ID from client identity: {from_identity}")
-        
-        # Create initial call log if SID and ID identified
-        if call_sid and (operator_id or sales_rep_id):
-            # Check if log already exists to prevent duplicates
-            existing_log = CallLog.query.filter_by(call_sid=call_sid).first()
-            if not existing_log:
+        if target_client:
+            # Log the incoming call attempt before dialing client
+            call_log = CallLog.query.filter_by(call_sid=call_sid).first()
+            if not call_log:
+                log_user_id = None
+                log_sales_id = None
+                if target_client.startswith("client:sales-"):
+                    log_sales_id = int(target_client.split('-')[1])
+                elif target_client.startswith("client:operator-"):
+                     log_user_id = int(target_client.split('-')[1])
+
                 call_log = CallLog(
                     call_sid=call_sid,
-                    from_number=from_identity, # Log the client identity
-                    to_number=to_number,
-                    status='initiated',
-                    direction='outbound',
-                    operator_id=operator_id, # Will be None if sales_rep_id is set
-                    sales_rep_id=sales_rep_id # Will be None if operator_id is set
+                    from_number=from_number,
+                    to_number=to_number, 
+                    status='ringing', # Indicate it's ringing the client
+                    direction='incoming',
+                    operator_id=log_user_id,
+                    sales_rep_id=log_sales_id
                 )
                 db.session.add(call_log)
-                db.session.commit()
-                current_app.logger.info(f"Created call log via Outbound TwiML webhook for call {call_sid}")
-            else:
-                current_app.logger.info(f"Call log for {call_sid} already exists, skipping creation in Outbound TwiML webhook.")
-        elif call_sid:
-             current_app.logger.warning(f"Could not create CallLog via Outbound TwiML webhook for SID {call_sid}: Missing user ID.")
+                try:
+                    db.session.commit()
+                    current_app.logger.info(f"Logged incoming call {call_sid} routed to {target_client}")
+                except Exception as e_commit:
+                    db.session.rollback()
+                    current_app.logger.error(f"Error logging incoming call {call_sid}: {e_commit}")
+            
+            # Dial the target client
+            dial = Dial(timeout=20) # Give 20 seconds for the client to answer
+            dial.client(target_client.split(':', 1)[1]) # Pass identity without 'client:' prefix
+            response.append(dial)
+        else:
+            # No user found for this number, or 'To' number missing
+            response.say("We could not connect your call at this time. Please try again later.")
+            # Optionally, use <Reject reason="busy"/> or <Reject reason="no-answer"/>
+            # response.reject(reason='no-answer')
+            current_app.logger.info(f"Rejecting incoming call {call_sid} - no target client found for {to_number}")
 
-    except Exception as e:
-        # Log error but continue to generate TwiML
-        db.session.rollback()
-        current_app.logger.error(f"Error creating call log in Outbound TwiML webhook: {str(e)}")
-    
-    # Create TwiML response
-    response = VoiceResponse()
-    dial = Dial(
-        caller_id=current_app.config['TWILIO_PHONE_NUMBER'],
-        record=record_call
-    )
-    dial.number(to_number)
-    response.append(dial)
-    
+    else: # Handle outbound calls initiated by device.connect()
+        # Read parameters from request.form (sent by Twilio Voice SDK's Device.connect())
+        # Note: 'To' here is the *destination* number for the outbound call
+        outbound_to_number = request.form.get('To')
+        record_call_param = request.form.get('Record', 'false').lower() == 'true'
+        from_identity_raw = request.form.get('From', '') # Should be client:type-id
+
+        current_app.logger.info(f"Outbound TwiML request: CallSid={call_sid}, FromIdentityRaw={from_identity_raw}, To(Destination)='{outbound_to_number}', Record={record_call_param}")
+
+        operator_id = None
+        sales_rep_id = None
+        determined_from_number_for_dial = current_app.config['TWILIO_PHONE_NUMBER'] # Default
+
+        # Parse identity and determine caller ID (existing logic)
+        if from_identity_raw and from_identity_raw.startswith('client:'):
+            try:
+                parts = from_identity_raw.split(':', 1) # Split only once
+                if len(parts) == 2:
+                    type_id_part = parts[1]
+                    type_parts = type_id_part.split('-', 1)
+                    if len(type_parts) == 2:
+                        user_type = type_parts[0]
+                        user_id = int(type_parts[1])
+
+                        if user_type == 'sales':
+                            sales_rep_profile = SalesUser.query.filter_by(id=user_id).first()
+                            if sales_rep_profile:
+                                sales_rep_id = user_id
+                                if sales_rep_profile.phone_number:
+                                    determined_from_number_for_dial = sales_rep_profile.phone_number
+                                current_app.logger.info(f"Outbound: Sales rep {sales_rep_id} identified. Using caller ID: {determined_from_number_for_dial}")
+                            else:
+                                current_app.logger.warning(f"Outbound: Sales profile for ID {user_id} not found.")
+                        elif user_type == 'operator':
+                            ops_profile = OperationsUser.query.filter_by(id=user_id).first()
+                            if ops_profile:
+                                operator_id = user_id
+                                if ops_profile.phone_number:
+                                    determined_from_number_for_dial = ops_profile.phone_number
+                                current_app.logger.info(f"Outbound: Operator {operator_id} identified. Using caller ID: {determined_from_number_for_dial}")
+                            else:
+                                current_app.logger.warning(f"Outbound: Operations profile for ID {user_id} not found.")
+                        else:
+                            current_app.logger.warning(f"Outbound: Unknown user type '{user_type}' in identity: {from_identity_raw}")
+                    else:
+                        current_app.logger.warning(f"Outbound: Could not parse type/ID from '{type_id_part}' in identity: {from_identity_raw}")
+                else:
+                    current_app.logger.warning(f"Outbound: Could not parse identity format: {from_identity_raw}")
+            except ValueError:
+                current_app.logger.warning(f"Outbound: Invalid user ID in identity: {from_identity_raw}")
+            except Exception as e_parse:
+                current_app.logger.error(f"Outbound: Error parsing identity '{from_identity_raw}': {e_parse}")
+        else:
+            current_app.logger.warning(f"Outbound: From identity not in 'client:type-id' format or missing: {from_identity_raw}")
+
+        # Create/Update call log (moved logging here for outbound only)
+        if call_sid:
+            existing_log = CallLog.query.filter_by(call_sid=call_sid).first()
+            if not existing_log:
+                if operator_id or sales_rep_id: # Only log if we know who it's for
+                    call_log = CallLog(
+                        call_sid=call_sid,
+                        from_number=determined_from_number_for_dial, # Log the caller ID used
+                        to_number=outbound_to_number if outbound_to_number else "Unknown (TwiML)",
+                        status='initiated',
+                        direction='outbound',
+                        operator_id=operator_id,
+                        sales_rep_id=sales_rep_id
+                    )
+                    db.session.add(call_log)
+                    try:
+                        db.session.commit()
+                        current_app.logger.info(f"Created outbound call log via TwiML for SID {call_sid}")
+                    except Exception as e_commit:
+                        db.session.rollback()
+                        current_app.logger.error(f"Error committing outbound CallLog in TwiML for SID {call_sid}: {e_commit}")
+                else:
+                    current_app.logger.warning(f"Not creating outbound CallLog for SID {call_sid} in TwiML: No user identified.")
+            else:
+                current_app.logger.info(f"Outbound call log for {call_sid} already exists, skipping creation in TwiML webhook.")
+        else:
+            current_app.logger.warning("No CallSid in outbound TwiML request, cannot create/update log.")
+
+        # Generate TwiML for outbound call
+        if outbound_to_number and (outbound_to_number.startswith('+') or outbound_to_number.startswith('client:')):
+            dial = Dial(
+                caller_id=determined_from_number_for_dial, # Use the determined number
+                record='record-from-answer' if record_call_param else 'do-not-record'
+            )
+            if outbound_to_number.startswith('client:'):
+                client_identifier = outbound_to_number.split(':', 1)[1]
+                dial.client(client_identifier)
+                current_app.logger.info(f"Outbound TwiML: Dialing client '{client_identifier}' with callerId {determined_from_number_for_dial}")
+            else: # PSTN number
+                dial.number(outbound_to_number)
+                current_app.logger.info(f"Outbound TwiML: Dialing number '{outbound_to_number}' with callerId {determined_from_number_for_dial}")
+            response.append(dial)
+        else:
+            current_app.logger.warning(f"Outbound TwiML: 'To' number '{outbound_to_number}' is invalid or missing. Saying fallback message.")
+            response.say("The number you are trying to call is not valid, or was not provided. Please check the number and try again.")
+
     return str(response)
 
 @bp.route('/phone', methods=['GET'])

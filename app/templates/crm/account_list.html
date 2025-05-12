@@ -1,9 +1,16 @@
-{% extends "base.html" %}
+{% extends "crm/layout.html" %}
 {% from "partials/_pagination.html" import render_pagination %}
 
 {% block title %}{{ title }}{% endblock %}
 
+{% block page_title %}{{ title }}{% endblock %}
+
+{% block page_description %}
+Manage your CRM accounts/companies here. You can view, edit, or delete accounts.
+{% endblock %}
+
 {% block content %}
+{{ super() }}
 <div class="py-4">
     <nav aria-label="breadcrumb" class="d-none d-md-inline-block">
         <ol class="breadcrumb breadcrumb-dark breadcrumb-transparent">
@@ -97,6 +104,7 @@
 {% endblock %}
 
 {% block extra_js %}
+{{ super() }}
 <script>
     // JavaScript for setting data in the delete confirmation modal
     const confirmDeleteModal = document.getElementById('confirmDeleteModal');

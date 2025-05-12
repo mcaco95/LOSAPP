@@ -1,8 +1,9 @@
-{% extends "base.html" %}
+{% extends "crm/layout.html" %}
 
 {% block title %}CRM Dashboard{% endblock %}
 
 {% block content %}
+{{ super() }}
 <div class="py-4">
     <nav aria-label="breadcrumb" class="d-none d-md-inline-block">
         <ol class="breadcrumb breadcrumb-dark breadcrumb-transparent">
@@ -267,141 +268,117 @@
 {% endblock %}
 
 {% block extra_js %}
-{# Chart.js CDN #}
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
+{{ super() }}
+{# Add any dashboard-specific JS here if needed in the future #}
 <script>
-let dealsByStageChartInstance = null; // Global reference for the chart instance
-let callsOverTimeChartInstance = null;
+    document.addEventListener('DOMContentLoaded', function() {
+        // Chart.js for Deals by Stage
+        const dealsByStageCtx = document.getElementById('dealsByStageChart');
+        let dealsByStageChart;
+        const dealsByStageData = {{ deals_by_stage_data | tojson }};
 
-document.addEventListener('DOMContentLoaded', function () {
-    // --- Initial Chart Setup --- //
-    
-    // Deals by Stage Chart (Initial Load)
-    const dealsByStageCtx = document.getElementById('dealsByStageChart');
-    if (dealsByStageCtx) {
-        const initialDealsData = {{ deals_by_stage_data|tojson }};
-        dealsByStageChartInstance = initializeDealsChart(dealsByStageCtx, initialDealsData);
-    }
-
-    // --- Time Period Button Event Listeners --- //
-    const timePeriodButtons = document.querySelectorAll('.time-period-btn');
-    timePeriodButtons.forEach(button => {
-        button.addEventListener('click', function() {
-            const period = this.dataset.period;
-            const target = this.dataset.target; // 'deals' or 'calls'
-
-            // Update active button state within the correct group
-            this.parentNode.querySelectorAll('.time-period-btn').forEach(btn => btn.classList.remove('active'));
-            this.classList.add('active');
-
-            // Update the label for the specific section
-            document.getElementById(`${target}-period-label`).textContent = period.charAt(0).toUpperCase() + period.slice(1);
-
-            // Fetch updated data
-            fetch(`/crm/dashboard-data?period=${period}&target=${target}`)
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error(`HTTP error! status: ${response.status}`);
+        function renderDealsChart(data) {
+            if (dealsByStageChart) {
+                dealsByStageChart.destroy();
+            }
+            dealsByStageChart = new Chart(dealsByStageCtx, {
+                type: 'bar',
+                data: {
+                    labels: Object.keys(data),
+                    datasets: [{
+                        label: 'Deals',
+                        data: Object.values(data),
+                        backgroundColor: [
+                            'rgba(54, 162, 235, 0.7)', // Blue
+                            'rgba(255, 206, 86, 0.7)', // Yellow
+                            'rgba(75, 192, 192, 0.7)', // Green
+                            'rgba(153, 102, 255, 0.7)',// Purple
+                            'rgba(255, 159, 64, 0.7)', // Orange
+                            'rgba(255, 99, 132, 0.7)', // Red
+                            'rgba(201, 203, 207, 0.7)' // Grey
+                        ],
+                        borderColor: [
+                            'rgba(54, 162, 235, 1)',
+                            'rgba(255, 206, 86, 1)',
+                            'rgba(75, 192, 192, 1)',
+                            'rgba(153, 102, 255, 1)',
+                            'rgba(255, 159, 64, 1)',
+                            'rgba(255, 99, 132, 1)',
+                            'rgba(201, 203, 207, 1)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                stepSize: 1 // Ensure y-axis shows whole numbers for counts
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.dataset.label || '';
+                                    if (label) {
+                                        label += ': ';
+                                    }
+                                    if (context.parsed.y !== null) {
+                                        label += context.parsed.y + ' deal(s)';
+                                    }
+                                    return label;
+                                }
+                            }
+                        }
                     }
-                    return response.json();
-                 })
-                .then(data => {
-                    // Update DOM elements and charts based on target
-                    if (target === 'deals') {
-                        updateDealsSection(data);
-                    } else if (target === 'calls') {
-                        updateCallsSection(data);
-                    }
-                })
-                .catch(error => {
-                    console.error('Error fetching dashboard data:', error);
-                    // Display a user-friendly error message?
-                });
+                }
+            });
+        }
+
+        renderDealsChart(dealsByStageData); // Initial render
+
+        // AJAX for updating dashboard data
+        const timePeriodButtons = document.querySelectorAll('.time-period-btn');
+        timePeriodButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const period = this.dataset.period;
+                const target = this.dataset.target; // 'deals' or 'calls'
+
+                // Update active button state for the correct group
+                document.querySelectorAll(`.time-period-btn[data-target="${target}"]`).forEach(btn => btn.classList.remove('active'));
+                this.classList.add('active');
+                document.getElementById(`${target}-period-label`).textContent = period.charAt(0).toUpperCase() + period.slice(1);
+
+                fetch(`{{ url_for('crm.dashboard_data') }}?target=${target}&period=${period}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.error) {
+                            console.error('Error fetching dashboard data:', data.error);
+                            // Optionally display a toast error to the user
+                            return;
+                        }
+                        if (target === 'deals') {
+                            document.getElementById('deals-pipeline-value').textContent = '$' + parseFloat(data.total_pipeline_value).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                            renderDealsChart(data.deals_by_stage_data);
+                        } else if (target === 'calls') {
+                            document.getElementById('calls-total-count').textContent = data.total_calls;
+                            document.getElementById('calls-total-duration').textContent = data.total_call_duration_mins + ' min';
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Fetch error for dashboard data:', error);
+                        // Optionally display a toast error
+                    });
+            });
         });
     });
-});
-
-// --- Helper Functions --- //
-
-function initializeDealsChart(ctx, dealsData) {
-    const labels = Object.keys(dealsData);
-    const dataValues = Object.values(dealsData);
-    const stageColors = {
-        'Prospecting': '#0d6efd', 'Qualification': '#6610f2', 'Needs Analysis': '#6f42c1', 
-        'Value Proposition': '#d63384', 'Id. Decision Makers': '#dc3545', 'Perception Analysis': '#fd7e14', 
-        'Proposal/Price Quote': '#ffc107', 'Negotiation/Review': '#198754', 'Closed Won': '#adb5bd', 
-        'Closed Lost': '#343a40'
-    };
-    const backgroundColors = labels.map(label => stageColors[label] || '#ced4da');
-
-    return new Chart(ctx, {
-        type: 'doughnut',
-        data: {
-            labels: labels,
-            datasets: [{
-                label: 'Deals by Stage',
-                data: dataValues,
-                backgroundColor: backgroundColors,
-                hoverOffset: 4
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: { position: 'bottom' }
-            }
-        }
-    });
-}
-
-function updateDealsSection(data) {
-    // Update Pipeline Value display
-    const pipelineValueEl = document.getElementById('deals-pipeline-value');
-    if (pipelineValueEl) {
-        pipelineValueEl.textContent = `$${data.total_pipeline_value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-    }
-
-    // Update Deals by Stage Chart
-    if (dealsByStageChartInstance && data.deals_by_stage_data) {
-        const labels = Object.keys(data.deals_by_stage_data);
-        const dataValues = Object.values(data.deals_by_stage_data);
-        const stageColors = {
-             'Prospecting': '#0d6efd', 'Qualification': '#6610f2', 'Needs Analysis': '#6f42c1', 
-            'Value Proposition': '#d63384', 'Id. Decision Makers': '#dc3545', 'Perception Analysis': '#fd7e14', 
-            'Proposal/Price Quote': '#ffc107', 'Negotiation/Review': '#198754', 'Closed Won': '#adb5bd', 
-            'Closed Lost': '#343a40'
-        };
-        const backgroundColors = labels.map(label => stageColors[label] || '#ced4da');
-
-        dealsByStageChartInstance.data.labels = labels;
-        dealsByStageChartInstance.data.datasets[0].data = dataValues;
-        dealsByStageChartInstance.data.datasets[0].backgroundColor = backgroundColors;
-        dealsByStageChartInstance.update();
-    }
-}
-
-function updateCallsSection(data) {
-    // Update Total Calls display
-    const totalCallsEl = document.getElementById('total-calls-display');
-    if (totalCallsEl) {
-        totalCallsEl.textContent = data.total_calls;
-    }
-
-    // Update Total Duration display
-    const totalDurationEl = document.getElementById('total-call-duration-display');
-    if (totalDurationEl) {
-        totalDurationEl.textContent = `${data.total_call_duration_mins} min`;
-    }
-
-    // Update Calls Over Time Chart (if/when implemented)
-    // if (callsOverTimeChartInstance && data.calls_over_time_data) { 
-    //    callsOverTimeChartInstance.data.labels = data.calls_over_time_data.labels;
-    //    callsOverTimeChartInstance.data.datasets[0].data = data.calls_over_time_data.values;
-    //    callsOverTimeChartInstance.update();
-    // }
-}
-
 </script>
 {% endblock %} 

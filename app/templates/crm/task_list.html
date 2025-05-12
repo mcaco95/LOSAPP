@@ -1,10 +1,17 @@
-{% extends "base.html" %}
+{% extends "crm/layout.html" %}
 {% from "_formhelpers.html" import render_field, render_submit_field, render_query_select_field, render_textarea_field, render_date_field %}
 {% from "partials/_pagination.html" import render_pagination %}
 
 {% block title %}{{ title }}{% endblock %}
 
+{% block page_title %}{{ title }}{% endblock %}
+
+{% block page_description %}
+Create and manage your CRM tasks here.
+{% endblock %}
+
 {% block content %}
+{{ super() }}
 <div class="py-4">
     <nav aria-label="breadcrumb" class="d-none d-md-inline-block">
         <ol class="breadcrumb breadcrumb-dark breadcrumb-transparent">
@@ -174,5 +181,6 @@
 {% endblock %}
 
 {% block extra_js %}
-{# Add JS if needed, e.g., for date pickers if not handled globally #}
+{{ super() }}
+{# Add any task-list-specific JS here if needed in the future #}
 {% endblock %} 

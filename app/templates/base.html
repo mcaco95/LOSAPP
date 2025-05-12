@@ -151,7 +151,7 @@
     {% block extra_js %}{% endblock %}
     
     {% if current_user.is_authenticated and current_user.operations_profile %}
-    <!-- Floating Phone Widget Button -->
+    <!-- Floating Phone Widget Button (Operations) -->
     <div id="phone-widget" class="position-fixed bottom-0 end-0 mb-4 me-4" style="z-index: 1040;">
         <button id="open-phone-btn" class="btn btn-primary rounded-circle" style="width: 60px; height: 60px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);" title="Open Phone">
             <i class="fas fa-phone" style="font-size: 24px;"></i>
@@ -159,24 +159,17 @@
     </div>
     
     <script>
-        // Use a single global function without closures for easier access
-        function openPhoneWindow() {
-            // Open in a new window, not tied to this page
+        function openOperationsPhoneWindow() {
             const phoneWindow = window.open(
                 "{{ url_for('operations.phone_interface') }}",
-                "LOS_Phone_Window", // Use a consistent name but with _blank behavior
+                "LOS_Operations_Phone_Window", // Use distinct name for operations
                 "width=320,height=500,resizable=yes,top=100,left=100,menubar=no,toolbar=no,location=no,status=no,titlebar=yes"
             );
-            
-            // Focus the window
-            if (phoneWindow) {
-                phoneWindow.focus();
-            }
+            if (phoneWindow) phoneWindow.focus();
         }
-        
-        // Set up the button click handler
         document.addEventListener('DOMContentLoaded', function() {
-            document.getElementById('open-phone-btn').addEventListener('click', openPhoneWindow);
+            const opsPhoneBtn = document.getElementById('open-phone-btn');
+            if (opsPhoneBtn) opsPhoneBtn.addEventListener('click', openOperationsPhoneWindow);
         });
     </script>
     {% endif %}

@@ -2,6 +2,7 @@
 
 {% block head %}
 {{ super() }}
+<!-- THIS IS CRM LAYOUT HEAD BLOCK --> {# Add verification comment #}
 {# Basic CSS for the floating button - consider moving to a CSS file #}
 <style>
   .crm-fab {
@@ -10,10 +11,20 @@
     right: 25px;
     z-index: 1050; /* Ensure it's above most other elements */
   }
+  
+  .popup-alert {
+    position: fixed;
+    bottom: 100px;
+    right: 25px;
+    z-index: 1049;
+    max-width: 300px;
+    display: none;
+  }
 </style>
 {% endblock %}
 
 {% block content %}
+<!-- THIS IS CRM LAYOUT CONTENT BLOCK --> {# Add verification comment #}
 <main class="content">
     {# Topbar is included by base.html #}
     {# Main page content for CRM pages #}
@@ -47,48 +58,87 @@
     {# Footer is included by base.html #}
 </main>
 
+{# {% if current_user.is_authenticated and current_user.sales_profile %} #}
+<!-- Floating Phone Widget Button for CRM -->
+<div id="crm-phone-widget" class="position-fixed bottom-0 end-0 mb-4 me-4" style="z-index: 1040;">
+    <button id="open-crm-phone-btn" class="btn btn-success rounded-circle" style="width: 60px; height: 60px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);" title="Open CRM Phone">
+        <i class="fas fa-headset" style="font-size: 24px;"></i>
+    </button>
+</div>
+
+<!-- Pop-up Blocker Alert -->
+<div id="popup-alert" class="alert alert-warning alert-dismissible fade popup-alert">
+    <strong>Pop-up Blocked!</strong> Please allow pop-ups for the phone system to work.
+    <hr>
+    <p class="mb-0">Look for the pop-up blocker icon in your browser's address bar and click "Allow" to enable the phone system.</p>
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+</div>
+{# {% endif %} #}
 {% endblock %}
 
 {% block extra_js %}
 {{ super() }} {# Include scripts from base.html #}
 
-{% if current_user.is_authenticated and current_user.sales_profile %}
-<!-- Floating Phone Widget Button for CRM -->
-{# Place the button HTML here, before its script #}
-<div id="crm-phone-widget" class="position-fixed bottom-0 end-0 mb-4 me-4" style="z-index: 1040;">
-    <button id="open-crm-phone-btn" class="btn btn-success rounded-circle" style="width: 60px; height: 60px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);" title="Open CRM Phone">
-        <i class="fas fa-headset" style="font-size: 24px;"></i> {# Use a different icon or color if desired #}
-    </button>
-</div>
-
+{# {% if current_user.is_authenticated and current_user.sales_profile %} #} {# Temporarily commented out #}
 <script>
     // JavaScript for the CRM Phone FAB
-    function openCrmPhoneWindow() {
-        const windowFeatures = 'width=320,height=650,resizable=yes,top=100,left=150,menubar=no,toolbar=no,location=no,status=no,titlebar=yes'; // Adjusted width slightly
-        const windowUrl = "{{ url_for('crm.phone_interface') }}"; // Use CRM phone route
-        const windowName = "LOS_CRM_Phone_Window"; // Use a distinct name
-        console.log('Attempting to open CRM phone window:', windowUrl);
-        const phoneWindow = window.open(windowUrl, windowName, windowFeatures);
-        if (phoneWindow) {
-            console.log('CRM Phone window opened successfully.');
-            phoneWindow.focus();
+    console.log('[CRM Phone Widget] Script block started.');
+
+    function showPopupAlert() {
+        console.log('[CRM Phone Widget] showPopupAlert called.');
+        const alert = document.getElementById('popup-alert');
+        if (alert) {
+            alert.classList.add('show');
+            alert.style.display = 'block';
+            setTimeout(() => {
+                alert.classList.remove('show');
+                setTimeout(() => {
+                    alert.style.display = 'none';
+                }, 150);
+            }, 10000);
         } else {
-            console.error('Failed to open CRM phone window. Pop-up blocker likely active.');
-            // Optionally, display a message to the user about pop-up blockers
-            alert('Could not open phone window. Please check your browser\'s pop-up blocker settings.');
+            console.error('[CRM Phone Widget] popup-alert element not found.');
+        }
+    }
+    
+    function openCrmPhoneWindow() {
+        console.log('[CRM Phone Widget] openCrmPhoneWindow function called.');
+        const windowFeatures = 'width=320,height=650,resizable=yes,top=100,left=150,menubar=no,toolbar=no,location=no,status=no,titlebar=yes';
+        const windowUrl = "{{ url_for('crm.phone_interface') }}";
+        const windowName = "LOS_CRM_Phone_Window";
+        console.log('[CRM Phone Widget] Attempting to open window. URL:', windowUrl, 'Name:', windowName, 'Features:', windowFeatures);
+        
+        try {
+            const phoneWindow = window.open(windowUrl, windowName, windowFeatures);
+            if (phoneWindow) {
+                console.log('[CRM Phone Widget] window.open call succeeded. Focusing window.');
+                phoneWindow.focus();
+            } else {
+                console.error('[CRM Phone Widget] window.open call returned null or undefined. Pop-up blocker likely active or other restriction.');
+                showPopupAlert();
+            }
+        } catch (e) {
+            console.error('[CRM Phone Widget] Error during window.open call:', e);
+            showPopupAlert(); // Show alert on error too
         }
     }
     
     document.addEventListener('DOMContentLoaded', function() {
+        console.log('[CRM Phone Widget] DOMContentLoaded event fired.');
         const crmPhoneBtn = document.getElementById('open-crm-phone-btn');
         if (crmPhoneBtn) {
-             console.log('Attaching click listener to CRM phone button.');
-             crmPhoneBtn.addEventListener('click', openCrmPhoneWindow);
+             console.log('[CRM Phone Widget] Found button #open-crm-phone-btn. Attaching click listener.');
+             crmPhoneBtn.addEventListener('click', function(event) {
+                console.log('[CRM Phone Widget] #open-crm-phone-btn clicked. Event:', event);
+                openCrmPhoneWindow();
+             });
+             console.log('[CRM Phone Widget] Click listener attached to #open-crm-phone-btn.');
         } else {
-             console.error('CRM phone button (open-crm-phone-btn) not found.');
+             console.error('[CRM Phone Widget] Button #open-crm-phone-btn NOT found.');
         }
+        console.log('[CRM Phone Widget] DOMContentLoaded handler finished.');
     });
+    console.log('[CRM Phone Widget] Script block finished parsing.');
 </script>
-{% endif %}
-
+{# {% endif %} #} {# Temporarily commented out #}
 {% endblock %} 
