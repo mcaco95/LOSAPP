@@ -1,0 +1,6 @@
+Account Name,Email,Phone Number,Website,Industry,Street Address,City,State/Province,ZIP/Postal Code,Country,Custom Data
+Innovate Corp,contact@innovatecorp.com,555-0201,http://innovatecorp.com,Technology,"123 Innovation Dr","Techville","CA","90210","USA","{""employees"": 250, ""founded"": 2010}"
+Tech Solutions Inc,info@techsolutions.com,555-0202,http://techsolutions.com,Software,"456 Circuit Ave","Server City","TX","75001","USA","Client since 2018"
+Global Enterprises,support@globalenterprises.net,555-0203,http://globalenterprises.net,Manufacturing,"789 Factory Rd","Industry Park","IL","60607","USA","{""revenue"": ""10M"", ""priority"": ""High""}"
+Data Systems LLC,admin@datasystems.llc,555-0204,https://datasystems.llc,IT Services,"101 Data Way","Info Town","NY","10001","USA","Service Level: Gold"
+Future Ventures,hello@futureventures.xyz,555-0205,http://futureventures.xyz,Finance,"202 Capital St","Moneyville","FL","33101","USA","Investment Focus: SaaS" 

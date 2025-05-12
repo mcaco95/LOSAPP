@@ -1,0 +1,2058 @@
+{% extends "landing/base_landing.html" %}
+
+{% block title %}Welcome to Logistics One Source{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+<style>
+    :root {
+        --los-red: #C41E3A;
+        --los-blue: #1B365D;
+        --los-light-blue: #2B4C7E;
+        --transition-ease: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    /* Enhanced Hero Section */
+    .hero-section {
+        position: relative;
+        color: white;
+        padding: 160px 0 200px;
+        overflow: hidden;
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+    }
+
+    .hero-section video {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        z-index: 0;
+    }
+
+    .hero-section::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(135deg, rgba(27, 54, 93, 0.85), rgba(43, 76, 126, 0.85));
+        z-index: 1;
+        pointer-events: none;
+    }
+
+    .hero-watermark {
+        position: absolute;
+        right: 2%;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 55%;
+        height: auto;
+        opacity: 0.15;
+        pointer-events: none;
+        z-index: 2;
+        animation: float 6s ease-in-out infinite;
+    }
+
+    .hero-content {
+        position: relative;
+        z-index: 3;
+        opacity: 0;
+        transform: translateY(30px);
+        animation: fadeInUp 1s ease-out forwards;
+    }
+
+    .hero-content h1 {
+        font-size: 3.5rem;
+        font-weight: 800;
+        line-height: 1.2;
+        margin-bottom: 1.5rem;
+        background: linear-gradient(45deg, #ffffff, #f0f0f0);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .hero-content .lead {
+        font-size: 1.25rem;
+        font-weight: 400;
+        line-height: 1.6;
+        margin-bottom: 2.5rem;
+        opacity: 0.9;
+    }
+
+    .hero-buttons {
+        display: flex;
+        gap: 1rem;
+        opacity: 0;
+        transform: translateY(20px);
+        animation: fadeInUp 1s ease-out 0.3s forwards;
+    }
+
+    .btn-hero {
+        padding: 1rem 2rem;
+        font-weight: 600;
+        border-radius: 50px;
+        transition: var(--transition-ease);
+        position: relative;
+        overflow: hidden;
+        z-index: 1;
+    }
+
+    .btn-hero::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(45deg, var(--los-red), var(--los-light-blue));
+        opacity: 0;
+        z-index: -1;
+        transition: var(--transition-ease);
+    }
+
+    .btn-hero:hover::before {
+        opacity: 1;
+    }
+
+    .btn-hero.btn-light {
+        background: rgba(255, 255, 255, 0.9);
+        color: var(--los-blue);
+        border: none;
+    }
+
+    .btn-hero.btn-light:hover {
+        color: white;
+        transform: translateY(-3px);
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+    }
+
+    .btn-hero.btn-outline-light {
+        border: 2px solid rgba(255, 255, 255, 0.6);
+        background: transparent;
+    }
+
+    .btn-hero.btn-outline-light:hover {
+        background: rgba(255, 255, 255, 0.1);
+        border-color: white;
+        transform: translateY(-3px);
+    }
+
+    .referral-badge {
+        background: linear-gradient(45deg, var(--los-red), #E02D4B);
+        color: white;
+        padding: 0.8rem 1.5rem;
+        border-radius: 50px;
+        display: inline-flex;
+        align-items: center;
+        margin-bottom: 2rem;
+        font-weight: 500;
+        font-size: 0.95rem;
+        box-shadow: 0 4px 15px rgba(196, 30, 58, 0.2);
+        opacity: 0;
+        transform: translateY(-20px);
+        animation: fadeInDown 1s ease-out forwards;
+    }
+
+    .referral-badge i {
+        margin-right: 0.75rem;
+        font-size: 1.1rem;
+    }
+
+    /* Animations */
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @keyframes fadeInDown {
+        from {
+            opacity: 0;
+            transform: translateY(-20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @keyframes float {
+        0%, 100% {
+            transform: translateY(-50%) translateX(0);
+        }
+        50% {
+            transform: translateY(-50%) translateX(-20px);
+        }
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 991.98px) {
+        .hero-section {
+            padding: 120px 0;
+            min-height: auto;
+        }
+
+        .hero-content h1 {
+            font-size: 2.5rem;
+        }
+
+        .hero-watermark {
+            width: 70%;
+            opacity: 0.1;
+        }
+    }
+
+    @media (max-width: 767.98px) {
+        .hero-section {
+            padding: 100px 0;
+            min-height: auto;
+        }
+
+        .hero-content h1 {
+            font-size: 2.2rem;
+            margin-bottom: 1rem;
+        }
+
+        .hero-content .lead {
+            font-size: 1.1rem;
+            margin-bottom: 2rem;
+        }
+
+        .hero-watermark {
+            width: 90%;
+            opacity: 0.08;
+        }
+
+        .hero-buttons {
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .btn-hero {
+            width: 100%;
+            padding: 0.875rem 1.5rem;
+            font-size: 1rem;
+        }
+
+        .btn-hero {
+            width: 100%;
+            margin-bottom: 1rem;
+        }
+    }
+
+    .form-section {
+        background: linear-gradient(135deg, #ffffff, #f8f9fa);
+        border-radius: 30px;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.1);
+        padding: 60px 40px;
+        margin: -60px auto 80px;
+        position: relative;
+        z-index: 2;
+        border: 1px solid rgba(0,0,0,0.05);
+        opacity: 0;
+        transform: translateY(30px);
+        animation: fadeInUp 0.8s ease-out forwards;
+    }
+
+    .form-section::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 6px;
+        background: linear-gradient(90deg, var(--los-red), var(--los-blue));
+        border-radius: 30px 30px 0 0;
+    }
+
+    .form-section .feature-icon {
+        width: 80px;
+        height: 80px;
+        background: linear-gradient(135deg, var(--los-blue), var(--los-light-blue));
+        border-radius: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2rem;
+        color: white;
+        margin-bottom: 1.5rem;
+        transform: rotate(-5deg);
+        transition: transform 0.3s ease;
+    }
+
+    .form-section .feature-icon:hover {
+        transform: rotate(0deg) scale(1.05);
+    }
+
+    .form-section h2 {
+        font-size: 2.5rem;
+        font-weight: 800;
+        margin-bottom: 1rem;
+        background: linear-gradient(45deg, var(--los-blue), var(--los-light-blue));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    .form-section .lead {
+        color: #6c757d;
+        font-size: 1.1rem;
+        margin-bottom: 2.5rem;
+    }
+
+    .form-group {
+        position: relative;
+        margin-bottom: 1.5rem;
+    }
+
+    .form-label {
+        font-weight: 600;
+        color: var(--los-blue);
+        margin-bottom: 0.5rem;
+        display: block;
+        transition: all 0.3s ease;
+    }
+
+    .form-control, .form-select {
+        padding: 0.8rem 1rem;
+        border-radius: 12px;
+        border: 2px solid rgba(0,0,0,0.08);
+        font-size: 1rem;
+        transition: all 0.3s ease;
+        background-color: #fff;
+    }
+
+    .form-control:focus, .form-select:focus {
+        border-color: var(--los-blue);
+        box-shadow: 0 0 0 4px rgba(27, 54, 93, 0.1);
+        transform: translateY(-2px);
+    }
+
+    .form-control:hover, .form-select:hover {
+        border-color: var(--los-light-blue);
+    }
+
+    .form-text {
+        font-size: 0.9rem;
+        color: #6c757d;
+        margin-top: 0.5rem;
+        padding-left: 0.5rem;
+        border-left: 3px solid var(--los-red);
+    }
+
+    .form-text strong {
+        color: var(--los-blue);
+    }
+
+    textarea.form-control {
+        min-height: 120px;
+        resize: vertical;
+    }
+
+    .btn-primary.btn-lg {
+        padding: 1rem 2rem;
+        font-size: 1.1rem;
+        font-weight: 600;
+        border-radius: 15px;
+        background: linear-gradient(45deg, var(--los-blue), var(--los-light-blue));
+        border: none;
+        position: relative;
+        overflow: hidden;
+        transition: all 0.3s ease;
+    }
+
+    .btn-primary.btn-lg::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+        transition: all 0.6s ease;
+    }
+
+    .btn-primary.btn-lg:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 20px rgba(27, 54, 93, 0.2);
+    }
+
+    .btn-primary.btn-lg:hover::before {
+        left: 100%;
+    }
+
+    .success-message {
+        text-align: center;
+        padding: 3rem 2rem;
+    }
+
+    .success-message .feature-icon {
+        margin: 0 auto 2rem;
+        animation: successPop 0.5s ease-out forwards;
+    }
+
+    .success-message h2 {
+        margin-bottom: 1rem;
+        opacity: 0;
+        transform: translateY(20px);
+        animation: fadeInUp 0.5s ease-out 0.3s forwards;
+    }
+
+    .success-message .lead {
+        opacity: 0;
+        transform: translateY(20px);
+        animation: fadeInUp 0.5s ease-out 0.5s forwards;
+    }
+
+    @keyframes successPop {
+        0% {
+            transform: scale(0) rotate(-180deg);
+            opacity: 0;
+        }
+        100% {
+            transform: scale(1) rotate(0deg);
+            opacity: 1;
+        }
+    }
+
+    /* Form validation styles */
+    .form-control.is-invalid {
+        border-color: var(--los-red);
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='none' stroke='%23dc3545' viewBox='0 0 12 12'%3e%3ccircle cx='6' cy='6' r='4.5'/%3e%3cpath stroke-linejoin='round' d='M5.8 3.6h.4L6 6.5z'/%3e%3ccircle cx='6' cy='8.2' r='.6' fill='%23dc3545' stroke='none'/%3e%3c/svg%3e");
+        background-repeat: no-repeat;
+        background-position: right calc(0.375em + 0.1875rem) center;
+        background-size: calc(0.75em + 0.375rem) calc(0.75em + 0.375rem);
+    }
+
+    .invalid-feedback {
+        display: none;
+        color: var(--los-red);
+        font-size: 0.875rem;
+        margin-top: 0.25rem;
+    }
+
+    .form-control.is-invalid ~ .invalid-feedback {
+        display: block;
+    }
+
+    @media (max-width: 768px) {
+    .form-section {
+            padding: 40px 20px;
+            margin: -30px 15px 60px;
+        border-radius: 20px;
+        }
+
+        .form-section h2 {
+            font-size: 2rem;
+        }
+
+        .form-section .lead {
+            font-size: 1rem;
+        }
+
+        .btn-primary.btn-lg {
+            padding: 0.8rem 1.5rem;
+            font-size: 1rem;
+        }
+    }
+
+    .features-section {
+        padding: 100px 0 80px;
+        background: linear-gradient(135deg, #ffffff, #f8f9fa);
+        position: relative;
+    }
+
+    .features-section::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 1px;
+        background: linear-gradient(90deg, 
+            transparent 0%, 
+            rgba(27, 54, 93, 0.1) 50%, 
+            transparent 100%
+        );
+    }
+
+    .features-section .section-title {
+        position: relative;
+        z-index: 2;
+        margin-bottom: 80px;
+    }
+
+    .features-section .section-title h2 {
+        position: relative;
+        display: inline-block;
+        margin-bottom: 1rem;
+    }
+
+    .features-section .section-title h2::after {
+        content: '';
+        position: absolute;
+        left: 50%;
+        bottom: -15px;
+        transform: translateX(-50%);
+        width: 80px;
+        height: 4px;
+        background: linear-gradient(45deg, var(--los-red), var(--los-light-blue));
+        border-radius: 2px;
+    }
+
+    .feature-card {
+        padding: 40px 30px;
+        border-radius: 20px;
+        background: white;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+        margin-bottom: 30px;
+        transition: all 0.5s ease;
+        position: relative;
+        overflow: hidden;
+        border: 1px solid rgba(0,0,0,0.05);
+        opacity: 0;
+        transform: translateY(30px);
+    }
+
+    .feature-card.animate {
+        animation: fadeInUp 0.6s ease-out forwards;
+    }
+
+    .feature-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(135deg, var(--los-blue), var(--los-light-blue));
+        opacity: 0;
+        transition: opacity 0.5s ease;
+        z-index: 1;
+    }
+
+    .feature-card > * {
+        position: relative;
+        z-index: 2;
+    }
+
+    .feature-card:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 20px 40px rgba(27, 54, 93, 0.15);
+    }
+
+    .feature-card:hover::before {
+        opacity: 1;
+    }
+
+    .feature-icon {
+        width: 70px;
+        height: 70px;
+        background: linear-gradient(45deg, var(--los-blue), var(--los-light-blue));
+        border-radius: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 25px;
+        transition: all 0.5s ease;
+        position: relative;
+    }
+
+    .feature-icon::after {
+        content: '';
+        position: absolute;
+        top: -2px;
+        left: -2px;
+        right: -2px;
+        bottom: -2px;
+        background: linear-gradient(135deg, var(--los-red), var(--los-light-blue));
+        border-radius: 20px;
+        z-index: -1;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+
+    .feature-card:hover .feature-icon {
+        transform: scale(1.1) rotate(-5deg);
+        background: white;
+    }
+
+    .feature-card:hover .feature-icon::after {
+        opacity: 1;
+    }
+
+    .feature-icon i {
+        color: white;
+        font-size: 28px;
+        transition: all 0.5s ease;
+    }
+
+    .feature-card:hover .feature-icon i {
+        color: var(--los-blue);
+        transform: scale(1.1);
+    }
+
+    .feature-card h4 {
+        color: var(--los-blue);
+        font-size: 1.4rem;
+        font-weight: 700;
+        margin-bottom: 15px;
+        transition: all 0.3s ease;
+    }
+
+    .feature-card:hover h4 {
+        color: white;
+    }
+
+    .feature-card p {
+        color: #6c757d;
+        font-size: 1rem;
+        line-height: 1.6;
+        margin-bottom: 0;
+        transition: all 0.3s ease;
+    }
+
+    .feature-card:hover p {
+        color: rgba(255, 255, 255, 0.9);
+    }
+
+    .feature-card .learn-more {
+        display: inline-flex;
+        align-items: center;
+        color: var(--los-blue);
+        font-weight: 600;
+        margin-top: 20px;
+        opacity: 0;
+        transform: translateY(10px);
+        transition: all 0.3s ease;
+    }
+
+    .feature-card:hover .learn-more {
+        opacity: 1;
+        transform: translateY(0);
+        color: white;
+    }
+
+    .feature-card .learn-more i {
+        margin-left: 8px;
+        transition: transform 0.3s ease;
+    }
+
+    .feature-card:hover .learn-more:hover i {
+        transform: translateX(5px);
+    }
+
+    @media (max-width: 991.98px) {
+        .features-section {
+            padding: 80px 0;
+        }
+        
+        .feature-card {
+            margin-bottom: 30px;
+        }
+    }
+
+    @media (max-width: 767.98px) {
+        .features-section {
+            padding: 60px 0;
+        }
+        
+        .feature-card {
+            padding: 30px 20px;
+        }
+        
+        .feature-icon {
+            width: 60px;
+            height: 60px;
+        }
+        
+        .feature-icon i {
+        font-size: 24px;
+    }
+
+        .feature-card h4 {
+            font-size: 1.2rem;
+        }
+    }
+
+    /* Enhanced Stats Section */
+    .stats-section {
+        padding: 80px 0;
+        background: linear-gradient(135deg, #ffffff, #f8f9fa);
+        border-bottom: 1px solid rgba(0,0,0,0.05);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .stat-card {
+        text-align: center;
+        padding: 2.5rem 1.5rem;
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+        cursor: pointer;
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    .stat-card.animate {
+        animation: fadeInUp 0.6s ease-out forwards;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 40px rgba(0,0,0,0.1);
+    }
+
+    .stat-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(45deg, var(--los-blue), var(--los-light-blue));
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+
+    .stat-card:hover::before {
+        opacity: 1;
+    }
+
+    .stat-icon {
+        width: 60px;
+        height: 60px;
+        margin: 0 auto 1.5rem;
+        background: linear-gradient(135deg, rgba(27, 54, 93, 0.1), rgba(43, 76, 126, 0.1));
+        border-radius: 15px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        color: var(--los-blue);
+        transition: all 0.3s ease;
+    }
+
+    .stat-card:hover .stat-icon {
+        transform: scale(1.1) rotate(5deg);
+        background: linear-gradient(135deg, var(--los-blue), var(--los-light-blue));
+        color: white;
+    }
+
+    .stat-number {
+        font-size: 3rem;
+        font-weight: 800;
+        background: linear-gradient(45deg, var(--los-blue), var(--los-light-blue));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        margin-bottom: 0.5rem;
+        line-height: 1.2;
+        position: relative;
+        display: inline-block;
+    }
+
+    .stat-number::after {
+        content: '';
+    }
+    
+    .stat-number.percent-suffix::after {
+        content: '%+';
+        font-size: 1.5rem;
+        position: absolute;
+        top: 0;
+        right: -2.5rem;
+        background: linear-gradient(45deg, var(--los-blue), var(--los-light-blue));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+    
+    .stat-number.k-suffix::after {
+        content: 'K+';
+        font-size: 1.5rem;
+        position: absolute;
+        top: 0;
+        right: -2.5rem;
+        background: linear-gradient(45deg, var(--los-blue), var(--los-light-blue));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+    
+    .stat-number.plus-suffix::after {
+        content: '+';
+        font-size: 1.5rem;
+        position: absolute;
+        top: 0;
+        right: -1rem;
+        background: linear-gradient(45deg, var(--los-blue), var(--los-light-blue));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    .stat-label {
+        color: #6c757d;
+        font-weight: 600;
+        font-size: 1.1rem;
+        margin-top: 0.5rem;
+        position: relative;
+    }
+
+    .stat-label::after {
+        content: '';
+        display: block;
+        width: 40px;
+        height: 2px;
+        background: linear-gradient(45deg, var(--los-red), #E02D4B);
+        margin: 0.75rem auto 0;
+        border-radius: 2px;
+        transform: scaleX(0);
+        transition: transform 0.3s ease;
+    }
+
+    .stat-card:hover .stat-label::after {
+        transform: scaleX(1);
+    }
+
+    @media (max-width: 991.98px) {
+        .stat-card {
+            margin-bottom: 2rem;
+        }
+    }
+
+    .video-section {
+        padding: 100px 0;
+        background: linear-gradient(135deg, #f8f9fa, #ffffff);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .video-section::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: linear-gradient(90deg, 
+            transparent 0%, 
+            rgba(196, 30, 58, 0.1) 25%, 
+            rgba(27, 54, 93, 0.1) 75%, 
+            transparent 100%
+        );
+    }
+
+    .video-section .section-title {
+        position: relative;
+        z-index: 2;
+        opacity: 0;
+        transform: translateY(20px);
+        animation: fadeInUp 0.6s ease-out forwards;
+    }
+
+    .video-container {
+        position: relative;
+        width: 100%;
+        max-width: 1000px;
+        margin: 0 auto;
+        padding-bottom: 56.25%;
+        border-radius: 15px;
+        overflow: hidden;
+        box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+        opacity: 0;
+        transform: translateY(30px);
+        animation: fadeInUp 0.8s ease-out 0.2s forwards;
+        background: #000;
+    }
+
+    .video-container iframe {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+
+    .video-container.playing iframe {
+        opacity: 1;
+        z-index: 3;
+    }
+
+    .video-thumbnail {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-size: cover;
+        background-position: center;
+        transition: all 0.5s ease;
+        z-index: 2;
+    }
+
+    .video-container:hover .video-thumbnail {
+        transform: scale(1.05);
+    }
+
+    .play-button {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 90px;
+        height: 90px;
+        background: rgba(255, 255, 255, 0.95);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        z-index: 3;
+        transition: all 0.3s ease;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    }
+
+    .play-button::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(45deg, var(--los-blue), var(--los-light-blue));
+        border-radius: 50%;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+
+    .play-button::after {
+        content: '';
+        width: 0;
+        height: 0;
+        border-style: solid;
+        border-width: 18px 0 18px 32px;
+        border-color: transparent transparent transparent var(--los-blue);
+        margin-left: 7px;
+        position: relative;
+        z-index: 1;
+        transition: all 0.3s ease;
+    }
+
+    .play-button:hover {
+        transform: translate(-50%, -50%) scale(1.1);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
+    }
+
+    .play-button:hover::before {
+        opacity: 1;
+    }
+
+    .play-button:hover::after {
+        border-color: transparent transparent transparent white;
+    }
+
+    .video-container.playing .video-thumbnail,
+    .video-container.playing .play-button {
+        opacity: 0;
+        pointer-events: none;
+    }
+
+    .video-features {
+        display: flex;
+        justify-content: center;
+        gap: 30px;
+        margin-top: 40px;
+        opacity: 0;
+        transform: translateY(20px);
+        animation: fadeInUp 0.6s ease-out 0.4s forwards;
+    }
+
+    .video-feature {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        color: var(--los-blue);
+        font-size: 0.9rem;
+        font-weight: 500;
+    }
+
+    .video-feature i {
+        font-size: 1.2rem;
+        color: var(--los-red);
+    }
+
+    @media (max-width: 768px) {
+        .video-container {
+            margin: 0 -15px;
+            border-radius: 0;
+        }
+        
+        .play-button {
+            width: 70px;
+            height: 70px;
+        }
+        
+        .play-button::after {
+            border-width: 14px 0 14px 24px;
+            margin-left: 5px;
+        }
+    }
+
+    .calendly-inline-widget {
+        height: 700px;
+        margin-top: 20px;
+    }
+
+    /* Enhanced Testimonial Section */
+    .testimonial-section {
+        padding: 100px 0;
+        background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .testimonial-section::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: linear-gradient(90deg, 
+            transparent 0%, 
+            rgba(196, 30, 58, 0.1) 25%, 
+            rgba(27, 54, 93, 0.1) 75%, 
+            transparent 100%
+        );
+    }
+
+    .testimonial-section .section-title {
+        position: relative;
+        margin-bottom: 3rem;
+    }
+
+    .testimonial-section .section-title h2 {
+        margin-bottom: 1rem;
+    }
+
+    .testimonial-card {
+        background: white;
+        padding: 2.5rem;
+        border-radius: 20px;
+        margin: 20px 0;
+        position: relative;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+        transition: all 0.3s ease;
+        opacity: 0;
+        transform: translateY(30px);
+        height: calc(100% - 40px); /* Account for margin */
+        display: flex;
+        flex-direction: column;
+    }
+
+    .testimonial-card.animate {
+        animation: fadeInUp 0.6s ease-out forwards;
+    }
+
+    .testimonial-card:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+    }
+
+    .testimonial-card::before {
+        content: '"';
+        position: absolute;
+        top: -20px;
+        left: 40px;
+        font-size: 120px;
+        font-family: Georgia, serif;
+        color: var(--los-red);
+        opacity: 0.1;
+        transition: all 0.3s ease;
+        line-height: 1;
+    }
+
+    .testimonial-card:hover::before {
+        transform: translateY(-10px) rotate(-10deg);
+        opacity: 0.15;
+    }
+
+    .testimonial-content {
+        position: relative;
+        font-size: 1.1rem;
+        line-height: 1.8;
+        color: #4a5568;
+        margin-bottom: 2rem;
+        flex-grow: 1; /* Allow content to expand */
+    }
+
+    .client-info {
+        display: flex;
+        align-items: center;
+        margin-top: auto; /* Push to bottom */
+        position: relative;
+        padding-top: 20px;
+    }
+
+    .client-info::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 50px;
+        height: 3px;
+        background: linear-gradient(45deg, var(--los-red), var(--los-light-blue));
+        border-radius: 2px;
+    }
+
+    .client-image {
+        width: 64px;
+        height: 64px;
+        border-radius: 16px;
+        margin-right: 20px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        transition: all 0.3s ease;
+        object-fit: cover;
+        background: linear-gradient(135deg, var(--los-blue), var(--los-light-blue));
+        border: 3px solid white;
+    }
+
+    .testimonial-card:hover .client-image {
+        transform: scale(1.1) rotate(-5deg);
+        box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+    }
+
+    .client-details {
+        flex-grow: 1;
+    }
+
+    .client-details h5 {
+        color: var(--los-blue);
+        font-size: 1.2rem;
+        font-weight: 700;
+        margin-bottom: 5px;
+    }
+
+    .client-details small {
+        color: #6c757d;
+        font-size: 0.9rem;
+        font-weight: 500;
+        display: block;
+        line-height: 1.4;
+    }
+
+    .testimonial-rating {
+        display: flex;
+        align-items: center;
+        margin-bottom: 1.5rem;
+        gap: 4px;
+    }
+
+    .testimonial-rating i {
+        color: #ffd700;
+        font-size: 1.2rem;
+        filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
+    }
+
+    @media (max-width: 768px) {
+        .testimonial-card {
+            padding: 2rem;
+            margin: 15px 0;
+            height: auto;
+        }
+
+        .testimonial-content {
+            font-size: 1rem;
+        }
+
+        .testimonial-card::before {
+            font-size: 100px;
+            top: -15px;
+            left: 20px;
+        }
+
+        .client-image {
+            width: 56px;
+            height: 56px;
+            border-radius: 14px;
+        }
+    }
+
+    /* Key Features Section Styles */
+    .key-features-section {
+        padding: 80px 0;
+        background: #f8f9fa;
+        position: relative;
+        margin-top: 0;
+    }
+
+    .key-features-section::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 1px;
+        background: linear-gradient(90deg, 
+            transparent 0%, 
+            rgba(27, 54, 93, 0.1) 50%, 
+            transparent 100%
+        );
+    }
+
+    .key-features-card {
+        height: 100%;
+        padding: 40px;
+        border-radius: 15px;
+        position: relative;
+        overflow: hidden;
+        border: 1px solid rgba(255,255,255,0.1);
+        opacity: 0;
+        transform: translateY(30px);
+        transition: all 0.5s ease;
+    }
+
+    .key-features-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(135deg, rgba(27, 54, 93, 0.98), rgba(43, 76, 126, 0.98));
+        z-index: 1;
+    }
+
+    .key-features-card > * {
+        position: relative;
+        z-index: 2;
+    }
+
+    .feature-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .feature-list li {
+        margin-bottom: 25px;
+    }
+
+    .feature-list li:last-child {
+        margin-bottom: 0;
+    }
+
+    .feature-list h4 {
+        color: white;
+        font-size: 1.1rem;
+        font-weight: 600;
+        margin-bottom: 5px;
+    }
+
+    .feature-list p {
+        color: rgba(255,255,255,0.8);
+        font-size: 0.95rem;
+        margin: 0;
+    }
+
+    .safety-card::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        width: 30%;
+        background: url('{{ url_for('static', filename='img/safety-pattern.png') }}') no-repeat center right;
+        background-size: cover;
+        opacity: 0.1;
+        z-index: 1;
+    }
+
+    .recruiting-card::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        width: 30%;
+        background: url('{{ url_for('static', filename='img/recruiting-pattern.png') }}') no-repeat center right;
+        background-size: cover;
+        opacity: 0.1;
+        z-index: 1;
+    }
+
+    @media (max-width: 991.98px) {
+        .key-features-card {
+            margin-bottom: 30px;
+        }
+    }
+
+    /* Add this after the existing root variables in the style block */
+    .section-title-unified {
+        position: relative;
+        margin-bottom: 3rem;
+        text-align: center;
+    }
+
+    .section-title-unified h2 {
+        font-size: 2.5rem;
+        font-weight: 800;
+        margin-bottom: 2.5rem;
+        background: linear-gradient(45deg, var(--los-blue), var(--los-light-blue));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        position: relative;
+        display: inline-block;
+    }
+
+    .section-title-unified h2::after {
+        content: '';
+        position: absolute;
+        left: 50%;
+        bottom: -15px;
+        transform: translateX(-50%);
+        width: 80px;
+        height: 4px;
+        background: linear-gradient(45deg, var(--los-red), var(--los-light-blue));
+        border-radius: 2px;
+    }
+
+    .section-title-unified .lead {
+        color: #6c757d;
+        margin-top: 0;
+        font-size: 1.1rem;
+    }
+
+    .key-features-card {
+        opacity: 0;
+        transform: translateY(30px);
+        transition: all 0.5s ease;
+    }
+
+    .key-features-card.animate {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    .video-container {
+        opacity: 0;
+        transform: translateY(30px);
+        transition: all 0.6s ease;
+    }
+
+    .video-container.animate {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    .video-features {
+        opacity: 0;
+        transform: translateY(20px);
+        transition: all 0.5s ease;
+        transition-delay: 0.3s;
+    }
+
+    .video-features.animate {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    .form-section {
+        opacity: 0;
+        transform: translateY(30px);
+        transition: all 0.6s ease;
+    }
+
+    .form-section.animate {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    /* Mobile Optimization Updates */
+    @media (max-width: 767.98px) {
+        .features-section,
+        .key-features-section {
+            padding: 60px 0;
+        }
+
+        .form-section-wrapper {
+            padding: 40px 0;
+        }
+
+        .form-section {
+            margin: 0 15px;
+        }
+    }
+
+    /* Additional tablet optimizations */
+    @media (min-width: 768px) and (max-width: 991.98px) {
+        .hero-content h1 {
+            font-size: 2.8rem;
+        }
+
+        .stat-card {
+            margin-bottom: 2rem;
+        }
+
+        .feature-card {
+            margin-bottom: 30px;
+        }
+
+        .key-features-card {
+            margin-bottom: 30px;
+        }
+    }
+
+    /* Touch device optimizations */
+    @media (hover: none) {
+        .feature-card:hover,
+        .stat-card:hover,
+        .testimonial-card:hover {
+            transform: none;
+        }
+
+        .btn-hero:active,
+        .feature-card:active,
+        .stat-card:active {
+            transform: scale(0.98);
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Enhanced Hero Section -->
+<section class="hero-section">
+    <video autoplay muted loop playsinline>
+        <source src="{{ url_for('static', filename='video/hero-background.mp4') }}" type="video/mp4">
+    </video>
+    <img src="{{ url_for('static', filename='img/LOS_watermark_red.png') }}" alt="" class="hero-watermark">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-7 hero-content">
+                {% if partner_name %}
+                <div class="referral-badge">
+                    <i class="fas fa-user-check"></i>
+                    <span>Referred by {{ partner_name }}</span>
+                </div>
+                {% endif %}
+                <h1 class="mb-4">Transform Your Logistics Experience</h1>
+                <p class="lead mb-4">Join the future of logistics management with industry-leading solutions tailored for your business.</p>
+                <div class="hero-buttons">
+                    <a href="#schedule-demo" class="btn btn-hero btn-light btn-lg">
+                        <i class="fas fa-calendar-check me-2"></i>
+                        Schedule Demo
+                    </a>
+                    <a href="#learn-more" class="btn btn-hero btn-outline-light btn-lg">
+                        <i class="fas fa-arrow-right me-2"></i>
+                        Learn More
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Enhanced Stats Section -->
+<section class="stats-section">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-3">
+                <div class="stat-card" data-animation-delay="0">
+                    <div class="stat-icon">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <div class="stat-number percent-suffix" data-count="24">0</div>
+                    <div class="stat-label">HOS Violation Reduction</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-card" data-animation-delay="200">
+                    <div class="stat-icon">
+                        <i class="fas fa-tachometer-alt"></i>
+                    </div>
+                    <div class="stat-number k-suffix" data-count="31">0</div>
+                    <div class="stat-label">Telematics Events Monthly</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-card" data-animation-delay="400">
+                    <div class="stat-icon">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <div class="stat-number plus-suffix" data-count="86">0</div>
+                    <div class="stat-label">Drivers Recruited Monthly</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-card" data-animation-delay="600">
+                    <div class="stat-icon">
+                        <i class="fas fa-award"></i>
+                    </div>
+                    <div class="stat-number plus-suffix" data-count="16">0</div>
+                    <div class="stat-label">Years Combined Experience</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Video Section -->
+<section class="video-section">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-10 text-center">
+                <div class="section-title section-title-unified">
+                    <h2>See How We're Revolutionizing Logistics</h2>
+                    <p class="lead">Our platform streamlines your entire logistics operation, from start to finish</p>
+                </div>
+                <div class="video-container">
+                    <div class="video-thumbnail" style="background-image: url('https://img.youtube.com/vi/qpXVN39HnCE/maxresdefault.jpg');"></div>
+                    <div class="play-button" onclick="playVideo(this)"></div>
+                    <iframe 
+                        id="video-player"
+                        src="https://www.youtube.com/embed/qpXVN39HnCE?rel=0&showinfo=0&autoplay=0" 
+                        title="Logistics One Source Overview"
+                        frameborder="0" 
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                        allowfullscreen>
+                    </iframe>
+                </div>
+                <div class="video-features">
+                    <div class="video-feature">
+                        <i class="fas fa-clock"></i>
+                        <span>2-Minute Overview</span>
+            </div>
+                    <div class="video-feature">
+                        <i class="fas fa-chart-bar"></i>
+                        <span>Real Results Showcase</span>
+                    </div>
+                    <div class="video-feature">
+                        <i class="fas fa-shield-alt"></i>
+                        <span>Success Stories</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Why Choose Logistics One Source Section -->
+<section class="features-section" id="learn-more">
+    <div class="container">
+        <div class="row">
+            <div class="col-12 text-center section-title section-title-unified">
+                <h2>Why Choose Logistics One Source?</h2>
+                <p class="lead text-muted">Experience the difference with our comprehensive logistics solutions</p>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-4">
+                <div class="feature-card" data-animation-delay="0">
+                    <div class="feature-icon">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <h4>Industry Expertise</h4>
+                    <p>Benefit from our years of experience and deep industry knowledge in logistics management.</p>
+                    <a href="#schedule-demo" class="learn-more">
+                        Learn More <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="feature-card" data-animation-delay="200">
+                    <div class="feature-icon">
+                        <i class="fas fa-cogs"></i>
+                    </div>
+                    <h4>Custom Solutions</h4>
+                    <p>Tailored logistics solutions designed specifically for your business needs and goals.</p>
+                    <a href="#schedule-demo" class="learn-more">
+                        Learn More <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="feature-card" data-animation-delay="400">
+                    <div class="feature-icon">
+                        <i class="fas fa-headset"></i>
+                    </div>
+                    <h4>24/7 Support</h4>
+                    <p>Round-the-clock support to ensure your operations run smoothly at all times.</p>
+                    <a href="#schedule-demo" class="learn-more">
+                        Learn More <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Our Services Section -->
+<section class="key-features-section">
+    <div class="container">
+        <div class="row">
+            <div class="col-12 text-center section-title section-title-unified mb-5">
+                <h2>Comprehensive Logistics Solutions</h2>
+                <p class="lead text-muted">Streamline your operations with our specialized safety and recruitment services</p>
+            </div>
+        </div>
+        <div class="row justify-content-center">
+            <div class="col-lg-6 mb-4">
+                <div class="key-features-card safety-card">
+                    <h3 class="text-white mb-4 section-title-unified">Safety Service Features</h3>
+                    <ul class="feature-list">
+                        <li>
+                            <h4>Comprehensive Safety Management</h4>
+                            <p>Complete DOT compliance and safety program implementation.</p>
+                        </li>
+                        <li>
+                            <h4>Real-Time Monitoring</h4>
+                            <p>24/7 fleet safety tracking and incident response system.</p>
+                        </li>
+                        <li>
+                            <h4>Compliance Documentation</h4>
+                            <p>Automated FMCSA documentation and record keeping.</p>
+                        </li>
+                        <li>
+                            <h4>Driver Training Programs</h4>
+                            <p>Customized safety training and certification tracking.</p>
+                        </li>
+                        <li>
+                            <h4>Risk Management</h4>
+                            <p>Proactive risk assessment and mitigation strategies.</p>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            <div class="col-lg-6 mb-4">
+                <div class="key-features-card recruiting-card">
+                    <h3 class="text-white mb-4 section-title-unified">Recruiting Service Features</h3>
+                    <ul class="feature-list">
+                        <li>
+                            <h4>Proven Recruiting Strategies</h4>
+                            <p>Effective methods to source, screen, and hire qualified drivers.</p>
+                        </li>
+                        <li>
+                            <h4>Custom Candidate Screening</h4>
+                            <p>Tailored evaluations to match your unique fleet needs.</p>
+                        </li>
+                        <li>
+                            <h4>Streamlined Onboarding</h4>
+                            <p>Simplified processes to get new drivers on the road quickly.</p>
+                        </li>
+                        <li>
+                            <h4>Retention Programs</h4>
+                            <p>Strategies to reduce turnover and keep your best drivers engaged.</p>
+                        </li>
+                        <li>
+                            <h4>Data-Driven Insights</h4>
+                            <p>Advanced analytics to improve recruiting efforts and outcomes.</p>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Form Section -->
+<section class="form-section-wrapper py-5">
+<div class="container" id="schedule-demo">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="form-section">
+                {% if form_submitted %}
+                    <div class="success-message">
+                        <div class="feature-icon">
+                        <i class="fas fa-check"></i>
+                    </div>
+                    <h2>Thank You!</h2>
+                        <p class="lead">We've received your information and will contact you shortly to discuss how we can help transform your logistics operations.</p>
+                </div>
+                {% else %}
+                    <div class="text-center mb-5 section-title-unified">
+                    <h2>Get Started Today</h2>
+                        <p class="lead">Take the first step towards optimizing your logistics operations. Our experts are ready to help.</p>
+                </div>
+
+                    <form action="{{ url_for('referrals.submit_lead_form') }}" method="post" class="needs-validation" novalidate>
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <input type="hidden" name="partner_id" value="{{ partner_id }}">
+                    
+                    <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group mb-4">
+                            <label class="form-label">Company Name *</label>
+                            <input type="text" class="form-control" name="company_name" required>
+                                    <div class="invalid-feedback">Please provide your company name.</div>
+                                </div>
+                        </div>
+                        
+                            <div class="col-md-6">
+                                <div class="form-group mb-4">
+                            <label class="form-label">Contact Name *</label>
+                            <input type="text" class="form-control" name="contact_name" required>
+                                    <div class="invalid-feedback">Please provide your name.</div>
+                                </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group mb-4">
+                            <label class="form-label">Email Address *</label>
+                            <input type="email" class="form-control" name="email" required>
+                                    <div class="invalid-feedback">Please provide a valid email address.</div>
+                                </div>
+                        </div>
+                        
+                            <div class="col-md-6">
+                                <div class="form-group mb-4">
+                            <label class="form-label">Phone Number</label>
+                                    <input type="tel" class="form-control" name="phone" pattern="[0-9]{10}">
+                                    <div class="invalid-feedback">Please provide a valid 10-digit phone number.</div>
+                                </div>
+                        </div>
+                    </div>
+
+                        <div class="form-group mb-4">
+                        <label class="form-label">Service Interest *</label>
+                        <select class="form-select" name="service_interest" required>
+                            <option value="" selected disabled>Select a service</option>
+                            <option value="safety">Safety Service</option>
+                            <option value="recruitment">Recruitment Service</option>
+                            <option value="both">Safety & Recruitment Services</option>
+                        </select>
+                        <div class="form-text">
+                            <strong>Safety Service:</strong> Comprehensive safety management and compliance.<br>
+                            <strong>Recruitment Service:</strong> Tailored recruitment solutions for your needs.<br>
+                            <strong>Both Services:</strong> Complete safety and recruitment package with integrated management.
+                        </div>
+                            <div class="invalid-feedback">Please select a service.</div>
+                    </div>
+
+                        <div class="form-group mb-4">
+                        <label class="form-label">Additional Information</label>
+                            <textarea class="form-control" name="message" rows="4" placeholder="Tell us about your specific needs or challenges..."></textarea>
+                    </div>
+
+                        <div class="form-group mb-5">
+                        <label class="form-label">Preferred Contact Time</label>
+                        <select class="form-select" name="preferred_contact_time">
+                            <option value="morning">Morning (9am - 12pm)</option>
+                            <option value="afternoon">Afternoon (12pm - 5pm)</option>
+                            <option value="evening">Evening (5pm - 8pm)</option>
+                        </select>
+                    </div>
+
+                    <div class="d-grid">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                Get Started
+                            </button>
+                    </div>
+                </form>
+                {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Testimonial Section -->
+<section class="testimonial-section">
+    <div class="container">
+        <div class="row">
+            <div class="col-12 text-center section-title section-title-unified">
+                <h2>What Our Clients Say</h2>
+                <p class="lead text-muted">Real stories from businesses we've helped transform</p>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-6">
+                <div class="testimonial-card" data-animation-delay="0">
+                    <div class="testimonial-rating">
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                    </div>
+                    <div class="testimonial-content">
+                        "One of the most valuable aspects of partnering with Logistics One Source is their consistent communication and round-the-clock support, which significantly enhance our operations. By utilizing Truck Traffic Control, we have improved our safety management processes. Their dedication to our business is noticeable, reassuring us that we have the necessary support to succeed."
+                    </div>
+                    <div class="client-info">
+                        <img src="{{ url_for('static', filename='assets/img/client1.png') }}" alt="Client" class="client-image">
+                        <div class="client-details">
+                            <h5>Happy Malesaria</h5>
+                            <small>Quantum Freight, LLC</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="testimonial-card" data-animation-delay="200">
+                    <div class="testimonial-rating">
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                    </div>
+                    <div class="testimonial-content">
+                        "Working with Logistics One Source has been a great experience. Their team is knowledgeable, responsive, and always ready to help. From compliance support to safety guidance, they've made sure we stay on track and avoid issues. We appreciate their commitment to our success and highly recommend them to other trucking companies looking for reliable support."
+                    </div>
+                    <div class="client-info">
+                        <img src="{{ url_for('static', filename='assets/img/client2.png') }}" alt="Client" class="client-image">
+                        <div class="client-details">
+                            <h5>David Rivas</h5>
+                            <small>E & R Transportation, Inc</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/js/all.min.js" integrity="sha512-GWzVrcGlo0TxTjXwZYf52Rq6SUsKTqZMhm+4HqmgLGVdXaJj8ytraLC3WtRXAGGlq0AYEKwqnfG4K0L5RrF7A==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script>
+    // Enhanced stats animation
+    function animateStats() {
+        const stats = document.querySelectorAll('.stat-number');
+        stats.forEach(stat => {
+            const target = parseInt(stat.getAttribute('data-count'));
+            let current = 0;
+            const duration = 2000; // 2 seconds
+            const increment = target / (duration / 16); // 60fps
+            const easeOutQuad = t => t * (2 - t);
+            let startTime;
+
+            function updateNumber(currentTime) {
+                if (!startTime) startTime = currentTime;
+                const progress = (currentTime - startTime) / duration;
+
+                if (progress < 1) {
+                    current = target * easeOutQuad(progress);
+                stat.textContent = Math.round(current);
+                    requestAnimationFrame(updateNumber);
+                } else {
+                    stat.textContent = target;
+                }
+            }
+
+            requestAnimationFrame(updateNumber);
+        });
+    }
+
+    // Animate stats cards on scroll
+    const statsObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                const card = entry.target;
+                const delay = card.getAttribute('data-animation-delay');
+                setTimeout(() => {
+                    card.classList.add('animate');
+                    if (delay === '600') { // Last card
+                        setTimeout(animateStats, 800);
+                    }
+                }, delay);
+            } else {
+                const card = entry.target;
+                card.classList.remove('animate');
+            }
+        });
+    }, { threshold: 0.2 });
+
+    document.querySelectorAll('.stat-card').forEach(card => {
+        statsObserver.observe(card);
+    });
+
+    // Smooth scroll for anchor links
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function (e) {
+            e.preventDefault();
+            const target = document.querySelector(this.getAttribute('href'));
+            if (target) {
+                window.scrollTo({
+                    top: target.offsetTop - 80,
+                    behavior: 'smooth'
+                });
+            }
+        });
+    });
+
+    // Parallax effect for hero watermark
+    window.addEventListener('scroll', () => {
+        const watermark = document.querySelector('.hero-watermark');
+        const scrolled = window.pageYOffset;
+        watermark.style.transform = `translateY(calc(-50% + ${scrolled * 0.4}px))`;
+    });
+
+    // Add animation class when elements come into view
+    const observerOptions = {
+        root: null,
+        rootMargin: '0px',
+        threshold: 0.1
+    };
+
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('animate');
+            } else {
+                entry.target.classList.remove('animate');
+            }
+        });
+    }, observerOptions);
+
+    document.querySelectorAll('.hero-content, .hero-buttons').forEach(el => {
+        observer.observe(el);
+    });
+
+    // Video player functionality
+    function playVideo(playButton) {
+        const videoContainer = playButton.closest('.video-container');
+        const iframe = videoContainer.querySelector('iframe');
+        
+        // Add playing class to container
+        videoContainer.classList.add('playing');
+        
+        // Add autoplay parameter to URL and start video
+        const videoSrc = iframe.src;
+        iframe.src = videoSrc.replace('autoplay=0', 'autoplay=1');
+    }
+
+    // Parallax effect for video section
+    window.addEventListener('scroll', () => {
+        const videoSection = document.querySelector('.video-section');
+        const scrolled = window.pageYOffset;
+        const rate = scrolled * 0.2;
+        
+        if (videoSection) {
+            videoSection.style.backgroundPosition = `center ${rate}px`;
+        }
+    });
+
+    // Animate feature cards on scroll
+    const featureObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                const card = entry.target;
+                const delay = card.getAttribute('data-animation-delay');
+                setTimeout(() => {
+                    card.classList.add('animate');
+                }, delay);
+            } else {
+                const card = entry.target;
+                card.classList.remove('animate');
+            }
+        });
+    }, { threshold: 0.2 });
+
+    document.querySelectorAll('.feature-card').forEach(card => {
+        featureObserver.observe(card);
+    });
+
+    // Form validation
+    (function() {
+        'use strict';
+        window.addEventListener('load', function() {
+            var forms = document.getElementsByClassName('needs-validation');
+            var validation = Array.prototype.filter.call(forms, function(form) {
+                form.addEventListener('submit', function(event) {
+                    if (form.checkValidity() === false) {
+                        event.preventDefault();
+                        event.stopPropagation();
+                    }
+                    form.classList.add('was-validated');
+                }, false);
+            });
+        }, false);
+    })();
+
+    // Animate testimonial cards on scroll
+    const testimonialObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                const card = entry.target;
+                const delay = card.getAttribute('data-animation-delay');
+                setTimeout(() => {
+                    card.classList.add('animate');
+                }, delay);
+            } else {
+                const card = entry.target;
+                card.classList.remove('animate');
+            }
+        });
+    }, { threshold: 0.2 });
+
+    document.querySelectorAll('.testimonial-card').forEach(card => {
+        testimonialObserver.observe(card);
+    });
+
+    // Animate video section
+    const videoObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('animate');
+            } else {
+                entry.target.classList.remove('animate');
+            }
+        });
+    }, { threshold: 0.2 });
+
+    document.querySelectorAll('.video-container, .video-features').forEach(el => {
+        videoObserver.observe(el);
+    });
+
+    // Animate service cards
+    const serviceObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                const card = entry.target;
+                setTimeout(() => {
+                    card.classList.add('animate');
+                }, 200);
+            } else {
+                const card = entry.target;
+                card.classList.remove('animate');
+            }
+        });
+    }, { threshold: 0.2 });
+
+    document.querySelectorAll('.key-features-card').forEach(card => {
+        serviceObserver.observe(card);
+    });
+
+    // Animate form section
+    const formObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('animate');
+            } else {
+                entry.target.classList.remove('animate');
+            }
+        });
+    }, { threshold: 0.2 });
+
+    document.querySelectorAll('.form-section').forEach(form => {
+        formObserver.observe(form);
+    });
+</script>
+{% endblock %} 

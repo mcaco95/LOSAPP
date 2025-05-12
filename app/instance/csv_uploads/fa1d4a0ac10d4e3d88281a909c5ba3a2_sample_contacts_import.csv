@@ -1,0 +1,8 @@
+First Name,Last Name,Email,Phone Number,Job Title,Status,Source,Account Name (for linking),Custom Data
+John,Doe,john.doe@example.com,555-0101,Sales Manager,Lead,Website,"Innovate Corp","{""lead_score"": 85, ""region"": ""North""}"
+Jane,Smith,jane.smith@example.net,555-0102,Marketing Head,Contacted,Referral,"Tech Solutions Inc","Preferred contact method: Email"
+Alice,Brown,alice.brown@company.com,555-0103,Developer,Qualified,Cold Call,,"Social Media: @aliceb"
+Robert,Jones,rob.jones@example.org,555-0104,CEO,Customer,Partner,"Innovate Corp","VIP Client"
+Maria,Garcia,maria.g@email.provider,555-0105,Account Executive,Lead,Advertisement,"Global Enterprises","Notes: Follow up next week"
+Charles,Davis,charlie.d@workplace.io,555-0106,Support Specialist,Lost,Other,"Tech Solutions Inc","Reason: Budget constraints"
+Emily,Wilson,em.wilson@personal.co,555-0107,Project Manager,Lead,Website,,"Interested in Product X" 

@@ -1,0 +1,75 @@
+{% extends 'base.html' %}
+{% block title %}Dashboard{% endblock %}
+
+{% block head %}
+<!-- Chartist.js and plugins -->
+<link rel="stylesheet" href="{{ url_for('static', filename='vendor/chartist/chartist.min.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='vendor/chartist/chartist-plugin-tooltip.css') }}">
+<style>
+    /* Chart specific styling */
+    .ct-chart-points {
+        position: relative;
+        min-height: 350px;
+    }
+    
+    .chart-tooltip {
+        background: #fff;
+        padding: 5px 10px;
+        box-shadow: 0 3px 8px rgba(0,0,0,0.2);
+        border-radius: 4px;
+        font-weight: 600;
+        font-size: 12px;
+    }
+    
+    .points-trend-chart {
+        position: relative;
+    }
+    
+    .chart-loading {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background: rgba(255,255,255,0.7);
+        z-index: 10;
+    }
+    
+    /* Active state for period buttons */
+    .btn-group .btn.active {
+        background-color: #4285f4;
+        border-color: #4285f4;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Points History Chart Section -->
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-header bg-white border-0 d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">
+            <i class="fas fa-chart-line me-2 text-primary"></i> Points History
+        </h5>
+        <div class="btn-group" role="group">
+            <button type="button" class="btn btn-sm btn-dark" data-period="week">Week</button>
+            <button type="button" class="btn btn-sm btn-dark active" data-period="month">Month</button>
+            <button type="button" class="btn btn-sm btn-dark" data-period="year">Year</button>
+        </div>
+    </div>
+    <div class="card-body p-0">
+        <div class="p-4 points-trend-chart">
+            <div class="ct-chart-points" style="height: 350px;"></div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='vendor/chartist/chartist.min.js') }}"></script>
+<script src="{{ url_for('static', filename='vendor/chartist/chartist-plugin-tooltip.min.js') }}"></script>
+<script src="{{ url_for('static', filename='vendor/chartist/chartist-plugin-pointlabels.min.js') }}"></script>
+<script src="{{ url_for('static', filename='js/points-rewards.js') }}"></script>
+{% endblock %} 

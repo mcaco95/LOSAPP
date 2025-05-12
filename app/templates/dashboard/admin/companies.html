@@ -1,0 +1,1255 @@
+{% extends "base.html" %}
+
+{% block title %}Manage Companies - Admin{% endblock %}
+
+{% block extra_css %}
+<style>
+    .status-badge {
+        padding: 6px 12px;
+        border-radius: 30px;
+        font-size: 0.85rem;
+        font-weight: 500;
+    }
+    .status-lead { background-color: #e9f5ff; color: #0d6efd; }
+    .status-demo_scheduled { background-color: #fff3cd; color: #fd7e14; }
+    .status-demo_completed { background-color: #e9f7ef; color: #28a745; }
+    .status-client_signed { background-color: #d1e7dd; color: #198754; }
+    .status-renewed { background-color: #cff4fc; color: #0dcaf0; }
+    .status-upgraded { background-color: #f8d7da; color: #dc3545; }
+    
+    .company-avatar {
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+        color: white;
+        border-radius: 8px;
+    }
+    
+    .timeline {
+        position: relative;
+        padding-left: 30px;
+    }
+    
+    .timeline::before {
+        content: '';
+        position: absolute;
+        left: 10px;
+        top: 0;
+        bottom: 0;
+        width: 2px;
+        background: #e9ecef;
+    }
+    
+    .timeline-item {
+        position: relative;
+        padding-bottom: 15px;
+    }
+    
+    .timeline-item::before {
+        content: '';
+        position: absolute;
+        left: -30px;
+        top: 0;
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background: #0d6efd;
+    }
+    
+    .timeline-date {
+        font-size: 0.8rem;
+        color: #6c757d;
+    }
+    
+    .timeline-content {
+        padding: 10px 15px;
+        background: #f8f9fa;
+        border-radius: 8px;
+    }
+    
+    .filter-card {
+        background: #f8f9fa;
+        border-radius: 10px;
+        padding: 20px;
+        margin-bottom: 20px;
+    }
+    
+    .stats-card {
+        transition: all 0.2s ease;
+    }
+    
+    .stats-card:hover {
+        transform: translateY(-5px);
+    }
+    
+    .progress-thin {
+        height: 6px;
+        border-radius: 3px;
+    }
+    
+    /* Modal fixes specific to this page */
+    .modal {
+        z-index: 9999 !important;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        outline: 0;
+    }
+    
+    .modal-backdrop {
+        z-index: 9998 !important;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+    }
+    
+    .modal-dialog {
+        z-index: 10000 !important;
+        position: relative;
+        margin: 1.75rem auto;
+        pointer-events: auto;
+    }
+    
+    .modal-content {
+        position: relative;
+        background-color: #fff;
+        border-radius: 0.5rem;
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.5);
+        pointer-events: auto;
+    }
+    
+    /* Ensure modals are visible and interactive */
+    .modal.show {
+        display: block !important;
+    }
+    
+    /* Fix for modal buttons */
+    .modal .btn {
+        position: relative;
+        z-index: 10001;
+    }
+    
+    /* Add toggle switch styles */
+    .toggle-switch {
+        position: relative;
+        display: inline-block;
+        width: 60px;
+        height: 30px;
+    }
+
+    .toggle-switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+    }
+
+    .toggle-slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: #ccc;
+        transition: .4s;
+        border-radius: 30px;
+    }
+
+    .toggle-slider:before {
+        position: absolute;
+        content: "";
+        height: 22px;
+        width: 22px;
+        left: 4px;
+        bottom: 4px;
+        background-color: white;
+        transition: .4s;
+        border-radius: 50%;
+    }
+
+    input:checked + .toggle-slider {
+        background-color: #2196F3;
+    }
+
+    input:checked + .toggle-slider:before {
+        transform: translateX(30px);
+    }
+
+    .toggle-label {
+        margin-left: 10px;
+        font-weight: 500;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="py-4">
+    <!-- Add CSRF token meta tag for JavaScript use -->
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    
+    <nav aria-label="breadcrumb" class="d-none d-md-inline-block">
+        <ol class="breadcrumb breadcrumb-dark breadcrumb-transparent">
+            <li class="breadcrumb-item"><a href="{{ url_for('main.dashboard') }}">Dashboard</a></li>
+            <li class="breadcrumb-item active">Manage Companies</li>
+        </ol>
+    </nav>
+    
+    <div class="d-flex justify-content-between w-100 flex-wrap">
+        <div class="mb-3 mb-lg-0">
+            <h1 class="h4">Companies Management</h1>
+            <p class="mb-0">Manage all companies and their sales pipeline</p>
+        </div>
+    </div>
+    
+    <!-- Company Details View -->
+    {% if view == 'details' and selected_company %}
+    <div class="row mt-4">
+        <div class="col-12 mb-4">
+            <div class="card border-0 shadow">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">{{ selected_company.name }} Details</h5>
+                    <a href="{{ url_for('main.admin_companies') }}" class="btn btn-sm btn-outline-primary">
+                        <i class="fas fa-arrow-left me-1"></i> Back to Companies
+                    </a>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6 class="fw-bold">Company Information</h6>
+                            <p><strong>Name:</strong> {{ selected_company.name }}</p>
+                            <p><strong>Contact:</strong> {{ selected_company.contact_name }}</p>
+                            <p><strong>Email:</strong> {{ selected_company.email }}</p>
+                            <p><strong>Phone:</strong> {{ selected_company.phone or 'N/A' }}</p>
+                            <p><strong>Service Type:</strong> {{ selected_company.service_display }}</p>
+                            <p><strong>Preferred Contact Time:</strong> {{ selected_company.preferred_contact_time|replace('_', ' ')|title if selected_company.preferred_contact_time else 'N/A' }}</p>
+                            <p><strong>Additional Info:</strong> {{ selected_company.additional_info or 'N/A' }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="fw-bold">Status History</h6>
+                            <div class="timeline">
+                                {% if selected_company.metadata and selected_company.metadata.get('status_history') %}
+                                    {% for status_change in selected_company.metadata.get('status_history') %}
+                                        <div class="timeline-item">
+                                            <div class="timeline-date">
+                                                {{ status_change.get('timestamp', '').split('T')[0] }} 
+                                                {% if 'T' in status_change.get('timestamp', '') %}
+                                                    {{ status_change.get('timestamp', '').split('T')[1][:5] }}
+                                                {% endif %}
+                                            </div>
+                                            <div class="timeline-content">
+                                                <p class="mb-0">
+                                                    {% if status_change.get('from') %}
+                                                        Status changed from <strong>{{ status_change.get('from')|replace('_', ' ')|title }}</strong> to <strong>{{ status_change.get('to')|replace('_', ' ')|title }}</strong>
+                                                    {% else %}
+                                                        Initial status set to <strong>{{ status_change.get('to')|replace('_', ' ')|title }}</strong>
+                                                    {% endif %}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    {% endfor %}
+                                {% else %}
+                                    <p>No status history available</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    
+    <!-- Status Update View -->
+    {% if view == 'status' and selected_company %}
+    <div class="row mt-4">
+        <div class="col-12 mb-4">
+            <div class="card border-0 shadow">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Update Status for {{ selected_company.name }}</h5>
+                    <a href="{{ url_for('main.admin_companies') }}" class="btn btn-sm btn-outline-primary">
+                        <i class="fas fa-arrow-left me-1"></i> Back to Companies
+                    </a>
+                </div>
+                <div class="card-body">
+                    <form action="{{ url_for('main.update_company_status') }}" method="post">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <input type="hidden" name="company_id" value="{{ selected_company.id }}">
+                        <div class="mb-3">
+                            <label class="form-label">Current Status</label>
+                            <input type="text" class="form-control" value="{{ selected_company.status|replace('_', ' ')|title }}" disabled>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">New Status</label>
+                            <select name="status" class="form-select" required>
+                                <option value="">Select new status</option>
+                                <option value="referral_form_completed" {% if selected_company.status == 'referral_form_completed' %}selected{% endif %}>Referral form completed</option>
+                                <option value="demo_scheduled" {% if selected_company.status == 'demo_scheduled' %}selected{% endif %}>Demo scheduled</option>
+                                <option value="demo_completed" {% if selected_company.status == 'demo_completed' %}selected{% endif %}>Demo completed</option>
+                                <option value="client_signed_up" {% if selected_company.status == 'client_signed_up' %}selected{% endif %}>Client signed up</option>
+                                <option value="client_renewed" {% if selected_company.status == 'client_renewed' %}selected{% endif %}>Client renewed</option>
+                            </select>
+                        </div>
+                        <div class="mt-3">
+                            <button type="submit" class="btn btn-primary">Update Status</button>
+                            <a href="{{ url_for('main.admin_companies') }}" class="btn btn-secondary">Cancel</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    
+    <!-- Company Statistics -->
+    <div class="row mt-4">
+        <div class="col-12 col-sm-6 col-xl-3 mb-4">
+            <div class="card border-0 shadow stats-card">
+                <div class="card-body">
+                    <div class="d-flex align-items-center justify-content-between mb-3">
+                        <div class="icon-shape icon-shape-primary rounded">
+                            <i class="fas fa-building"></i>
+                        </div>
+                        <div class="text-end">
+                            <h3 class="fw-extrabold mb-1">{{ statistics.total_companies }}</h3>
+                            <p class="text-muted mb-0">Total Companies</p>
+                        </div>
+                    </div>
+                    <div class="progress progress-thin">
+                        <div class="progress-bar bg-primary" role="progressbar" style="width: 100%" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-12 col-sm-6 col-xl-3 mb-4">
+            <div class="card border-0 shadow stats-card">
+                <div class="card-body">
+                    <div class="d-flex align-items-center justify-content-between mb-3">
+                        <div class="icon-shape icon-shape-warning rounded">
+                            <i class="fas fa-calendar-check"></i>
+                        </div>
+                        <div class="text-end">
+                            <h3 class="fw-extrabold mb-1">{{ statistics.by_status.get('demo_scheduled', 0) + statistics.by_status.get('demo_completed', 0) }}</h3>
+                            <p class="text-muted mb-0">Active Demos</p>
+                        </div>
+                    </div>
+                    <div class="progress progress-thin">
+                        {% set active_demos = statistics.by_status.get('demo_scheduled', 0) + statistics.by_status.get('demo_completed', 0) %}
+                        <div class="progress-bar bg-warning" role="progressbar" 
+                             style="width: {% if statistics.total_companies > 0 %}{{ (active_demos / statistics.total_companies * 100)|round }}{% else %}0{% endif %}%" 
+                             aria-valuenow="{{ active_demos }}" 
+                             aria-valuemin="0" 
+                             aria-valuemax="{{ statistics.total_companies }}"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-12 col-sm-6 col-xl-3 mb-4">
+            <div class="card border-0 shadow stats-card">
+                <div class="card-body">
+                    <div class="d-flex align-items-center justify-content-between mb-3">
+                        <div class="icon-shape icon-shape-success rounded">
+                            <i class="fas fa-file-signature"></i>
+                        </div>
+                        <div class="text-end">
+                            <h3 class="fw-extrabold mb-1">{{ statistics.by_status.get('client_signed', 0) }}</h3>
+                            <p class="text-muted mb-0">Signed Clients</p>
+                        </div>
+                    </div>
+                    <div class="progress progress-thin">
+                        <div class="progress-bar bg-success" role="progressbar" 
+                             style="width: {% if statistics.total_companies > 0 %}{{ (statistics.by_status.get('client_signed', 0) / statistics.total_companies * 100)|round }}{% else %}0{% endif %}%" 
+                             aria-valuenow="{{ statistics.by_status.get('client_signed', 0) }}" 
+                             aria-valuemin="0" 
+                             aria-valuemax="{{ statistics.total_companies }}"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-12 col-sm-6 col-xl-3 mb-4">
+            <div class="card border-0 shadow stats-card">
+                <div class="card-body">
+                    <div class="d-flex align-items-center justify-content-between mb-3">
+                        <div class="icon-shape icon-shape-info rounded">
+                            <i class="fas fa-arrow-up"></i>
+                        </div>
+                        <div class="text-end">
+                            <h3 class="fw-extrabold mb-1">{{ statistics.by_status.get('renewed', 0) + statistics.by_status.get('upgraded', 0) }}</h3>
+                            <p class="text-muted mb-0">Renewals & Upgrades</p>
+                        </div>
+                    </div>
+                    <div class="progress progress-thin">
+                        {% set renewals = statistics.by_status.get('renewed', 0) + statistics.by_status.get('upgraded', 0) %}
+                        <div class="progress-bar bg-info" role="progressbar" 
+                             style="width: {% if statistics.total_companies > 0 %}{{ (renewals / statistics.total_companies * 100)|round }}{% else %}0{% endif %}%" 
+                             aria-valuenow="{{ renewals }}" 
+                             aria-valuemin="0" 
+                             aria-valuemax="{{ statistics.total_companies }}"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Filters -->
+    <div class="row">
+        <div class="col-12 mb-4">
+            <div class="card border-0 shadow">
+                <div class="card-header">
+                    <h5 class="mb-0">Filters</h5>
+                </div>
+                <div class="card-body">
+                    <form action="{{ url_for('main.admin_companies') }}" method="get" class="row g-3">
+                        <div class="col-md-4">
+                            <label class="form-label">Status</label>
+                            <select name="status" class="form-select">
+                                <option value="">All Statuses</option>
+                                <option value="referral_form_completed" {% if current_status == 'referral_form_completed' %}selected{% endif %}>Referral form completed</option>
+                                <option value="demo_scheduled" {% if current_status == 'demo_scheduled' %}selected{% endif %}>Demo scheduled</option>
+                                <option value="demo_completed" {% if current_status == 'demo_completed' %}selected{% endif %}>Demo completed</option>
+                                <option value="client_signed_up" {% if current_status == 'client_signed_up' %}selected{% endif %}>Client signed up</option>
+                                <option value="client_renewed" {% if current_status == 'client_renewed' %}selected{% endif %}>Client renewed</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Partner</label>
+                            <select name="partner_id" class="form-select">
+                                <option value="">All Partners</option>
+                                {% for partner in partners %}
+                                <option value="{{ partner.id }}" {% if current_partner == partner.id %}selected{% endif %}>
+                                    {{ partner.name or partner.email }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Search</label>
+                            <div class="input-group">
+                                <input type="text" class="form-control" name="search" placeholder="Company name..." value="{{ current_search or '' }}">
+                                <button class="btn btn-primary" type="submit">
+                                    <i class="fas fa-search"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Companies Table -->
+    <div class="row">
+        <div class="col-12 mb-4">
+            <div class="card border-0 shadow">
+                <div class="card-header">
+                    <div class="row align-items-center">
+                        <div class="col">
+                            <h2 class="fs-5 fw-bold mb-0">All Companies</h2>
+                        </div>
+                    </div>
+                </div>
+                <div class="table-responsive">
+                    <table class="table align-items-center table-flush">
+                        <thead class="thead-light">
+                            <tr>
+                                <th class="border-bottom" scope="col">Company</th>
+                                <th class="border-bottom" scope="col">Partner</th>
+                                <th class="border-bottom" scope="col">Contact</th>
+                                <th class="border-bottom" scope="col">Service</th>
+                                <th class="border-bottom" scope="col">Status</th>
+                                <th class="border-bottom" scope="col">Created</th>
+                                <th class="border-bottom" scope="col">Last Updated</th>
+                                <th class="border-bottom" scope="col">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% if companies %}
+                                {% for company in companies %}
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="company-avatar bg-primary me-3">
+                                                <span>{{ company.name[:2].upper() }}</span>
+                                            </div>
+                                            <div class="d-block">
+                                                <span class="fw-bold">{{ company.name }}</span>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span>{{ company.user_name or company.user_email or 'Unknown Partner' }}</span>
+                                    </td>
+                                    <td>
+                                        <div>
+                                            <span class="fw-bold">{{ company.contact_name }}</span><br>
+                                            <span class="small text-gray">{{ company.email }}</span>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="fw-bold text-warning">
+                                            {{ company.service_display }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        {% if company.status == 'referral_form_completed' %}
+                                            <span class="status-badge status-referral">Referral form completed</span>
+                                        {% elif company.status == 'demo_scheduled' %}
+                                            <span class="status-badge status-demo_scheduled">Demo scheduled</span>
+                                        {% elif company.status == 'demo_completed' %}
+                                            <span class="status-badge status-demo_completed">Demo completed</span>
+                                        {% elif company.status == 'client_signed_up' %}
+                                            <span class="status-badge status-client_signed">Client signed up</span>
+                                        {% elif company.status == 'client_renewed' %}
+                                            <span class="status-badge status-renewed">Client renewed</span>
+                                        {% else %}
+                                            <span class="status-badge">{{ company.status|replace('_', ' ')|title }}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <span class="small">{{ company.created_at.split('T')[0] if company.created_at is string else company.created_at }}</span>
+                                    </td>
+                                    <td>
+                                        <span class="small">{{ company.updated_at.split('T')[0] if company.updated_at is string else company.updated_at }}</span>
+                                    </td>
+                                    <td>
+                                        <div class="btn-group mb-1">
+                                            <a href="{{ url_for('main.admin_company_details', company_id=company.id) }}" class="btn btn-sm btn-primary">Details</a>
+                                            <button type="button" class="btn btn-sm btn-warning" data-bs-toggle="modal" data-bs-target="#companyStatusModal" data-company-id="{{ company.id }}" data-company-name="{{ company.name }}" data-company-status="{{ company.status }}">Status</button>
+                                            <button class="btn btn-sm btn-danger" onclick="confirmDelete({{ company.id }}, '{{ company.name }}')">Delete</button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            {% else %}
+                                <tr>
+                                    <td colspan="8">
+                                        <div class="text-center py-4">
+                                            <i class="fas fa-building fa-3x text-light mb-3"></i>
+                                            <h5>No companies found</h5>
+                                            <p class="text-muted">No companies match your current filters.</p>
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Top Referrers -->
+    <div class="row">
+        <div class="col-12 mb-4">
+            <div class="card border-0 shadow">
+                <div class="card-header">
+                    <h5 class="mb-0">Top Referral Partners</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table align-items-center table-flush">
+                            <thead class="thead-light">
+                                <tr>
+                                    <th class="border-bottom" scope="col">Partner</th>
+                                    <th class="border-bottom" scope="col">Total Companies</th>
+                                    <th class="border-bottom" scope="col">Performance</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for referrer in statistics.top_referrers %}
+                                <tr>
+                                    <td>
+                                        <span class="fw-bold">{{ referrer.email }}</span>
+                                    </td>
+                                    <td>
+                                        <span>{{ referrer.company_count }}</span>
+                                    </td>
+                                    <td style="width: 30%;">
+                                        <div class="d-flex align-items-center">
+                                            <div class="progress progress-thin flex-grow-1">
+                                                <div class="progress-bar bg-success" role="progressbar" 
+                                                     style="width: {% if statistics.total_companies > 0 %}{{ (referrer.company_count / statistics.total_companies * 100)|round }}{% else %}0{% endif %}%" 
+                                                     aria-valuenow="{{ referrer.company_count }}" 
+                                                     aria-valuemin="0" 
+                                                     aria-valuemax="{{ statistics.total_companies }}"></div>
+                                            </div>
+                                            <span class="ms-2 small text-muted">{{ (referrer.company_count / statistics.total_companies * 100)|round }}%</span>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Company Details Modal -->
+<div class="modal fade" id="companyDetailsModal" tabindex="-1" role="dialog" aria-labelledby="companyDetailsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="companyDetailsModalLabel">Company Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6 class="fw-bold">Company Information</h6>
+                        <div class="mb-3">
+                            <label class="form-label">Company Name</label>
+                            <p id="detailsCompanyName" class="form-control-static">Loading...</p>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Contact Name</label>
+                            <p id="detailsContactName" class="form-control-static">Loading...</p>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Email</label>
+                            <p id="detailsEmail" class="form-control-static">Loading...</p>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Phone</label>
+                            <p id="detailsPhone" class="form-control-static">Loading...</p>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <h6 class="fw-bold">Service Information</h6>
+                        <div class="mb-3">
+                            <label class="form-label">Service Type</label>
+                            <p id="detailsServiceType" class="form-control-static">Loading...</p>
+                        </div>
+                        <div class="mb-3" id="safetyStatusContainer">
+                            <label class="form-label">Safety Service Status</label>
+                            <div class="d-flex align-items-center">
+                                <label class="toggle-switch">
+                                    <input type="checkbox" class="service-toggle" data-service="safety">
+                                    <span class="toggle-slider"></span>
+                                </label>
+                                <span class="toggle-label" id="safetyStatusLabel">Inactive</span>
+                            </div>
+                        </div>
+                        <div class="mb-3" id="recruitmentStatusContainer">
+                            <label class="form-label">Recruitment Service Status</label>
+                            <div class="d-flex align-items-center">
+                                <label class="toggle-switch">
+                                    <input type="checkbox" class="service-toggle" data-service="recruitment">
+                                    <span class="toggle-slider"></span>
+                                </label>
+                                <span class="toggle-label" id="recruitmentStatusLabel">Inactive</span>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Status</label>
+                            <p id="detailsStatus" class="form-control-static">Loading...</p>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Created</label>
+                            <p id="detailsCreated" class="form-control-static">Loading...</p>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Last Updated</label>
+                            <p id="detailsUpdated" class="form-control-static">Loading...</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row mt-3" id="recruitmentRequestsContainer">
+                    <div class="col-12">
+                        <h6 class="fw-bold">Recruitment Requests</h6>
+                        <div class="table-responsive">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Position</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="recruitmentRequestsTable">
+                                    <tr>
+                                        <td colspan="4" class="text-center">Loading requests...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <button class="btn btn-sm btn-primary" id="addRecruitmentRequest">
+                            Add Recruitment Request
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="row mt-3">
+                    <div class="col-12">
+                        <h6 class="fw-bold">Notes</h6>
+                        <div id="detailsNotes" class="p-3 bg-light rounded">
+                            <p class="mb-0">Loading notes...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" id="editCompanyBtn">Edit Company</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Company Status Modal -->
+<div class="modal fade" id="companyStatusModal" tabindex="-1" role="dialog" aria-labelledby="companyStatusModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="companyStatusModalLabel">Update Company Status</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="updateStatusForm" method="POST">
+                    <input type="hidden" id="statusCompanyId" name="company_id">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    
+                    <div class="mb-3">
+                        <label for="companyName" class="form-label">Company</label>
+                        <input type="text" class="form-control" id="statusCompanyName" readonly>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="companyStatus" class="form-label">Status</label>
+                        <select class="form-select" id="companyStatus" name="status">
+                            <option value="referral_form_completed">Referral form completed</option>
+                            <option value="demo_scheduled">Demo scheduled</option>
+                            <option value="demo_completed">Demo completed</option>
+                            <option value="client_signed_up">Client signed up</option>
+                            <option value="client_renewed">Client renewed</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="statusNotes" class="form-label">Notes</label>
+                        <textarea class="form-control" id="statusNotes" name="notes" rows="3" placeholder="Add notes about this status change..."></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="saveStatusBtn">Save Changes</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Recruitment Request Modal -->
+<div class="modal fade" id="recruitmentRequestModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Add Recruitment Request</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="recruitmentRequestForm">
+                    <div class="mb-3">
+                        <label class="form-label">Position Title</label>
+                        <input type="text" class="form-control" name="position" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Description</label>
+                        <textarea class="form-control" name="description" rows="3" required></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Requirements</label>
+                        <textarea class="form-control" name="requirements" rows="3" required></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="saveRecruitmentRequest">Save Request</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Add admin-companies-page class to body
+    document.body.classList.add('admin-companies-page');
+    
+    // Initialize tooltips
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl)
+    });
+    
+    // Auto-submit filter form when select changes
+    document.querySelectorAll('.form-select').forEach(select => {
+        select.addEventListener('change', function() {
+            if (this.closest('form') && !this.closest('.modal')) {
+                this.form.submit();
+            }
+        });
+    });
+    
+    document.addEventListener('DOMContentLoaded', function() {
+        // Use ModalUtils if available, otherwise use our custom modal handling
+        if (window.ModalUtils) {
+            window.ModalUtils.cleanupModalArtifacts();
+        } else {
+            // COMPLETELY NEW APPROACH: Replace Bootstrap's modal handling with our own
+            
+            // First, remove any existing modal backdrops
+            document.querySelectorAll('.modal-backdrop').forEach(function(backdrop) {
+                backdrop.remove();
+            });
+            
+            // Remove modal-open class from body if present
+            document.body.classList.remove('modal-open');
+            
+            // Initialize all modals manually
+            var allModals = document.querySelectorAll('.modal');
+            var modalInstances = {};
+            
+            allModals.forEach(function(modal) {
+                // Set high z-index to ensure modals appear on top
+                modal.style.zIndex = '9999';
+                
+                // Find the modal dialog and set its z-index even higher
+                var dialog = modal.querySelector('.modal-dialog');
+                if (dialog) {
+                    dialog.style.zIndex = '10000';
+                }
+                
+                // Store modal instance
+                modalInstances[modal.id] = new bootstrap.Modal(modal, {
+                    backdrop: 'static',  // Prevent closing when clicking outside
+                    keyboard: false      // Prevent closing with Escape key
+                });
+                
+                // Add manual close handlers to all close buttons in this modal
+                var closeButtons = modal.querySelectorAll('[data-bs-dismiss="modal"]');
+                closeButtons.forEach(function(button) {
+                    // Remove existing event listeners
+                    button.replaceWith(button.cloneNode(true));
+                });
+                
+                // Re-select the buttons after replacing them
+                closeButtons = modal.querySelectorAll('[data-bs-dismiss="modal"]');
+                closeButtons.forEach(function(button) {
+                    button.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        modalInstances[modal.id].hide();
+                    });
+                });
+            });
+            
+            // Add click handlers to all modal trigger buttons
+            document.querySelectorAll('[data-bs-toggle="modal"]').forEach(function(button) {
+                // Remove existing event listeners
+                var newButton = button.cloneNode(true);
+                button.parentNode.replaceChild(newButton, button);
+                
+                // Add our custom event listener
+                newButton.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    
+                    var targetModalId = this.getAttribute('data-bs-target').replace('#', '');
+                    if (modalInstances[targetModalId]) {
+                        // Hide any other open modals first
+                        for (var id in modalInstances) {
+                            if (id !== targetModalId) {
+                                modalInstances[id].hide();
+                            }
+                        }
+                        
+                        // Show the target modal
+                        setTimeout(function() {
+                            modalInstances[targetModalId].show();
+                        }, 100);
+                    }
+                });
+            });
+            
+            // Add event listeners for modal events
+            allModals.forEach(function(modal) {
+                // When modal is about to be shown
+                modal.addEventListener('show.bs.modal', function() {
+                    // Create a backdrop if it doesn't exist
+                    if (!document.querySelector('.modal-backdrop')) {
+                        var backdrop = document.createElement('div');
+                        backdrop.className = 'modal-backdrop fade show';
+                        backdrop.style.zIndex = '9998';
+                        document.body.appendChild(backdrop);
+                    }
+                    
+                    // Add modal-open class to body
+                    document.body.classList.add('modal-open');
+                    
+                    // Prevent scrolling on the body
+                    document.body.style.overflow = 'hidden';
+                    document.body.style.paddingRight = '15px'; // Compensate for scrollbar
+                });
+                
+                // When modal is hidden
+                modal.addEventListener('hidden.bs.modal', function() {
+                    // Remove backdrop
+                    var backdrop = document.querySelector('.modal-backdrop');
+                    if (backdrop) {
+                        backdrop.remove();
+                    }
+                    
+                    // Check if any other modals are open
+                    var openModals = document.querySelectorAll('.modal.show');
+                    if (openModals.length === 0) {
+                        // No other modals open, restore body
+                        document.body.classList.remove('modal-open');
+                        document.body.style.overflow = '';
+                        document.body.style.paddingRight = '';
+                    }
+                });
+            });
+        }
+        
+        // Handle Company Details Modal
+        var companyDetailsModal = document.getElementById('companyDetailsModal');
+        if (companyDetailsModal) {
+            let currentCompanyId = null;  // Add this line to store the current company ID
+            
+            companyDetailsModal.addEventListener('show.bs.modal', function(event) {
+                var button = event.relatedTarget;
+                currentCompanyId = button.getAttribute('data-company-id');  // Store the company ID
+                
+                // Update modal title
+                document.getElementById('companyDetailsModalLabel').textContent = 'Company Details';
+                
+                // Fetch company details via AJAX
+                fetch(`/api/v1/company/${currentCompanyId}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            var company = data.company;
+                            
+                            // Update modal content with company details
+                            document.getElementById('detailsCompanyName').textContent = company.name;
+                            document.getElementById('detailsContactName').textContent = company.contact_name || 'N/A';
+                            document.getElementById('detailsEmail').textContent = company.email || 'N/A';
+                            document.getElementById('detailsPhone').textContent = company.phone || 'N/A';
+                            document.getElementById('detailsServiceType').textContent = company.service_display || 'N/A';
+                            
+                            // Format status for display
+                            var status = company.status || 'N/A';
+                            status = status.replace(/_/g, ' ');
+                            status = status.charAt(0).toUpperCase() + status.slice(1);
+                            document.getElementById('detailsStatus').textContent = status;
+                            
+                            document.getElementById('detailsCreated').textContent = company.created_at || 'N/A';
+                            document.getElementById('detailsUpdated').textContent = company.updated_at || 'N/A';
+                            
+                            // Update notes
+                            if (company.notes) {
+                                document.getElementById('detailsNotes').innerHTML = `<p class="mb-0">${company.notes}</p>`;
+                            } else {
+                                document.getElementById('detailsNotes').innerHTML = '<p class="text-muted mb-0">No notes available.</p>';
+                            }
+                            
+                            // Set up edit button
+                            document.getElementById('editCompanyBtn').onclick = function() {
+                                window.location.href = `/dashboard/admin/companies/edit/${currentCompanyId}`;
+                            };
+
+                            // Update service status toggles
+                            const safetyToggle = document.querySelector('input[data-service="safety"]');
+                            const recruitmentToggle = document.querySelector('input[data-service="recruitment"]');
+                            const safetyLabel = document.getElementById('safetyStatusLabel');
+                            const recruitmentLabel = document.getElementById('recruitmentStatusLabel');
+
+                            // Set initial states
+                            if (company.safety_status === 'active') {
+                                safetyToggle.checked = true;
+                                safetyLabel.textContent = 'Active';
+                            } else {
+                                safetyToggle.checked = false;
+                                safetyLabel.textContent = 'Inactive';
+                            }
+
+                            if (company.recruitment_status === 'active') {
+                                recruitmentToggle.checked = true;
+                                recruitmentLabel.textContent = 'Active';
+                            } else {
+                                recruitmentToggle.checked = false;
+                                recruitmentLabel.textContent = 'Inactive';
+                            }
+
+                            // Add event listeners for toggles
+                            document.querySelectorAll('.service-toggle').forEach(toggle => {
+                                toggle.onchange = function() {
+                                    const service = this.dataset.service;
+                                    const label = document.getElementById(`${service}StatusLabel`);
+                                    const newStatus = this.checked ? 'active' : 'inactive';
+
+                                    fetch(`/api/v1/company/${currentCompanyId}/service-status`, {
+                                        method: 'PUT',
+                                        headers: {
+                                            'Content-Type': 'application/json',
+                                            'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                                        },
+                                        body: JSON.stringify({
+                                            service: service,
+                                            status: newStatus
+                                        })
+                                    })
+                                    .then(response => response.json())
+                                    .then(data => {
+                                        if (data.success) {
+                                            label.textContent = this.checked ? 'Active' : 'Inactive';
+                                        } else {
+                                            // Revert the toggle if the update failed
+                                            this.checked = !this.checked;
+                                            label.textContent = this.checked ? 'Active' : 'Inactive';
+                                            alert('Error updating service status: ' + (data.message || 'Unknown error'));
+                                        }
+                                    })
+                                    .catch(error => {
+                                        console.error('Error updating service status:', error);
+                                        // Revert the toggle if there was an error
+                                        this.checked = !this.checked;
+                                        label.textContent = this.checked ? 'Active' : 'Inactive';
+                                        alert('Error updating service status. Please try again.');
+                                    });
+                                };
+                            });
+
+                            // Set up recruitment request handler
+                            document.getElementById('addRecruitmentRequest').onclick = function() {
+                                // Show the modal
+                                const modal = new bootstrap.Modal(document.getElementById('recruitmentRequestModal'));
+                            };
+
+                            // Handle saving recruitment request
+                            document.getElementById('saveRecruitmentRequest').onclick = function() {
+                                const form = document.getElementById('recruitmentRequestForm');
+                                const formData = new FormData(form);
+                                const requestData = {
+                                    position: formData.get('position'),
+                                    details: formData.get('description'),
+                                    requirements: formData.get('requirements')
+                                };
+                                
+                                fetch(`/api/v1/company/${currentCompanyId}/recruitment-request`, {
+                                    method: 'POST',
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                        'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                                    },
+                                    body: JSON.stringify(requestData)
+                                })
+                                .then(response => response.json())
+                                .then(data => {
+                                    if (data.success) {
+                                        // Close modal
+                                        const modal = bootstrap.Modal.getInstance(document.getElementById('recruitmentRequestModal'));
+                                        modal.hide();
+                                        
+                                        // Clear form
+                                        form.reset();
+                                        
+                                        // Refresh recruitment requests list
+                                        loadRecruitmentRequests(currentCompanyId);
+                                    } else {
+                                        alert('Error adding recruitment request: ' + (data.message || 'Unknown error'));
+                                    }
+                                })
+                                .catch(error => {
+                                    console.error('Error adding recruitment request:', error);
+                                    alert('Error adding recruitment request. Please try again.');
+                                });
+                            };
+
+                            // Initial load of recruitment requests
+                            loadRecruitmentRequests(currentCompanyId);
+                        } else {
+                            // Show error message
+                            alert('Error loading company details: ' + (data.message || 'Unknown error'));
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error fetching company details:', error);
+                        alert('Error loading company details. Please try again.');
+                    });
+            });
+        }
+        
+        // Handle Company Status Modal
+        var companyStatusModal = document.getElementById('companyStatusModal');
+        if (companyStatusModal) {
+            companyStatusModal.addEventListener('show.bs.modal', function(event) {
+                var button = event.relatedTarget;
+                var companyId = button.getAttribute('data-company-id');
+                var companyName = button.getAttribute('data-company-name');
+                var currentStatus = button.getAttribute('data-company-status');
+                
+                // Update form fields
+                document.getElementById('statusCompanyId').value = companyId;
+                document.getElementById('statusCompanyName').value = companyName;
+                
+                // Set current status in dropdown
+                var statusSelect = document.getElementById('companyStatus');
+                for (var i = 0; i < statusSelect.options.length; i++) {
+                    if (statusSelect.options[i].value === currentStatus) {
+                        statusSelect.selectedIndex = i;
+                        break;
+                    }
+                }
+                
+                // Clear notes field
+                document.getElementById('statusNotes').value = '';
+                
+                // Set up save button
+                document.getElementById('saveStatusBtn').onclick = function() {
+                    // Get form data
+                    var formData = new FormData(document.getElementById('updateStatusForm'));
+                    
+                    // Send AJAX request to update status
+                    fetch('/api/v1/company/' + companyId + '/status', {
+                        method: 'PUT',
+                        body: JSON.stringify({
+                            status: document.getElementById('companyStatus').value,
+                            metadata: {
+                                notes: document.getElementById('statusNotes').value
+                            }
+                        }),
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'Content-Type': 'application/json',
+                            'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            // Close modal
+                            var modal = bootstrap.Modal.getInstance(companyStatusModal);
+                            modal.hide();
+                            
+                            // Show success message
+                            alert('Company status updated successfully!');
+                            
+                            // Reload page to show updated status
+                            window.location.reload();
+                        } else {
+                            // Show error message
+                            alert('Error updating company status: ' + (data.message || 'Unknown error'));
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error updating company status:', error);
+                        alert('Error updating company status. Please try again.');
+                    });
+                };
+            });
+        }
+    });
+
+function confirmDelete(companyId, companyName) {
+    if (confirm(`Are you sure you want to delete ${companyName}?`)) {
+        // Create a form and submit it
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = `/dashboard/admin/companies/delete/${companyId}`;
+        
+        // Add CSRF token
+        const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+        const csrfInput = document.createElement('input');
+        csrfInput.type = 'hidden';
+        csrfInput.name = 'csrf_token';
+        csrfInput.value = csrfToken;
+        form.appendChild(csrfInput);
+        
+        document.body.appendChild(form);
+        form.submit();
+    }
+}
+
+function loadRecruitmentRequests(companyId) {
+    const requestsContainer = document.getElementById('recruitmentRequestsTable');
+    if (!requestsContainer) return;
+
+    requestsContainer.innerHTML = '<tr><td colspan="4" class="text-center">Loading requests...</td></tr>';
+
+    fetch(`/api/v1/company/${companyId}/recruitment-requests`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success && data.requests) {
+                if (data.requests.length === 0) {
+                    requestsContainer.innerHTML = '<tr><td colspan="4" class="text-center">No recruitment requests found.</td></tr>';
+                    return;
+                }
+
+                requestsContainer.innerHTML = data.requests.map(request => `
+                    <tr>
+                        <td>${request.position}</td>
+                        <td>${request.details || 'N/A'}</td>
+                        <td>${request.status}</td>
+                        <td>
+                            <button class="btn btn-sm btn-primary" onclick="updateRequestStatus('${request.id}', 'in_progress')">Start</button>
+                            <button class="btn btn-sm btn-success" onclick="updateRequestStatus('${request.id}', 'completed')">Complete</button>
+                            <button class="btn btn-sm btn-danger" onclick="updateRequestStatus('${request.id}', 'cancelled')">Cancel</button>
+                        </td>
+                    </tr>
+                `).join('');
+            } else {
+                requestsContainer.innerHTML = '<tr><td colspan="4" class="text-center text-danger">Error loading requests.</td></tr>';
+            }
+        })
+        .catch(error => {
+            console.error('Error loading recruitment requests:', error);
+            requestsContainer.innerHTML = '<tr><td colspan="4" class="text-center text-danger">Error loading requests. Please try again.</td></tr>';
+        });
+}
+
+function updateRequestStatus(requestId, newStatus) {
+    const companyId = document.querySelector('[data-company-id]').getAttribute('data-company-id');
+    
+    fetch(`/api/v1/company/${companyId}/recruitment-request/${requestId}`, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+        },
+        body: JSON.stringify({
+            status: newStatus
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            loadRecruitmentRequests(companyId);
+        } else {
+            alert('Error updating request status: ' + (data.message || 'Unknown error'));
+        }
+    })
+    .catch(error => {
+        console.error('Error updating request status:', error);
+        alert('Error updating request status. Please try again.');
+    });
+}
+</script>
+{% endblock %} 

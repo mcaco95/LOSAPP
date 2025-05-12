@@ -1,0 +1,58 @@
+{# Partial template for rendering pagination controls #}
+{% macro render_pagination(pagination, endpoint, fragment='') %}
+  {% if pagination.pages > 1 %}
+    <nav aria-label="Page navigation">
+      <ul class="pagination justify-content-center mt-4">
+        {# Previous Page Link #}
+        <li class="page-item {% if not pagination.has_prev %}disabled{% endif %}">
+          <a class="page-link" href="{{ url_for(endpoint, page=pagination.prev_num, **request.view_args) }}{{ fragment }}" tabindex="-1" aria-disabled="true">Previous</a>
+        </li>
+
+        {# Page Number Links - Display logic for ellipsis #}
+        {% set window = 2 %} {# Number of links around current page #}
+        {% set show_start_ellipsis = pagination.page > window + 2 %}
+        {% set show_end_ellipsis = pagination.page < pagination.pages - window - 1 %}
+
+        {# First page link #}
+        <li class="page-item {% if pagination.page == 1 %}active{% endif %}">
+          <a class="page-link" href="{{ url_for(endpoint, page=1, **request.view_args) }}{{ fragment }}">1</a>
+        </li>
+
+        {# Start ellipsis #}
+        {% if show_start_ellipsis %}
+          <li class="page-item disabled"><span class="page-link">...</span></li>
+        {% endif %}
+
+        {# Links around the current page #}
+        {% for p in pagination.iter_pages(left_edge=1, right_edge=1, left_current=window, right_current=window) %}
+          {% if p %}
+            {% if p != 1 and p != pagination.pages %} {# Avoid duplicating first/last page links #}
+              {% if p >= pagination.page - window and p <= pagination.page + window %}
+                <li class="page-item {% if p == pagination.page %}active{% endif %}">
+                  <a class="page-link" href="{{ url_for(endpoint, page=p, **request.view_args) }}{{ fragment }}">{{ p }}</a>
+                </li>
+              {% endif %}
+            {% endif %}
+          {% endif %}
+        {% endfor %}
+
+        {# End ellipsis #}
+        {% if show_end_ellipsis %}
+          <li class="page-item disabled"><span class="page-link">...</span></li>
+        {% endif %}
+
+        {# Last page link (only if more than one page) #}
+        {% if pagination.pages > 1 %}
+          <li class="page-item {% if pagination.page == pagination.pages %}active{% endif %}">
+            <a class="page-link" href="{{ url_for(endpoint, page=pagination.pages, **request.view_args) }}{{ fragment }}">{{ pagination.pages }}</a>
+          </li>
+        {% endif %}
+
+        {# Next Page Link #}
+        <li class="page-item {% if not pagination.has_next %}disabled{% endif %}">
+          <a class="page-link" href="{{ url_for(endpoint, page=pagination.next_num, **request.view_args) }}{{ fragment }}">Next</a>
+        </li>
+      </ul>
+    </nav>
+  {% endif %}
+{% endmacro %} 

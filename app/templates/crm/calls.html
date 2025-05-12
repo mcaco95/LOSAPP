@@ -1,0 +1,202 @@
+{% extends "crm/layout.html" %}
+
+{% block page_title %}Call Logs{% endblock %}
+
+{% block page_description %}View your call history.{% endblock %}
+
+{% block page_content %}
+<div class="row">
+    <div class="col-12">
+        <div class="card border-0 shadow">
+            <div class="card-body">
+                 <h5 class="card-title">Your Call History</h5>
+                 <p class="card-text">A list of your call logs will appear here.</p>
+                 {# Placeholder for call log table - We will add JS to populate this #}
+                 <div id="call-log-table-container">
+                     <table class="table table-hover">
+                         <thead>
+                             <tr>
+                                 <th>Time</th>
+                                 <th>Direction</th>
+                                 <th>Number</th>
+                                 <th>Status</th>
+                                 <th>Duration</th>
+                                 <th>Recording</th>
+                                 <th>Associated Contact</th>
+                             </tr>
+                         </thead>
+                         <tbody id="call-log-tbody">
+                             <tr><td colspan="7">Loading...</td></tr>
+                         </tbody>
+                     </table>
+                 </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block page_scripts %}
+{# Add page-specific scripts here, separate from layout scripts in extra_js #}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    let userContacts = []; // Store user contacts globally for dropdowns
+
+    async function fetchCallLogs() {
+        const tbody = document.getElementById('call-log-tbody');
+        if (!tbody) return;
+
+        try {
+            const response = await fetch("{{ url_for('crm.get_call_logs') }}"); 
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            const data = await response.json();
+
+            if (data.success) {
+                userContacts = data.contacts || []; // Store contacts
+                tbody.innerHTML = ''; // Clear loading message
+                
+                if (!data.call_logs || data.call_logs.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="7" class="text-center">No call logs found.</td></tr>'; // Increased colspan
+                    return;
+                }
+
+                // Update table header
+                const thead = tbody.previousElementSibling;
+                if (thead) {
+                    thead.innerHTML = `
+                        <tr>
+                            <th>Time</th>
+                            <th>Direction</th>
+                            <th>Number</th>
+                            <th>Status</th>
+                            <th>Duration</th>
+                            <th>Recording</th>
+                            <th>Associated Contact</th> {# New Column #}
+                        </tr>
+                    `;
+                }
+
+                data.call_logs.forEach(log => {
+                    const row = tbody.insertRow();
+                    const duration = log.duration ? `${log.duration}s` : '-';
+                    const recordingLink = log.recording_url ? `<a href="${log.recording_url}" target="_blank">Listen</a>` : 'N/A';
+                    const timestamp = log.created_at ? new Date(log.created_at).toLocaleString() : 'N/A';
+                    
+                    // --- Associated Contact Cell --- 
+                    let contactCellHtml = '';
+                    if (log.contact_id && log.contact_name) {
+                        // Contact already linked
+                        contactCellHtml = `<a href="{{ url_for('crm.view_contact', contact_id=0) }}${log.contact_id}">${log.contact_name}</a>`; // Base URL needs adjustment
+                    } else {
+                        // Contact not linked - show dropdown
+                        let options = '<option value="">-- Select Contact --</option>';
+                        userContacts.forEach(contact => {
+                            options += `<option value="${contact.id}">${contact.name}</option>`;
+                        });
+                        contactCellHtml = `
+                            <div class="input-group input-group-sm">
+                                <select class="form-select contact-select" data-log-id="${log.id}">
+                                    ${options}
+                                </select>
+                                <button class="btn btn-outline-primary btn-sm link-contact-btn" type="button" data-log-id="${log.id}">Link</button> {# Placeholder Button #}
+                            </div>
+                        `;
+                    }
+                    // --- End Associated Contact Cell ---
+                    
+                    row.innerHTML = `
+                        <td>${timestamp}</td>
+                        <td>${log.direction || 'N/A'}</td>
+                        <td>${log.to_number || log.from_number || 'N/A'}</td> {# Show from or to #}
+                        <td><span class="badge bg-info">${log.status || 'N/A'}</span></td>
+                        <td>${duration}</td>
+                        <td>${recordingLink}</td>
+                        <td>${contactCellHtml}</td> {# Add contact cell #}
+                    `;
+                });
+
+                // Add event listeners for the 'Link' buttons after rows are rendered
+                addLinkButtonListeners(); 
+
+            } else {
+                 tbody.innerHTML = `<tr><td colspan="7" class="text-center">Error: ${data.message || 'Could not load logs.'}</td></tr>`; // Increased colspan
+            }
+        } catch (error) {
+            console.error('Error fetching call logs:', error);
+            tbody.innerHTML = '<tr><td colspan="7" class="text-center">Error loading call logs.</td></tr>'; // Increased colspan
+        }
+    }
+
+    fetchCallLogs(); // Load logs when page loads
+
+    // Function to add event listeners to dynamically created buttons
+    function addLinkButtonListeners() {
+        const container = document.getElementById('call-log-table-container');
+        container.addEventListener('click', async function(event) {
+            if (event.target.classList.contains('link-contact-btn')) {
+                const button = event.target;
+                const logId = button.dataset.logId;
+                const selectElement = container.querySelector(`select.contact-select[data-log-id="${logId}"]`);
+                
+                if (!selectElement) {
+                    console.error('Could not find select element for log ID:', logId);
+                    return;
+                }
+                
+                const contactId = selectElement.value;
+                
+                if (!contactId) {
+                    alert('Please select a contact first.'); // Basic feedback
+                    return;
+                }
+
+                // Disable button while processing
+                button.disabled = true;
+                button.textContent = 'Linking...';
+
+                try {
+                    const linkUrl = `/crm/call-logs/${logId}/link-contact`; // Construct URL
+                    const csrfToken = '{{ csrf_token() }}'; // Get CSRF token if needed/available
+                    
+                    const response = await fetch(linkUrl, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            // Include CSRF token header if your setup requires it
+                            // 'X-CSRFToken': csrfToken 
+                        },
+                        body: JSON.stringify({ contact_id: parseInt(contactId, 10) })
+                    });
+
+                    const result = await response.json();
+
+                    if (response.ok && result.success) {
+                        // Update the cell content on success
+                        const cell = button.closest('td');
+                        if (cell) {
+                            // Construct the URL for the contact view
+                            const contactViewUrl = `{{ url_for('crm.view_contact', contact_id=0) }}`.replace('/0', '/' + contactId);
+                            cell.innerHTML = `<a href="${contactViewUrl}">${result.contact_name}</a>`;
+                        }
+                        // Optionally show a success toast message
+                        // showToast('Success', result.message || 'Call linked successfully!');
+                        alert('Call linked successfully!'); // Simple alert
+                    } else {
+                        throw new Error(result.message || 'Failed to link call log.');
+                    }
+                } catch (error) {
+                    console.error('Error linking call log:', error);
+                    alert(`Error: ${error.message}`); // Show error to user
+                    // Re-enable button on error
+                    button.disabled = false;
+                    button.textContent = 'Link';
+                }
+            }
+        });
+    }
+
+});
+</script>
+{% endblock %} 

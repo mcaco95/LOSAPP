@@ -1,0 +1,75 @@
+{% extends "crm/layout.html" %}
+{% from "_formhelpers.html" import render_field, render_submit_field, render_query_select_field %}
+
+{% block page_title %}{{ title or 'Contact Form' }}{% endblock %}
+
+{% block page_content %}
+<div class="row justify-content-center">
+    <div class="col-md-8 col-lg-7">
+        <div class="card border-0 shadow">
+            <div class="card-header">
+                <h2 class="h5 mb-0">{{ legend or 'Contact Details' }}</h2>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="">
+                    {{ form.hidden_tag() }} {# CSRF token #}
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            {{ render_field(form.first_name, html_class="form-control") }}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            {{ render_field(form.last_name, html_class="form-control") }}
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        {{ render_field(form.email, html_class="form-control", placeholder="name@example.com") }}
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            {{ render_field(form.phone_number, html_class="form-control") }}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            {{ render_field(form.job_title, html_class="form-control") }}
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        {{ render_query_select_field(form.crm_account, html_class="form-select") }}
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            {{ render_field(form.status, html_class="form-select") }}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            {{ render_field(form.source, html_class="form-select") }}
+                        </div>
+                    </div>
+                    
+                    <div class="form-group mb-3">
+                        {{ form.custom_data.label(class='form-label') }}
+                        {{ form.custom_data(class='form-control' + (' is-invalid' if form.custom_data.errors else ''), rows=4) }}
+                        {% if form.custom_data.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.custom_data.errors %}
+                                    <span>{{ error }}</span><br>
+                                {% endfor %}
+                            </div>
+                        {% elif form.custom_data.description %}
+                            <small class="form-text text-muted">{{ form.custom_data.description }}</small>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mt-4">
+                        {{ render_submit_field(form.submit, button_class="btn btn-primary") }}
+                        <a href="{{ url_for('crm.contacts') }}" class="btn btn-light ms-2">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

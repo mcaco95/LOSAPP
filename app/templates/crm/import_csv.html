@@ -1,0 +1,71 @@
+{% extends "crm/layout.html" %}
+{% from "_formhelpers.html" import render_select_field, render_file_field, render_submit_field %}
+
+{% block page_title %}{{ title or 'Import from CSV' }}{% endblock %}
+
+{% block page_description %}Upload a CSV file to import Contacts or Companies/Accounts.{% endblock %}
+
+{% block page_content %}
+<div class="row justify-content-center">
+    <div class="col-md-8 col-lg-7">
+        <div class="card border-0 shadow">
+            <div class="card-header">
+                <h2 class="h5 mb-0">CSV Upload</h2>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('crm.import_csv') }}" enctype="multipart/form-data">
+                    {{ form.hidden_tag() }} {# CSRF token #}
+
+                    {{ render_select_field(form.import_type, html_class="form-select") }}
+                    
+                    {{ render_file_field(form.csv_file, html_class="form-control") }}
+                    
+                    <div class="mt-4">
+                        {{ render_submit_field(form.submit, button_class="btn btn-primary") }}
+                        <a href="{{ url_for('crm.dashboard') }}" class="btn btn-light ms-2">Cancel</a> {# Or link back to contacts/accounts? #}
+                    </div>
+                </form>
+                
+                <hr class="my-4">
+                
+                <div class="mb-3 text-center">
+                    <a href="{{ url_for('crm.download_template', import_type='contacts') }}" class="btn btn-sm btn-outline-info me-2">
+                        <i class="fas fa-download me-1"></i> Download Contact Template
+                    </a>
+                    <a href="{{ url_for('crm.download_template', import_type='accounts') }}" class="btn btn-sm btn-outline-info">
+                        <i class="fas fa-download me-1"></i> Download Account Template
+                    </a>
+                </div>
+                
+                <h3 class="h6">CSV File Format Instructions</h3>
+                <p><small>Ensure your CSV file has the following headers in the first row. The order doesn't matter, but the names must match exactly (case-insensitive). Required fields are marked with *.</small></p>
+                
+                <h6>Contact Headers:</h6>
+                <ul class="list-small">
+                    <li><code>first_name</code>*</li>
+                    <li><code>last_name</code></li>
+                    <li><code>email</code></li>
+                    <li><code>phone_number</code>*</li>
+                    <li><code>job_title</code></li>
+                    <li><code>status</code>* (Default: 'Lead' if missing/invalid. See available statuses in Contact form.)</li>
+                    <li><code>source</code> (See available sources in Contact form.)</li>
+                    <li><code>company_name</code> (Used to link to an existing Company/Account by exact name match)</li>
+                    <li><code>custom_notes</code> (Stored as plain text in custom_data)</li>
+                </ul>
+
+                <h6>Company/Account Headers:</h6>
+                <ul class="list-small">
+                    <li><code>name</code>*</li>
+                    <li><code>website</code></li>
+                    <li><code>phone_number</code></li>
+                    <li><code>address</code></li>
+                    <li><code>industry</code></li>
+                    <li><code>status</code> (See available statuses in Account form.)</li>
+                    <li><code>custom_notes</code> (Stored as plain text in custom_data)</li>
+                </ul>
+                <p><small><strong>Note:</strong> Large files may take time to process. Please be patient after clicking Upload.</small></p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

@@ -1,0 +1,157 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-12 col-xl-8">
+            <div class="card border-0 shadow mb-4">
+                <div class="card-header">
+                    <h2 class="fs-5 fw-bold mb-0">Edit User</h2>
+                </div>
+                <div class="card-body">
+                    <form action="{{ url_for('users.edit', id=user.id) }}" method="post">
+                        {{ form.csrf_token }}
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="name">Name</label>
+                                {{ form.name(class="form-control", placeholder="Enter name") }}
+                            </div>
+                            <div class="col-md-6">
+                                <label for="email">Email</label>
+                                {{ form.email(class="form-control", placeholder="Enter email") }}
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="password">Password (leave empty to keep current)</label>
+                                {{ form.password(class="form-control", placeholder="Enter new password") }}
+                            </div>
+                        </div>
+
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <div class="form-check">
+                                    {{ form.is_admin(class="form-check-input") }}
+                                    <label class="form-check-label" for="is_admin">
+                                        Admin Access
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Operations Section -->
+                        <div class="card mb-4">
+                            <div class="card-header">
+                                <div class="form-check">
+                                    {{ form.is_operations(class="form-check-input") }}
+                                    <label class="form-check-label" for="is_operations">
+                                        Operations Access
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            <div class="card-body operations-fields" id="operationsFields">
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
+                                        <label for="operations_role">Role</label>
+                                        {{ form.operations_role(class="form-select") }}
+                                    </div>
+                                </div>
+                                
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
+                                        <label for="phone_number">Phone Number</label>
+                                        {{ form.phone_number(class="form-control", placeholder="Enter phone number") }}
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="extension">Extension</label>
+                                        {{ form.extension(class="form-control", placeholder="Enter extension") }}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Sales Section -->
+                        <div class="card mb-4">
+                            <div class="card-header">
+                                <div class="form-check">
+                                    {{ form.is_sales(class="form-check-input", id="is_sales") }}
+                                    <label class="form-check-label" for="is_sales">
+                                        Sales Access
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            <div class="card-body sales-fields" id="salesFields" style="display: none;">
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
+                                        <label for="sales_role">Role</label>
+                                        {{ form.sales_role(class="form-select") }}
+                                    </div>
+                                </div>
+                                
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
+                                        <label for="sales_phone_number">Phone Number</label>
+                                        {{ form.sales_phone_number(class="form-control", placeholder="Enter sales phone") }}
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="sales_extension">Extension</label>
+                                        {{ form.sales_extension(class="form-control", placeholder="Enter sales extension") }}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-12">
+                                <button type="submit" class="btn btn-primary">Update User</button>
+                                <a href="{{ url_for('users.index') }}" class="btn btn-light">Cancel</a>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Operations Toggle
+    const isOperationsCheckbox = document.getElementById('is_operations');
+    const operationsFields = document.getElementById('operationsFields');
+
+    function toggleOperationsFields() {
+        if (operationsFields && isOperationsCheckbox) {
+            operationsFields.style.display = isOperationsCheckbox.checked ? 'block' : 'none';
+        }
+    }
+
+    if (isOperationsCheckbox) {
+        isOperationsCheckbox.addEventListener('change', toggleOperationsFields);
+        toggleOperationsFields(); // Initial state
+    }
+
+    // Sales Toggle
+    const isSalesCheckbox = document.getElementById('is_sales');
+    const salesFields = document.getElementById('salesFields');
+
+    function toggleSalesFields() {
+        if (salesFields && isSalesCheckbox) {
+            salesFields.style.display = isSalesCheckbox.checked ? 'block' : 'none';
+        }
+    }
+
+    if (isSalesCheckbox) {
+        isSalesCheckbox.addEventListener('change', toggleSalesFields);
+        toggleSalesFields(); // Initial state
+    }
+});
+</script>
+{% endblock %}
+
+{% endblock %}

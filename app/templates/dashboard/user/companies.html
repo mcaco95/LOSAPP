@@ -1,0 +1,360 @@
+{% extends "base.html" %}
+
+{% block title %}My Companies{% endblock %}
+
+{% block extra_css %}
+    <link type="text/css" href="{{ url_for('static', filename='css/points-rewards.css') }}" rel="stylesheet">
+    <style>
+        .status-badge {
+            padding: 6px 12px;
+            border-radius: 30px;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+        .status-lead { background-color: #e9f5ff; color: #0d6efd; }
+        .status-demo_scheduled { background-color: #fff3cd; color: #fd7e14; }
+        .status-demo_completed { background-color: #e9f7ef; color: #28a745; }
+        .status-client_signed { background-color: #d1e7dd; color: #198754; }
+        .status-renewed { background-color: #cff4fc; color: #0dcaf0; }
+        .status-upgraded { background-color: #f8d7da; color: #dc3545; }
+        
+        /* Action-based styling */
+        .action-form-completed { background-color: #e9f5ff; color: #0d6efd; }
+        .action-demo-scheduled { background-color: #fff3cd; color: #fd7e14; }
+        .action-demo-completed { background-color: #e9f7ef; color: #28a745; }
+        .action-client-signed { background-color: #d1e7dd; color: #198754; }
+        .action-client-renewed { background-color: #cff4fc; color: #0dcaf0; }
+        .action-client-upgraded { background-color: #f8d7da; color: #dc3545; }
+        .action-partner-network { background-color: #e2e3e5; color: #6c757d; }
+        
+        .progress-thin {
+            height: 6px;
+            border-radius: 3px;
+        }
+        
+        .company-avatar {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            color: white;
+            border-radius: 8px;
+        }
+        
+        .status-indicator {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 6px;
+        }
+        
+        .status-indicator-form-completed { background-color: #0d6efd; }
+        .status-indicator-demo-scheduled { background-color: #fd7e14; }
+        .status-indicator-demo-completed { background-color: #28a745; }
+        .status-indicator-client-signed { background-color: #198754; }
+        .status-indicator-client-renewed { background-color: #0dcaf0; }
+        .status-indicator-client-upgraded { background-color: #dc3545; }
+        .status-indicator-partner-network { background-color: #6c757d; }
+        
+        .stats-card {
+            transition: all 0.2s ease;
+        }
+        
+        .stats-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 40px 0;
+        }
+        
+        .empty-state i {
+            font-size: 48px;
+            color: #dee2e6;
+            margin-bottom: 20px;
+        }
+    </style>
+{% endblock %}
+
+{% block extra_js %}
+    <script src="{{ url_for('static', filename='js/points-rewards.js') }}"></script>
+{% endblock %}
+
+{% block content %}
+<div class="py-4">
+    <!-- Company Statistics -->
+    <div class="row">
+        <div class="col-12 col-sm-6 col-xl-3 mb-4">
+            <div class="card border-0 shadow stats-card">
+                <div class="card-body">
+                    <div class="d-flex align-items-center justify-content-between mb-3">
+                        <div class="icon-shape icon-shape-primary rounded">
+                            <i class="fas fa-building"></i>
+                        </div>
+                        <div class="text-end">
+                            <h3 class="fw-extrabold mb-1">{{ statistics.total_companies }}</h3>
+                            <p class="text-muted mb-0">Total Companies</p>
+                        </div>
+                    </div>
+                    <div class="progress progress-thin">
+                        <div class="progress-bar bg-primary" role="progressbar" style="width: 100%" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-12 col-sm-6 col-xl-3 mb-4">
+            <div class="card border-0 shadow stats-card">
+                <div class="card-body">
+                    <div class="d-flex align-items-center justify-content-between mb-3">
+                        <div class="icon-shape icon-shape-warning rounded">
+                            <i class="fas fa-calendar-check"></i>
+                        </div>
+                        <div class="text-end">
+                            <h3 class="fw-extrabold mb-1">{{ statistics.demos_scheduled }}</h3>
+                            <p class="text-muted mb-0">Demos Scheduled</p>
+                        </div>
+                    </div>
+                    <div class="progress progress-thin">
+                        <div class="progress-bar bg-warning" role="progressbar" 
+                             style="width: {% if statistics.total_companies > 0 %}{{ (statistics.demos_scheduled / statistics.total_companies * 100)|round }}{% else %}0{% endif %}%" 
+                             aria-valuenow="{{ statistics.demos_scheduled }}" 
+                             aria-valuemin="0" 
+                             aria-valuemax="{{ statistics.total_companies }}"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-12 col-sm-6 col-xl-3 mb-4">
+            <div class="card border-0 shadow stats-card">
+                <div class="card-body">
+                    <div class="d-flex align-items-center justify-content-between mb-3">
+                        <div class="icon-shape icon-shape-success rounded">
+                            <i class="fas fa-handshake"></i>
+                        </div>
+                        <div class="text-end">
+                            <h3 class="fw-extrabold mb-1">{{ statistics.demos_completed }}</h3>
+                            <p class="text-muted mb-0">Demos Completed</p>
+                        </div>
+                    </div>
+                    <div class="progress progress-thin">
+                        <div class="progress-bar bg-success" role="progressbar" 
+                             style="width: {% if statistics.total_companies > 0 %}{{ (statistics.demos_completed / statistics.total_companies * 100)|round }}{% else %}0{% endif %}%" 
+                             aria-valuenow="{{ statistics.demos_completed }}" 
+                             aria-valuemin="0" 
+                             aria-valuemax="{{ statistics.total_companies }}"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-12 col-sm-6 col-xl-3 mb-4">
+            <div class="card border-0 shadow stats-card">
+                <div class="card-body">
+                    <div class="d-flex align-items-center justify-content-between mb-3">
+                        <div class="icon-shape icon-shape-info rounded">
+                            <i class="fas fa-file-signature"></i>
+                        </div>
+                        <div class="text-end">
+                            <h3 class="fw-extrabold mb-1">{{ statistics.clients_signed }}</h3>
+                            <p class="text-muted mb-0">Clients Signed</p>
+                        </div>
+                    </div>
+                    <div class="progress progress-thin">
+                        <div class="progress-bar bg-info" role="progressbar" 
+                             style="width: {% if statistics.total_companies > 0 %}{{ (statistics.clients_signed / statistics.total_companies * 100)|round }}{% else %}0{% endif %}%" 
+                             aria-valuenow="{{ statistics.clients_signed }}" 
+                             aria-valuemin="0" 
+                             aria-valuemax="{{ statistics.total_companies }}"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Status Distribution -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow">
+                <div class="card-header">
+                    <h5 class="mb-0">Referral Status Distribution</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <div class="progress mb-3" style="height: 24px;">
+                                {% if statistics.demos_scheduled > 0 %}
+                                <div class="progress-bar bg-warning" 
+                                     role="progressbar" 
+                                     style="width: {% if statistics.total_companies > 0 %}{{ (statistics.demos_scheduled / statistics.total_companies * 100)|round }}%{% else %}0%{% endif %};" 
+                                     aria-valuenow="{{ statistics.demos_scheduled }}" 
+                                     aria-valuemin="0" 
+                                     aria-valuemax="{{ statistics.total_companies }}">
+                                    {% if (statistics.demos_scheduled / statistics.total_companies * 100)|round > 10 %}
+                                        Demo Scheduled
+                                    {% endif %}
+                                </div>
+                                {% endif %}
+                                
+                                {% if statistics.demos_completed > 0 %}
+                                <div class="progress-bar bg-success" 
+                                     role="progressbar" 
+                                     style="width: {% if statistics.total_companies > 0 %}{{ (statistics.demos_completed / statistics.total_companies * 100)|round }}%{% else %}0%{% endif %};" 
+                                     aria-valuenow="{{ statistics.demos_completed }}" 
+                                     aria-valuemin="0" 
+                                     aria-valuemax="{{ statistics.total_companies }}">
+                                    {% if (statistics.demos_completed / statistics.total_companies * 100)|round > 10 %}
+                                        Demo Completed
+                                    {% endif %}
+                                </div>
+                                {% endif %}
+                                
+                                {% if statistics.clients_signed > 0 %}
+                                <div class="progress-bar bg-info" 
+                                     role="progressbar" 
+                                     style="width: {% if statistics.total_companies > 0 %}{{ (statistics.clients_signed / statistics.total_companies * 100)|round }}%{% else %}0%{% endif %};" 
+                                     aria-valuenow="{{ statistics.clients_signed }}" 
+                                     aria-valuemin="0" 
+                                     aria-valuemax="{{ statistics.total_companies }}">
+                                    {% if (statistics.clients_signed / statistics.total_companies * 100)|round > 10 %}
+                                        Clients Signed
+                                    {% endif %}
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="d-flex flex-column">
+                                <!-- Demo scheduled -->
+                                <div class="d-flex align-items-center mb-2">
+                                    <div class="status-indicator status-indicator-demo-scheduled"></div>
+                                    <span class="me-auto">Demo scheduled</span>
+                                    <span class="badge bg-warning">{{ statistics.demos_scheduled }}</span>
+                                </div>
+                                
+                                <!-- Demo completed -->
+                                <div class="d-flex align-items-center mb-2">
+                                    <div class="status-indicator status-indicator-demo-completed"></div>
+                                    <span class="me-auto">Demo completed</span>
+                                    <span class="badge bg-success">{{ statistics.demos_completed }}</span>
+                                </div>
+                                
+                                <!-- Client signed up -->
+                                <div class="d-flex align-items-center mb-2">
+                                    <div class="status-indicator status-indicator-client-signed"></div>
+                                    <span class="me-auto">Clients signed</span>
+                                    <span class="badge bg-info">{{ statistics.clients_signed }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Companies Table -->
+    <div class="row">
+        <div class="col-12 mb-4">
+            <div class="card border-0 shadow">
+                <div class="card-header">
+                    <div class="row align-items-center">
+                        <div class="col">
+                            <h2 class="fs-5 fw-bold mb-0">Your Companies</h2>
+                        </div>
+                    </div>
+                </div>
+                <div class="table-responsive">
+                    <table class="table align-items-center table-flush">
+                        <thead class="thead-light">
+                            <tr>
+                                <th class="border-bottom" scope="col">Company</th>
+                                <th class="border-bottom" scope="col">Status</th>
+                                <th class="border-bottom" scope="col">Progress</th>
+                                <th class="border-bottom" scope="col">Last Updated</th>
+                                <th class="border-bottom" scope="col">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% if companies %}
+                                {% for company in companies %}
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="company-avatar bg-primary me-3">
+                                                <span>{{ company.name[:2].upper() }}</span>
+                                            </div>
+                                            <div class="d-block">
+                                                <span class="fw-bold">{{ company.name }}</span>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        {% if company.status == 'referral_form_completed' %}
+                                            <span class="status-badge action-form-completed">Referral form completed</span>
+                                        {% elif company.status == 'demo_scheduled' %}
+                                            <span class="status-badge action-demo-scheduled">Demo scheduled</span>
+                                        {% elif company.status == 'demo_completed' %}
+                                            <span class="status-badge action-demo-completed">Demo completed</span>
+                                        {% elif company.status == 'client_signed_up' %}
+                                            <span class="status-badge action-client-signed">Client signed up</span>
+                                        {% elif company.status == 'client_renewed' %}
+                                            <span class="status-badge action-client-renewed">Client renewed</span>
+                                        {% else %}
+                                            <span class="status-badge status-{{ company.status }}">{{ company.status|replace('_', ' ')|title }}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td style="width: 20%;">
+                                        {% set stage_mapping = {
+                                            'lead': 0,
+                                            'demo_scheduled': 1,
+                                            'demo_completed': 2,
+                                            'client_signed': 3,
+                                            'renewed': 4,
+                                            'upgraded': 5
+                                        } %}
+                                        
+                                        {% set current_index = stage_mapping.get(company.status, 0) %}
+                                        {% set progress_percent = (current_index / 5 * 100)|round %}
+                                        
+                                        <div class="d-flex align-items-center">
+                                            <div class="progress progress-thin flex-grow-1">
+                                                <div class="progress-bar bg-success" role="progressbar" style="width: {{ progress_percent }}%" aria-valuenow="{{ progress_percent }}" aria-valuemin="0" aria-valuemax="100"></div>
+                                            </div>
+                                            <span class="ms-2 small text-muted">{{ progress_percent }}%</span>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="small">{{ company.updated_at }}</span>
+                                    </td>
+                                    <td>
+                                        <a href="#" class="btn btn-sm btn-outline-primary">
+                                            <i class="fas fa-eye me-1"></i> View Details
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            {% else %}
+                                <tr>
+                                    <td colspan="5">
+                                        <div class="empty-state">
+                                            <i class="fas fa-building"></i>
+                                            <h5>No companies found</h5>
+                                            <p class="text-muted">You don't have any companies in your account yet.</p>
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

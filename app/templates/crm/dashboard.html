@@ -1,0 +1,407 @@
+{% extends "base.html" %}
+
+{% block title %}CRM Dashboard{% endblock %}
+
+{% block content %}
+<div class="py-4">
+    <nav aria-label="breadcrumb" class="d-none d-md-inline-block">
+        <ol class="breadcrumb breadcrumb-dark breadcrumb-transparent">
+            <li class="breadcrumb-item">
+                <a href="{{ url_for('main.dashboard') }}">
+                    <svg class="icon icon-xxs" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
+                </a>
+            </li>
+            <li class="breadcrumb-item active" aria-current="page">CRM Dashboard</li>
+        </ol>
+    </nav>
+    <div class="d-flex justify-content-between w-100 flex-wrap">
+        <div class="mb-3 mb-lg-0">
+            <h1 class="h4">Welcome, {{ sales_profile.user.name }}!</h1>
+            <p class="mb-0">Here's your CRM overview.</p>
+        </div>
+        <div>
+            {# Quick Action Buttons - Add links later #}
+            <a href="{{ url_for('crm.create_contact') }}" class="btn btn-outline-gray-600 d-inline-flex align-items-center">
+                <i class="fas fa-plus me-2"></i> New Contact
+            </a>
+            <a href="{{ url_for('crm.create_account') }}" class="btn btn-outline-gray-600 d-inline-flex align-items-center">
+                <i class="fas fa-plus me-2"></i> New Account
+            </a>
+            <a href="{{ url_for('crm.create_deal') }}" class="btn btn-outline-gray-600 d-inline-flex align-items-center">
+                <i class="fas fa-plus me-2"></i> New Deal
+            </a>
+             <a href="{{ url_for('crm.manage_tasks') }}" class="btn btn-outline-gray-600 d-inline-flex align-items-center">
+                <i class="fas fa-plus me-2"></i> New Task
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    {# KPI Row #}
+    <div class="col-12 col-sm-6 col-xl-3 mb-4">
+        <div class="card border-0 shadow">
+            <div class="card-body">
+                <div class="row d-block d-xl-flex align-items-center">
+                    <div class="col-12 col-xl-5 text-xl-center mb-3 mb-xl-0 d-flex align-items-center justify-content-xl-center">
+                        <div class="icon-shape icon-shape-primary rounded me-4 me-sm-0">
+                            <i class="fas fa-handshake fa-fw"></i>
+                        </div>
+                    </div>
+                    <div class="col-12 col-xl-7 px-xl-0">
+                        <div class="d-none d-sm-block">
+                            <h2 class="h6 text-gray-400 mb-0">Open Deals</h2>
+                            <h3 class="fw-extrabold mb-2">{{ open_deals_count }}</h3>
+                        </div>
+                        <small class="text-gray-500">
+                           Pipeline: ${{ '{:,.2f}'.format(total_pipeline_value) }}
+                        </small> 
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-sm-6 col-xl-3 mb-4">
+        <div class="card border-0 shadow">
+            <div class="card-body">
+                <div class="row d-block d-xl-flex align-items-center">
+                    <div class="col-12 col-xl-5 text-xl-center mb-3 mb-xl-0 d-flex align-items-center justify-content-xl-center">
+                        <div class="icon-shape icon-shape-secondary rounded me-4 me-sm-0">
+                           <i class="fas fa-phone-volume fa-fw"></i>
+                        </div>
+                    </div>
+                    <div class="col-12 col-xl-7 px-xl-0">
+                        <div class="d-none d-sm-block">
+                            <h2 class="h6 text-gray-400 mb-0">Total Calls</h2>
+                            <h3 class="fw-extrabold mb-2">{{ total_calls }}</h3>
+                        </div>
+                        <small class="text-gray-500">
+                            Duration: {{ total_call_duration_mins }} min
+                        </small> 
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-sm-6 col-xl-3 mb-4">
+        <div class="card border-0 shadow">
+            <div class="card-body">
+                <div class="row d-block d-xl-flex align-items-center">
+                    <div class="col-12 col-xl-5 text-xl-center mb-3 mb-xl-0 d-flex align-items-center justify-content-xl-center">
+                        <div class="icon-shape icon-shape-tertiary rounded me-4 me-sm-0">
+                            <i class="fas fa-users fa-fw"></i>
+                        </div>
+                    </div>
+                    <div class="col-12 col-xl-7 px-xl-0">
+                        <div class="d-none d-sm-block">
+                            <h2 class="h6 text-gray-400 mb-0">Contacts</h2>
+                            <h3 class="fw-extrabold mb-2">{{ contact_count }}</h3>
+                        </div>
+                        <small class="text-gray-500">
+                            Accounts: {{ account_count }}
+                        </small> 
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+     <div class="col-12 col-sm-6 col-xl-3 mb-4">
+        <div class="card border-0 shadow {% if overdue_task_count > 0 %}border-danger{% endif %}">
+            <div class="card-body">
+                <div class="row d-block d-xl-flex align-items-center">
+                    <div class="col-12 col-xl-5 text-xl-center mb-3 mb-xl-0 d-flex align-items-center justify-content-xl-center">
+                        <div class="icon-shape {% if overdue_task_count > 0 %}icon-shape-danger{% else %}icon-shape-success{% endif %} rounded me-4 me-sm-0">
+                            <i class="fas fa-exclamation-triangle fa-fw"></i>
+                        </div>
+                    </div>
+                    <div class="col-12 col-xl-7 px-xl-0">
+                        <div class="d-none d-sm-block">
+                            <h2 class="h6 text-gray-400 mb-0">Overdue Tasks</h2>
+                            <h3 class="fw-extrabold mb-2">{{ overdue_task_count }}</h3>
+                        </div>
+                         <small class="text-gray-500">
+                            Total Tasks: {{ task_count }}
+                        </small> 
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    {# Deals Pipeline & Overdue Tasks #}
+    <div class="col-12 col-xl-8 mb-4">
+        <div class="card border-0 shadow">
+            <div class="card-header d-flex flex-row align-items-center flex-0 border-bottom">
+                <div class="d-block">
+                    <div class="h6 fw-normal text-gray mb-2">Deals Pipeline <span class="badge bg-secondary ms-1" id="deals-period-label">{{ selected_period|capitalize }}</span></div>
+                    <h2 class="h3 fw-extrabold" id="deals-pipeline-value">${{ '{:,.2f}'.format(total_pipeline_value) }}</h2>
+                </div>
+                <div class="btn-group ms-auto" role="group" aria-label="Deals Time Period">
+                    <button type="button" class="btn btn-outline-secondary btn-sm time-period-btn {% if selected_period == 'today' %}active{% endif %}" data-period="today" data-target="deals">Today</button>
+                    <button type="button" class="btn btn-outline-secondary btn-sm time-period-btn {% if selected_period == 'week' %}active{% endif %}" data-period="week" data-target="deals">Week</button>
+                    <button type="button" class="btn btn-outline-secondary btn-sm time-period-btn {% if selected_period == 'month' %}active{% endif %}" data-period="month" data-target="deals">Month</button>
+                    <button type="button" class="btn btn-outline-secondary btn-sm time-period-btn {% if selected_period == 'all' %}active{% endif %}" data-period="all" data-target="deals">All Time</button>
+                </div>
+            </div>
+            <div class="card-body p-2">
+                <canvas id="dealsByStageChart" height="150"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 col-xl-4 mb-4">
+        <div class="card border-0 shadow">
+            <div class="card-header border-bottom d-flex align-items-center justify-content-between">
+                <h2 class="fs-5 fw-bold mb-0">Overdue Tasks</h2>
+                <a href="{{ url_for('crm.manage_tasks') }}" class="btn btn-sm btn-primary">View All</a>
+            </div>
+            <div class="card-body">
+                {% if recent_overdue_tasks %}
+                    <ul class="list-group list-group-flush">
+                        {% for task in recent_overdue_tasks %}
+                        <li class="list-group-item px-0">
+                            <div class="row align-items-center">
+                                <div class="col-auto">
+                                    <a href="{{ url_for('crm.edit_task', task_id=task.id) }}" class="avatar rounded-circle">
+                                        {# Could use priority icon later #}
+                                        <i class="fas fa-exclamation text-danger"></i>
+                                    </a>
+                                </div>
+                                <div class="col">
+                                    <h4 class="h6 mb-0"><a href="{{ url_for('crm.edit_task', task_id=task.id) }}">{{ task.title }}</a></h4>
+                                    <span class="text-danger">Due: {{ task.due_date.strftime('%b %d, %Y') if task.due_date else 'N/A' }}</span>
+                                </div>
+                                {# Maybe add related item link #}
+                            </div>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p class="text-center text-muted">No overdue tasks. Great job!</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    {# Call Stats & Recent Activity #}
+    <div class="col-12 col-lg-6 mb-4">
+         <div class="card border-0 shadow">
+            <div class="card-header d-flex flex-row align-items-center flex-0 border-bottom">
+                <div class="d-block">
+                    <div class="h6 fw-normal text-gray mb-2">Call Performance <span class="badge bg-secondary ms-1" id="calls-period-label">{{ selected_period|capitalize }}</span></div>
+                </div>
+                <div class="btn-group ms-auto" role="group" aria-label="Calls Time Period">
+                    <button type="button" class="btn btn-outline-secondary btn-sm time-period-btn {% if selected_period == 'today' %}active{% endif %}" data-period="today" data-target="calls">Today</button>
+                    <button type="button" class="btn btn-outline-secondary btn-sm time-period-btn {% if selected_period == 'week' %}active{% endif %}" data-period="week" data-target="calls">Week</button>
+                    <button type="button" class="btn btn-outline-secondary btn-sm time-period-btn {% if selected_period == 'month' %}active{% endif %}" data-period="month" data-target="calls">Month</button>
+                    <button type="button" class="btn btn-outline-secondary btn-sm time-period-btn {% if selected_period == 'all' %}active{% endif %}" data-period="all" data-target="calls">All Time</button>
+                </div>
+            </div>
+            <div class="card-body">
+                 {# Placeholder for Calls Over Time Chart #}
+                 <p class="text-muted text-center" id="calls-over-time-placeholder">(Chart for calls over time will go here)</p>
+                 <canvas id="callsOverTimeChart" height="150" style="display: none;"></canvas> {# Initially hidden #}
+                 <div class="row text-center mt-3">
+                     <div class="col">
+                         <h4 class="h5" id="total-calls-display">{{ total_calls }}</h4>
+                         <span class="text-muted">Total Calls</span>
+                     </div>
+                     <div class="col">
+                         <h4 class="h5" id="total-call-duration-display">{{ total_call_duration_mins }} min</h4>
+                         <span class="text-muted">Total Duration</span>
+                     </div>
+                 </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 col-lg-6 mb-4">
+        <div class="card border-0 shadow">
+            <div class="card-header border-bottom d-flex align-items-center justify-content-between">
+                <h2 class="fs-5 fw-bold mb-0">Recent Activity</h2>
+                {# Maybe link to a full activity log page #}
+            </div>
+            <div class="card-body">
+                {% if recent_activities %}
+                    <ul class="list-group list-group-flush">
+                        {% for activity in recent_activities %}
+                        <li class="list-group-item px-0">
+                            <div class="row align-items-center">
+                                <div class="col-auto">
+                                    {# Icon based on activity type #}
+                                    {% set icon_class = 'fa-question' %}
+                                    {% if activity.type == 'deal' %}
+                                        {% set icon_class = 'fa-handshake text-success' %}
+                                    {% elif activity.type == 'task' %}
+                                        {% set icon_class = 'fa-check-square text-info' %}
+                                    {% elif activity.type == 'call_log' %}
+                                        {% set icon_class = 'fa-phone-alt text-warning' %}
+                                    {% elif activity.type == 'note' %}
+                                        {% set icon_class = 'fa-sticky-note text-secondary' %}
+                                    {% endif %}
+                                    
+                                    <span class="avatar avatar-sm rounded-circle">
+                                        <i class="fas {{ icon_class }}"></i>
+                                    </span>
+                                </div>
+                                <div class="col ms--2">
+                                    <h4 class="h6 mb-0"><a href="{{ activity.url }}">{{ activity.text }}</a></h4>
+                                    <span class="text-muted small">{{ activity.timestamp.strftime('%b %d, %Y %I:%M %p') if activity.timestamp else '-' }}</span>
+                                </div>
+                            </div>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p class="text-center text-muted">No recent activity.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+{# Chart.js CDN #}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+let dealsByStageChartInstance = null; // Global reference for the chart instance
+let callsOverTimeChartInstance = null;
+
+document.addEventListener('DOMContentLoaded', function () {
+    // --- Initial Chart Setup --- //
+    
+    // Deals by Stage Chart (Initial Load)
+    const dealsByStageCtx = document.getElementById('dealsByStageChart');
+    if (dealsByStageCtx) {
+        const initialDealsData = {{ deals_by_stage_data|tojson }};
+        dealsByStageChartInstance = initializeDealsChart(dealsByStageCtx, initialDealsData);
+    }
+
+    // --- Time Period Button Event Listeners --- //
+    const timePeriodButtons = document.querySelectorAll('.time-period-btn');
+    timePeriodButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const period = this.dataset.period;
+            const target = this.dataset.target; // 'deals' or 'calls'
+
+            // Update active button state within the correct group
+            this.parentNode.querySelectorAll('.time-period-btn').forEach(btn => btn.classList.remove('active'));
+            this.classList.add('active');
+
+            // Update the label for the specific section
+            document.getElementById(`${target}-period-label`).textContent = period.charAt(0).toUpperCase() + period.slice(1);
+
+            // Fetch updated data
+            fetch(`/crm/dashboard-data?period=${period}&target=${target}`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.json();
+                 })
+                .then(data => {
+                    // Update DOM elements and charts based on target
+                    if (target === 'deals') {
+                        updateDealsSection(data);
+                    } else if (target === 'calls') {
+                        updateCallsSection(data);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching dashboard data:', error);
+                    // Display a user-friendly error message?
+                });
+        });
+    });
+});
+
+// --- Helper Functions --- //
+
+function initializeDealsChart(ctx, dealsData) {
+    const labels = Object.keys(dealsData);
+    const dataValues = Object.values(dealsData);
+    const stageColors = {
+        'Prospecting': '#0d6efd', 'Qualification': '#6610f2', 'Needs Analysis': '#6f42c1', 
+        'Value Proposition': '#d63384', 'Id. Decision Makers': '#dc3545', 'Perception Analysis': '#fd7e14', 
+        'Proposal/Price Quote': '#ffc107', 'Negotiation/Review': '#198754', 'Closed Won': '#adb5bd', 
+        'Closed Lost': '#343a40'
+    };
+    const backgroundColors = labels.map(label => stageColors[label] || '#ced4da');
+
+    return new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Deals by Stage',
+                data: dataValues,
+                backgroundColor: backgroundColors,
+                hoverOffset: 4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { position: 'bottom' }
+            }
+        }
+    });
+}
+
+function updateDealsSection(data) {
+    // Update Pipeline Value display
+    const pipelineValueEl = document.getElementById('deals-pipeline-value');
+    if (pipelineValueEl) {
+        pipelineValueEl.textContent = `$${data.total_pipeline_value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    }
+
+    // Update Deals by Stage Chart
+    if (dealsByStageChartInstance && data.deals_by_stage_data) {
+        const labels = Object.keys(data.deals_by_stage_data);
+        const dataValues = Object.values(data.deals_by_stage_data);
+        const stageColors = {
+             'Prospecting': '#0d6efd', 'Qualification': '#6610f2', 'Needs Analysis': '#6f42c1', 
+            'Value Proposition': '#d63384', 'Id. Decision Makers': '#dc3545', 'Perception Analysis': '#fd7e14', 
+            'Proposal/Price Quote': '#ffc107', 'Negotiation/Review': '#198754', 'Closed Won': '#adb5bd', 
+            'Closed Lost': '#343a40'
+        };
+        const backgroundColors = labels.map(label => stageColors[label] || '#ced4da');
+
+        dealsByStageChartInstance.data.labels = labels;
+        dealsByStageChartInstance.data.datasets[0].data = dataValues;
+        dealsByStageChartInstance.data.datasets[0].backgroundColor = backgroundColors;
+        dealsByStageChartInstance.update();
+    }
+}
+
+function updateCallsSection(data) {
+    // Update Total Calls display
+    const totalCallsEl = document.getElementById('total-calls-display');
+    if (totalCallsEl) {
+        totalCallsEl.textContent = data.total_calls;
+    }
+
+    // Update Total Duration display
+    const totalDurationEl = document.getElementById('total-call-duration-display');
+    if (totalDurationEl) {
+        totalDurationEl.textContent = `${data.total_call_duration_mins} min`;
+    }
+
+    // Update Calls Over Time Chart (if/when implemented)
+    // if (callsOverTimeChartInstance && data.calls_over_time_data) { 
+    //    callsOverTimeChartInstance.data.labels = data.calls_over_time_data.labels;
+    //    callsOverTimeChartInstance.data.datasets[0].data = data.calls_over_time_data.values;
+    //    callsOverTimeChartInstance.update();
+    // }
+}
+
+</script>
+{% endblock %} 

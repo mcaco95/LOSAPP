@@ -1,0 +1,627 @@
+{% extends "base.html" %}
+
+{% block title %}Points Management{% endblock %}
+
+{% block extra_css %}
+    <link type="text/css" href="{{ url_for('static', filename='css/points-rewards.css') }}" rel="stylesheet">
+    <style>
+        .height-400 {
+            height: 400px;
+        }
+        
+        .ct-chart-distribution .ct-bar {
+            stroke-width: 20px;
+        }
+        
+        .ct-bar-custom {
+            stroke: #1B365D !important;
+        }
+        
+        .ct-chart-distribution .ct-label.ct-horizontal {
+            font-size: 12px;
+            color: #444;
+            white-space: nowrap;
+            transform: rotate(-30deg);
+            transform-origin: 100% 0%;
+            text-anchor: end;
+            padding-top: 15px;
+            margin-top: 10px;
+        }
+        
+        .ct-chart-distribution .ct-grid {
+            stroke: rgba(0, 0, 0, 0.1);
+        }
+        
+        .ct-chart-distribution .ct-bar-label {
+            font-size: 12px;
+            font-weight: bold;
+            fill: #444;
+        }
+    </style>
+{% endblock %}
+
+{% block extra_js %}
+    <script src="{{ url_for('static', filename='js/points-rewards.js') }}"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Try to get real data from the server, or use simple defaults if not available
+            let distributionData;
+            try {
+                const dataElement = document.getElementById('distributionData');
+                if (dataElement && dataElement.textContent.trim()) {
+                    distributionData = JSON.parse(dataElement.textContent);
+                    console.log('Loaded distribution data:', distributionData);
+                }
+            } catch (error) {
+                console.error('Error parsing distribution data:', error);
+            }
+            
+            // Use the actual data from the server instead of mock data
+            const pointData = distributionData || {
+                labels: ['Click', 'Lead', 'Demo Sch', 'Demo Comp', 'Signed', 'Renewed', 'Upgraded', 'Partner', 'Bonus'],
+                series: [[0, 0, 0, 0, 0, 0, 0, 0, 0]] // Default empty data if server data is not available
+            };
+
+            // Get the maximum value for scaling the chart
+            const maxValue = Math.max(...pointData.series[0]) || 10; // Default to 10 if all values are 0
+
+            // Create the chart with proper configuration
+            const chart = new Chartist.Bar('.ct-chart-distribution', pointData, {
+                low: 0,
+                high: maxValue + Math.ceil(maxValue * 0.2), // Add 20% padding to the max value
+                seriesBarDistance: 20,
+                fullWidth: true,
+                chartPadding: {
+                    top: 30,  // Extra padding for bar labels
+                    right: 30,
+                    bottom: 70, // Increased padding at the bottom for rotated labels
+                    left: 40
+                },
+                axisY: {
+                    onlyInteger: true,
+                    labelInterpolationFnc: function(value) {
+                        return value + ' pts';
+                    }
+                },
+                plugins: [
+                    Chartist.plugins.tooltip()
+                ]
+            });
+            
+            // Add bar labels with total values
+            chart.on('draw', function(data) {
+                if(data.type === 'bar') {
+                    // Add animation to each bar
+                    data.element.animate({
+                        y2: {
+                            begin: 300 * data.index,
+                            dur: 500,
+                            from: data.y1,
+                            to: data.y2,
+                            easing: 'easeOutQuad'
+                        },
+                        opacity: {
+                            begin: 300 * data.index,
+                            dur: 500,
+                            from: 0,
+                            to: 1,
+                            easing: 'easeOutQuad'
+                        }
+                    });
+                    
+                    // Add styling to the bars
+                    data.element.addClass('ct-bar-custom');
+                    
+                    // Add value labels on top of bars
+                    const value = data.value.y;
+                    if (value > 0) {
+                        data.group.elem('text', {
+                            x: data.x2,
+                            y: data.y2 - 10,
+                            style: 'text-anchor: middle',
+                            class: 'ct-bar-label'
+                        }).text(value);
+                    }
+                }
+            });
+
+            // Handle time period buttons
+            const periodButtons = document.querySelectorAll('[data-period]');
+            periodButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    // Remove active class from all buttons
+                    periodButtons.forEach(btn => btn.classList.remove('active'));
+                    // Add active class to clicked button
+                    this.classList.add('active');
+                    
+                    const period = this.getAttribute('data-period');
+                    console.log(`Changing to period: ${period}`);
+                    
+                    // Fetch the actual data for the selected period
+                    fetch(`/api/v1/points/distribution?period=${period}`)
+                        .then(response => response.json())
+                        .then(data => {
+                            // Update the chart with the fetched data
+                            const updatedChart = new Chartist.Bar('.ct-chart-distribution', data, {
+                                low: 0,
+                                high: Math.max(...data.series[0]) + Math.ceil(Math.max(...data.series[0]) * 0.2),
+                                seriesBarDistance: 20,
+                                fullWidth: true,
+                                chartPadding: {
+                                    top: 30,  // Extra padding for bar labels
+                                    right: 30,
+                                    bottom: 70, // Increased padding at the bottom for rotated labels
+                                    left: 40
+                                },
+                                axisY: {
+                                    onlyInteger: true,
+                                    labelInterpolationFnc: function(value) {
+                                        return value + ' pts';
+                                    }
+                                },
+                                plugins: [
+                                    Chartist.plugins.tooltip()
+                                ]
+                            });
+                            
+                            // Add bar labels with total values
+                            updatedChart.on('draw', function(data) {
+                                if(data.type === 'bar') {
+                                    // Add animation to each bar
+                                    data.element.animate({
+                                        y2: {
+                                            begin: 300 * data.index,
+                                            dur: 500,
+                                            from: data.y1,
+                                            to: data.y2,
+                                            easing: 'easeOutQuad'
+                                        },
+                                        opacity: {
+                                            begin: 300 * data.index,
+                                            dur: 500,
+                                            from: 0,
+                                            to: 1,
+                                            easing: 'easeOutQuad'
+                                        }
+                                    });
+                                    
+                                    // Add styling to the bars
+                                    data.element.addClass('ct-bar-custom');
+                                    
+                                    // Add value labels on top of bars
+                                    const value = data.value.y;
+                                    if (value > 0) {
+                                        data.group.elem('text', {
+                                            x: data.x2,
+                                            y: data.y2 - 10,
+                                            style: 'text-anchor: middle',
+                                            class: 'ct-bar-label'
+                                        }).text(value);
+                                    }
+                                }
+                            });
+                        })
+                        .catch(error => {
+                            console.error('Error fetching distribution data:', error);
+                        });
+                });
+            });
+        });
+
+        function toggleClickPoints(enabled) {
+            // Update UI immediately
+            const label = document.querySelector('label[for="clickPointsToggle"] span');
+            if (enabled) {
+                label.textContent = 'Enabled';
+                label.className = 'text-success';
+            } else {
+                label.textContent = 'Disabled';
+                label.className = 'text-danger';
+            }
+            
+            // Send request to the server to update the setting
+            fetch('/api/v1/points/settings/click_points_enabled', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ enabled: enabled })
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Show success notification
+                Notyf.success({
+                    message: `Points for clicks ${enabled ? 'enabled' : 'disabled'} successfully`,
+                    duration: 3000,
+                    position: {
+                        x: 'right',
+                        y: 'top',
+                    }
+                });
+            })
+            .catch(error => {
+                console.error('Error updating click points setting:', error);
+                // Show error notification
+                Notyf.error({
+                    message: 'Failed to update setting. Please try again.',
+                    duration: 3000,
+                    position: {
+                        x: 'right',
+                        y: 'top',
+                    }
+                });
+                
+                // Revert the toggle if there was an error
+                document.getElementById('clickPointsToggle').checked = !enabled;
+                label.textContent = enabled ? 'Disabled' : 'Enabled';
+                label.className = enabled ? 'text-danger' : 'text-success';
+            });
+        }
+    </script>
+{% endblock %}
+
+{% block content %}
+<div class="py-4">
+    <div class="d-flex justify-content-between w-100 flex-wrap">
+        <div class="mb-3 mb-lg-0">
+            <h1 class="h4">Points Management</h1>
+            <p class="mb-0">Configure point values and rules for user actions</p>
+        </div>
+        <div>
+            <a href="#" class="btn btn-sm btn-gray-800 d-inline-flex align-items-center" data-bs-toggle="modal" data-bs-target="#addPointRule">
+                <svg class="icon icon-xs me-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                </svg>
+                Add Rule
+            </a>
+        </div>
+    </div>
+
+    <!-- Point Rules Table -->
+    <div class="card border-0 shadow mb-4">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-centered table-nowrap mb-0 rounded">
+                    <thead class="thead-light">
+                        <tr>
+                            <th class="border-0 rounded-start">Action</th>
+                            <th class="border-0">Points</th>
+                            <th class="border-0">Frequency Limit</th>
+                            <th class="border-0">Status</th>
+                            <th class="border-0 rounded-end">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for rule in point_rules %}
+                        <tr data-rule-id="{{ rule.id }}" data-rule-key="{{ rule.key }}">
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="icon-shape icon-sm me-3 bg-gray-800 rounded-circle">
+                                        {% if 'lead' in rule.key %}
+                                        <svg class="icon icon-xs text-white" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                                            <path d="M8 9a3 3 0 100-6 3 3 0 000 6zM8 11a6 6 0 016 6H2a6 6 0 016-6z"></path>
+                                        </svg>
+                                        {% elif 'demo' in rule.key %}
+                                        <svg class="icon icon-xs text-white" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                                            <path d="M2 6a2 2 0 012-2h6a2 2 0 012 2v8a2 2 0 01-2 2H4a2 2 0 01-2-2V6zM14.553 7.106A1 1 0 0014 8v4a1 1 0 00.553.894l2 1A1 1 0 0018 13V7a1 1 0 00-1.447-.894l-2 1z"></path>
+                                        </svg>
+                                        {% elif 'client_signed' in rule.key %}
+                                        <svg class="icon icon-xs text-white" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                                        </svg>
+                                        {% elif 'renewed' in rule.key %}
+                                        <svg class="icon icon-xs text-white" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                                            <path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clip-rule="evenodd"></path>
+                                        </svg>
+                                        {% elif 'upgraded' in rule.key %}
+                                        <svg class="icon icon-xs text-white" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                                            <path fill-rule="evenodd" d="M12 7a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0V8.414l-4.293 4.293a1 1 0 01-1.414 0L8 10.414l-4.293 4.293a1 1 0 01-1.414-1.414l5-5a1 1 0 011.414 0L11 10.586 14.586 7H12z" clip-rule="evenodd"></path>
+                                        </svg>
+                                        {% elif 'partner' in rule.key %}
+                                        <svg class="icon icon-xs text-white" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                                            <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 12.094A5.973 5.973 0 004 15v3H1v-3a3 3 0 013.75-2.906z"></path>
+                                        </svg>
+                                        {% elif 'bonus' in rule.key %}
+                                        <svg class="icon icon-xs text-white" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
+                                        </svg>
+                                        {% elif 'click' in rule.key %}
+                                        <svg class="icon icon-xs text-white" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                                            <path fill-rule="evenodd" d="M6.672 1.911a1 1 0 10-1.932.518l.259.966a1 1 0 001.932-.518l-.26-.966zM2.429 4.74a1 1 0 10-.517 1.932l.966.259a1 1 0 00.517-1.932l-.966-.26zm8.814-.569a1 1 0 00-1.415-1.414l-.707.707a1 1 0 101.415 1.415l.707-.708zm-7.071 7.072l.707-.707A1 1 0 003.465 9.12l-.708.707a1 1 0 001.415 1.415zm3.2-5.171a1 1 0 00-1.3 1.3l4 10a1 1 0 001.823.075l1.38-2.759 3.018 3.02a1 1 0 001.414-1.415l-3.019-3.02 2.76-1.379a1 1 0 00-.076-1.822l-10-4z" clip-rule="evenodd"></path>
+                                        </svg>
+                                        {% else %}
+                                        <svg class="icon icon-xs text-white" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                                            <path fill-rule="evenodd" d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z" clip-rule="evenodd"></path>
+                                        </svg>
+                                        {% endif %}
+                                    </div>
+                                    <div class="d-block">
+                                        <span class="fw-bold">{{ rule.name }}</span>
+                                        <div class="small text-gray">{{ rule.description }}</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>{{ rule.points }}</td>
+                            <td>
+                                {% if rule.frequency_limit %}
+                                    {{ rule.frequency_limit }} per {{ rule.frequency_period }}
+                                {% else %}
+                                    No limit
+                                {% endif %}
+                            </td>
+                            <td>
+                                <span class="badge bg-{{ 'success' if rule.is_active else 'danger' }}">
+                                    {{ 'Active' if rule.is_active else 'Inactive' }}
+                                </span>
+                            </td>
+                            <td>
+                                <div class="btn-group">
+                                    <button class="btn btn-link text-dark dropdown-toggle dropdown-toggle-split m-0 p-0" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                        <span class="icon icon-sm">
+                                            <span class="fas fa-ellipsis-h icon-dark"></span>
+                                        </span>
+                                    </button>
+                                    <div class="dropdown-menu py-0">
+                                        <a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#editPointRule" data-rule-id="{{ rule.id }}">
+                                            <span class="fas fa-edit me-2"></span>Edit
+                                        </a>
+                                        <a class="dropdown-item text-danger rounded-bottom" href="#" data-bs-toggle="modal" data-bs-target="#deletePointRule" data-rule-id="{{ rule.id }}">
+                                            <span class="fas fa-trash-alt me-2"></span>Delete
+                                        </a>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                        <tr data-rule-id="click_points_enabled">
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="icon-shape icon-sm me-3 bg-primary rounded-circle">
+                                        <i class="fas fa-mouse-pointer text-white"></i>
+                                    </div>
+                                    <div class="d-block">
+                                        <span class="fw-bold">Enable Points for Link Clicks</span>
+                                        <div class="small text-gray">When enabled, users earn points when their referral links are clicked</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="fw-normal">{{ click_config.click }} / {{ click_config.unique_click }}</span>
+                                <div class="small text-gray">Regular / Unique</div>
+                            </td>
+                            <td>
+                                <span class="fw-normal">N/A</span>
+                            </td>
+                            <td>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="clickPointsToggle" 
+                                           {% if click_points_enabled %}checked{% endif %}
+                                           onchange="toggleClickPoints(this.checked)">
+                                    <label class="form-check-label" for="clickPointsToggle">
+                                        {% if click_points_enabled %}
+                                        <span class="text-success">Enabled</span>
+                                        {% else %}
+                                        <span class="text-danger">Disabled</span>
+                                        {% endif %}
+                                    </label>
+                                </div>
+                            </td>
+                            <td>
+                                <button type="button" class="btn btn-sm btn-primary" 
+                                        title="Configure click point values"
+                                        data-bs-toggle="modal" 
+                                        data-bs-target="#editPointRule" 
+                                        data-rule-id="click"
+                                        data-rule-name="Click Points"
+                                        data-rule-value="{{ click_config.click }}"
+                                        data-rule-description="Points earned when a user's referral link is clicked">
+                                    <i class="fas fa-cog"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Point Distribution Stats -->
+    <div class="row">
+        <div class="col-12 col-xl-8">
+            <div class="card border-0 shadow">
+                <div class="card-header">
+                    <div class="row align-items-center">
+                        <div class="col">
+                            <h2 class="fs-5 fw-bold mb-0">Points Distribution</h2>
+                        </div>
+                        <div class="col text-end">
+                            <div class="btn-group">
+                                <button class="btn btn-sm btn-gray-800 active" data-period="week">Week</button>
+                                <button class="btn btn-sm btn-gray-800" data-period="month">Month</button>
+                                <button class="btn btn-sm btn-gray-800" data-period="year">Year</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="ct-chart-distribution height-400"></div>
+                    <!-- Hidden distribution data for chart -->
+                    <script type="application/json" id="distributionData">
+                        {{ distribution_data|tojson|safe }}
+                    </script>
+                    <!-- Debug output -->
+                    <div class="d-none">
+                        <pre id="debug-distribution-data">{{ distribution_data|tojson(indent=2)|safe }}</pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-xl-4">
+            <div class="card border-0 shadow">
+                <div class="card-header">
+                    <div class="row align-items-center">
+                        <div class="col">
+                            <h2 class="fs-5 fw-bold mb-0">Top Point Earners</h2>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <ul class="list-group list-group-flush list my--3">
+                        {% for user in top_earners %}
+                        <li class="list-group-item px-0">
+                            <div class="row align-items-center">
+                                <div class="col-auto">
+                                    <div class="avatar">
+                                        {% if user.profile_picture %}
+                                            <img class="avatar rounded-circle" src="{{ url_for('static', filename=user.profile_picture) }}" alt="{{ user.username }}">
+                                        {% else %}
+                                            <div class="avatar-name rounded-circle bg-gray-800">
+                                                <span>{{ user.username[0] }}</span>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="col-auto ms--2">
+                                    <h4 class="h6 mb-0">
+                                        <a href="#">{{ user.username }}</a>
+                                    </h4>
+                                    <div class="d-flex align-items-center">
+                                        <small class="text-success fw-bold">{{ user.points }} points</small>
+                                    </div>
+                                </div>
+                                <div class="col text-end">
+                                    <a href="#" class="btn btn-sm btn-secondary d-inline-flex align-items-center">
+                                        View
+                                    </a>
+                                </div>
+                            </div>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Point Rule Modal -->
+<div class="modal fade" id="addPointRule" tabindex="-1" role="dialog" aria-labelledby="addPointRuleLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="h6 modal-title" id="addPointRuleLabel">Add Point Rule</h2>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addRuleForm">
+                    <div class="mb-3">
+                        <label for="actionName" class="form-label">Action Name</label>
+                        <input type="text" class="form-control" id="actionName" placeholder="e.g., Complete Profile">
+                    </div>
+                    <div class="mb-3">
+                        <label for="description" class="form-label">Description</label>
+                        <textarea class="form-control" id="description" rows="2" placeholder="Describe when points are awarded"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="points" class="form-label">Points</label>
+                        <input type="number" class="form-control" id="points" min="0">
+                    </div>
+                    <div class="mb-3">
+                        <label for="frequencyLimit" class="form-label">Frequency Limit</label>
+                        <div class="input-group">
+                            <input type="number" class="form-control" id="frequencyLimit" min="0">
+                            <select class="form-select" id="frequencyPeriod">
+                                <option value="day">per day</option>
+                                <option value="week">per week</option>
+                                <option value="month">per month</option>
+                                <option value="year">per year</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="isActive" checked>
+                            <label class="form-check-label" for="isActive">Active</label>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary">Add Rule</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Point Rule Modal -->
+<div class="modal fade" id="editPointRule" tabindex="-1" role="dialog" aria-labelledby="editPointRuleLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="h6 modal-title" id="editPointRuleLabel">Edit Point Rule</h2>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editRuleForm">
+                    <input type="hidden" id="editRuleId">
+                    <div class="mb-3">
+                        <label for="editActionName" class="form-label">Action Name</label>
+                        <input type="text" class="form-control" id="editActionName">
+                    </div>
+                    <div class="mb-3">
+                        <label for="editDescription" class="form-label">Description</label>
+                        <textarea class="form-control" id="editDescription" rows="2"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editPoints" class="form-label">Points</label>
+                        <input type="number" class="form-control" id="editPoints" min="0">
+                    </div>
+                    <div class="mb-3">
+                        <label for="editFrequencyLimit" class="form-label">Frequency Limit</label>
+                        <div class="input-group">
+                            <input type="number" class="form-control" id="editFrequencyLimit" min="0">
+                            <select class="form-select" id="editFrequencyPeriod">
+                                <option value="day">per day</option>
+                                <option value="week">per week</option>
+                                <option value="month">per month</option>
+                                <option value="year">per year</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="editIsActive">
+                            <label class="form-check-label" for="editIsActive">Active</label>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary">Save Changes</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Point Rule Modal -->
+<div class="modal fade" id="deletePointRule" tabindex="-1" role="dialog" aria-labelledby="deletePointRuleLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="h6 modal-title" id="deletePointRuleLabel">Delete Point Rule</h2>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete this point rule? This action cannot be undone.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger">Delete Rule</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

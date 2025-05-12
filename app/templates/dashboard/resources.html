@@ -1,0 +1,1349 @@
+{% extends 'base.html' %}
+
+{% block title %}Resources & Guidelines - LOS Referral Program{% endblock %}
+
+{% block content %}
+<!-- Floating Quick Nav -->
+<nav class="floating-nav d-none d-lg-block">
+    <ul class="list-unstyled">
+        <li>
+            <a href="#how-it-works" class="nav-dot active" data-bs-toggle="tooltip" data-bs-placement="left" title="How It Works">
+                <i class="fas fa-lightbulb"></i>
+            </a>
+        </li>
+        <li>
+            <a href="#commission-structure" class="nav-dot" data-bs-toggle="tooltip" data-bs-placement="left" title="Commission">
+                <i class="fas fa-dollar-sign"></i>
+            </a>
+        </li>
+        <li>
+            <a href="#recruitment-commission" class="nav-dot" data-bs-toggle="tooltip" data-bs-placement="left" title="Recruitment">
+                <i class="fas fa-user-plus"></i>
+            </a>
+        </li>
+        <li>
+            <a href="#points-rewards" class="nav-dot" data-bs-toggle="tooltip" data-bs-placement="left" title="Points">
+                <i class="fas fa-gem"></i>
+            </a>
+        </li>
+        <li>
+            <a href="#support" class="nav-dot" data-bs-toggle="tooltip" data-bs-placement="left" title="Support">
+                <i class="fas fa-life-ring"></i>
+            </a>
+        </li>
+        <li>
+            <a href="#faq" class="nav-dot" data-bs-toggle="tooltip" data-bs-placement="left" title="FAQ">
+                <i class="fas fa-question"></i>
+            </a>
+        </li>
+    </ul>
+</nav>
+
+<div class="py-4">
+    <div class="d-flex justify-content-between w-100 flex-wrap">
+        <div class="mb-3 mb-lg-0">
+            <h1 class="h4">Resources & Guidelines</h1>
+            <p class="mb-0 text-muted">Everything you need to know about the LOS Referral Program</p>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Navigation Section -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card border-0 shadow-sm hover-card">
+            <div class="card-body p-3 p-md-4" style="background: linear-gradient(45deg, rgb(140, 8, 17), #1a1a1a);">
+                <h2 class="fs-5 fw-bold mb-3 text-white">Quick Navigation</h2>
+                <div class="row g-2 g-md-3">
+                    <div class="col-6 col-md-2">
+                        <a href="#how-it-works" class="card bg-white h-100 text-decoration-none nav-card">
+                            <div class="card-body p-2 p-md-3 text-center">
+                                <div class="icon-shape rounded-circle mx-auto mb-2">
+                                    <i class="fas fa-info-circle"></i>
+                                </div>
+                                <h5 class="fs-6 mb-0">How It Works</h5>
+                            </div>
+                        </a>
+                    </div>
+                    <div class="col-6 col-md-2">
+                        <a href="#commission-structure" class="card bg-white h-100 text-decoration-none nav-card">
+                            <div class="card-body p-2 p-md-3 text-center">
+                                <div class="icon-shape rounded-circle mx-auto mb-2">
+                                    <i class="fas fa-percentage"></i>
+                                </div>
+                                <h5 class="fs-6 mb-0">Commission</h5>
+                            </div>
+                        </a>
+                    </div>
+                    <div class="col-6 col-md-2">
+                        <a href="#recruitment-commission" class="card bg-white h-100 text-decoration-none nav-card">
+                            <div class="card-body p-2 p-md-3 text-center">
+                                <div class="icon-shape rounded-circle mx-auto mb-2">
+                                    <i class="fas fa-user-plus"></i>
+                                </div>
+                                <h5 class="fs-6 mb-0">Recruitment</h5>
+                            </div>
+                        </a>
+                    </div>
+                    <div class="col-6 col-md-2">
+                        <a href="#points-rewards" class="card bg-white h-100 text-decoration-none nav-card">
+                            <div class="card-body p-2 p-md-3 text-center">
+                                <div class="icon-shape rounded-circle mx-auto mb-2">
+                                    <i class="fas fa-star"></i>
+                                </div>
+                                <h5 class="fs-6 mb-0">Points</h5>
+                            </div>
+                        </a>
+                    </div>
+                    <div class="col-6 col-md-2">
+                        <a href="#support" class="card bg-white h-100 text-decoration-none nav-card">
+                            <div class="card-body p-2 p-md-3 text-center">
+                                <div class="icon-shape rounded-circle mx-auto mb-2">
+                                    <i class="fas fa-headset"></i>
+                                </div>
+                                <h5 class="fs-6 mb-0">Support</h5>
+                            </div>
+                        </a>
+                    </div>
+                    <div class="col-6 col-md-2">
+                        <a href="#faq" class="card bg-white h-100 text-decoration-none nav-card">
+                            <div class="card-body p-2 p-md-3 text-center">
+                                <div class="icon-shape rounded-circle mx-auto mb-2">
+                                    <i class="fas fa-question-circle"></i>
+                </div>
+                                <h5 class="fs-6 mb-0">FAQ</h5>
+                        </div>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- How It Works Section -->
+<div class="row mb-4" id="how-it-works">
+    <div class="col-12">
+        <div class="card border-0 shadow">
+            <div class="card-header text-white" style="background-color: rgb(140, 8, 17);">
+                <h2 class="fs-5 fw-bold mb-0">How It Works</h2>
+            </div>
+            <div class="card-body p-4">
+                <div class="row">
+                    <div class="col-md-3 text-center mb-4">
+                        <div class="icon-shape icon-lg bg-primary text-white rounded-circle mb-3">
+                            <i class="fas fa-share-alt"></i>
+                        </div>
+                        <h6>1. Share Your Link</h6>
+                        <p class="text-muted">Share your unique referral link with potential clients who need logistics services, or share your network code to grow your partner network.</p>
+                    </div>
+                    <div class="col-md-3 text-center mb-4 mb-md-0">
+                        <div class="icon-shape rounded-circle mx-auto mb-3" style="background-color: rgba(140, 8, 17, 0.1); width: 80px; height: 80px; display: flex; align-items: center; justify-content: center;">
+                            <i class="fas fa-clipboard-list fa-2x" style="color: rgb(140, 8, 17);"></i>
+                        </div>
+                        <h4 class="fs-6 fw-bold">2. Client Submits Form</h4>
+                        <p class="small">When they click your link and submit the form, our system tracks it as your referral</p>
+                    </div>
+                    <div class="col-md-3 text-center mb-4 mb-md-0">
+                        <div class="icon-shape rounded-circle mx-auto mb-3" style="background-color: rgba(140, 8, 17, 0.1); width: 80px; height: 80px; display: flex; align-items: center; justify-content: center;">
+                            <i class="fas fa-users fa-2x" style="color: rgb(140, 8, 17);"></i>
+                        </div>
+                        <h4 class="fs-6 fw-bold">3. Sales Team Takes Over</h4>
+                        <p class="small">Our internal sales team contacts the lead and handles the entire sales process</p>
+                    </div>
+                    <div class="col-md-3 text-center">
+                        <div class="icon-shape rounded-circle mx-auto mb-3" style="background-color: rgba(140, 8, 17, 0.1); width: 80px; height: 80px; display: flex; align-items: center; justify-content: center;">
+                            <i class="fas fa-dollar-sign fa-2x" style="color: rgb(140, 8, 17);"></i>
+                        </div>
+                        <h4 class="fs-6 fw-bold">4. You Earn Rewards</h4>
+                        <p class="small">When the referral becomes a client, you earn points and commission</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+                    </div>
+                </div>
+                
+<!-- Commission Structure -->
+<div class="row mb-4" id="commission-structure">
+    <div class="col-12">
+        <div class="card border-0 shadow">
+            <div class="card-header text-white" style="background-color: rgb(140, 8, 17);">
+                <h2 class="fs-5 fw-bold mb-0">Safety Commission Structure</h2>
+            </div>
+            <div class="card-body p-3 p-md-4">
+                <!-- Commission Rates Overview -->
+                <div class="row g-3 mb-4">
+                    <div class="col-12 col-md-6">
+                        <div class="p-3 p-md-4 rounded-3 h-100" style="background-color: rgba(140, 8, 17, 0.05);">
+                            <div class="d-flex align-items-center mb-2">
+                                <div class="icon-shape rounded-circle me-3" style="background-color: rgb(140, 8, 17);">
+                                    <i class="fas fa-percentage text-white"></i>
+                                </div>
+                                <h3 class="fs-5 fw-bold mb-0">Years 1-2</h3>
+                            </div>
+                            <h2 class="display-4 fw-bold mb-0" style="color: rgb(140, 8, 17);">10%</h2>
+                            <p class="text-muted mb-0">Monthly recurring commission</p>
+                        </div>
+                    </div>
+                    <div class="col-12 col-md-6">
+                        <div class="p-3 p-md-4 rounded-3 h-100" style="background-color: rgba(26, 26, 26, 0.05);">
+                            <div class="d-flex align-items-center mb-2">
+                                <div class="icon-shape rounded-circle me-3" style="background-color: #1a1a1a;">
+                                    <i class="fas fa-sync text-white"></i>
+                                </div>
+                                <h3 class="fs-5 fw-bold mb-0">Year 3+</h3>
+                            </div>
+                            <h2 class="display-4 fw-bold mb-0" style="color: #1a1a1a;">2.5%</h2>
+                            <p class="text-muted mb-0">Monthly recurring commission</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Example Earnings -->
+                <div class="row g-3">
+                    <div class="col-12">
+                        <h2 class="fs-5 fw-bold mb-3">Example Earnings</h2>
+                    </div>
+                    
+                    <!-- Cards Container -->
+                    <div class="col-12">
+                        <div class="row g-3">
+                            <!-- Starting Out Card -->
+                            <div class="col-12 col-md-4">
+                                <div class="card border-0 shadow-sm h-100 hover-lift">
+                                    <div class="card-body p-3">
+                                        <div class="d-flex align-items-center mb-3">
+                                            <div class="icon-shape icon-md bg-primary-soft rounded-circle me-3">
+                                                <i class="fas fa-user text-primary"></i>
+                                            </div>
+                                            <div>
+                                                <span class="badge bg-primary-soft">1 Client</span>
+                                                <p class="text-muted small mb-0">$1,500 monthly fee</p>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="mobile-collapse">
+                                            <div class="mobile-collapse-header d-md-none">
+                                                <div class="d-flex justify-content-between align-items-center">
+                                                    <span class="fw-bold">View Earnings</span>
+                                                    <i class="fas fa-chevron-down"></i>
+                                                </div>
+                                            </div>
+                                            <div class="mobile-collapse-content d-md-block">
+                                                <!-- Years 1-2 -->
+                                                <div class="mb-3">
+                                                    <div class="d-flex align-items-center mb-2">
+                                                        <i class="fas fa-chart-line text-primary me-2"></i>
+                                                        <h4 class="fs-6 fw-bold mb-0">Years 1-2 (10%)</h4>
+                                                    </div>
+                                                    <div class="earnings-display bg-light rounded p-2 p-md-3">
+                                                        <div class="d-flex justify-content-between align-items-baseline">
+                                                            <span class="h4 fw-bold mb-0">$150</span>
+                                                            <span class="text-muted small">/month</span>
+                                                        </div>
+                                                        <div class="text-muted small">$1,800 per year</div>
+                                                    </div>
+                                                </div>
+                                                
+                                                <!-- Year 3+ -->
+                                                <div class="mb-3">
+                                                    <div class="d-flex align-items-center mb-2">
+                                                        <i class="fas fa-sync text-primary me-2"></i>
+                                                        <h4 class="fs-6 fw-bold mb-0">Year 3+ (2.5%)</h4>
+                                                    </div>
+                                                    <div class="earnings-display bg-light rounded p-2 p-md-3">
+                                                        <div class="d-flex justify-content-between align-items-baseline">
+                                                            <span class="h4 fw-bold mb-0">$37.50</span>
+                                                            <span class="text-muted small">/month</span>
+                                                        </div>
+                                                        <div class="text-muted small">$450 per year</div>
+                                                    </div>
+                                                </div>
+                                                
+                                                <div class="border-top pt-3">
+                                                    <div class="text-center">
+                                                        <h4 class="fs-6 fw-bold text-muted mb-1">3-Year Total</h4>
+                                                        <h3 class="h4 fw-bold text-primary mb-0">$4,050</h3>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Growing Network Card -->
+                            <div class="col-12 col-md-4">
+                                <div class="card border-0 shadow h-100 hover-lift" style="border: 2px solid rgb(140, 8, 17) !important;">
+                                    <div class="card-body p-3">
+                                        <div class="d-flex align-items-center mb-3">
+                                            <div class="icon-shape icon-md rounded-circle me-3" style="background-color: rgba(140, 8, 17, 0.1);">
+                                                <i class="fas fa-users" style="color: rgb(140, 8, 17);"></i>
+                                            </div>
+                                            <div>
+                                                <span class="badge bg-primary-soft">5 Clients</span>
+                                                <p class="text-muted small mb-0">$2,000 monthly fee each</p>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="mobile-collapse">
+                                            <div class="mobile-collapse-header d-md-none">
+                                                <div class="d-flex justify-content-between align-items-center">
+                                                    <span class="fw-bold">View Earnings</span>
+                                                    <i class="fas fa-chevron-down"></i>
+                                                </div>
+                                            </div>
+                                            <div class="mobile-collapse-content d-md-block">
+                                                <!-- Years 1-2 -->
+                                                <div class="mb-3">
+                                                    <div class="d-flex align-items-center mb-2">
+                                                        <i class="fas fa-chart-line" style="color: rgb(140, 8, 17);" me-2></i>
+                                                        <h4 class="fs-6 fw-bold mb-0">Years 1-2 (10%)</h4>
+                                                    </div>
+                                                    <div class="earnings-display bg-light rounded p-2 p-md-3">
+                                                        <div class="d-flex justify-content-between align-items-baseline">
+                                                            <span class="h4 fw-bold mb-0">$1,000</span>
+                                                            <span class="text-muted small">/month</span>
+                                                        </div>
+                                                        <div class="text-muted small">$12,000 per year</div>
+                                                    </div>
+                                                </div>
+                                                
+                                                <!-- Year 3+ -->
+                                                <div class="mb-3">
+                                                    <div class="d-flex align-items-center mb-2">
+                                                        <i class="fas fa-sync" style="color: rgb(140, 8, 17);" me-2></i>
+                                                        <h4 class="fs-6 fw-bold mb-0">Year 3+ (2.5%)</h4>
+                                                    </div>
+                                                    <div class="earnings-display bg-light rounded p-2 p-md-3">
+                                                        <div class="d-flex justify-content-between align-items-baseline">
+                                                            <span class="h4 fw-bold mb-0">$250</span>
+                                                            <span class="text-muted small">/month</span>
+                                                        </div>
+                                                        <div class="text-muted small">$3,000 per year</div>
+                                                    </div>
+                                                </div>
+                                                
+                                                <div class="border-top pt-3">
+                                                    <div class="text-center">
+                                                        <h4 class="fs-6 fw-bold text-muted mb-1">3-Year Total</h4>
+                                                        <h3 class="h4 fw-bold" style="color: rgb(140, 8, 17);">$27,000</h3>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Established Partner Card -->
+                            <div class="col-12 col-md-4">
+                                <div class="card border-0 shadow-sm h-100 hover-lift">
+                                    <div class="card-body p-3">
+                                        <div class="d-flex align-items-center mb-3">
+                                            <div class="icon-shape icon-md bg-success-soft rounded-circle me-3">
+                                                <i class="fas fa-star text-success"></i>
+                                            </div>
+                                            <div>
+                                                <span class="badge bg-primary-soft">10 Clients</span>
+                                                <p class="text-muted small mb-0">$2,500 monthly fee each</p>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="mobile-collapse">
+                                            <div class="mobile-collapse-header d-md-none">
+                                                <div class="d-flex justify-content-between align-items-center">
+                                                    <span class="fw-bold">View Earnings</span>
+                                                    <i class="fas fa-chevron-down"></i>
+                                                </div>
+                                            </div>
+                                            <div class="mobile-collapse-content d-md-block">
+                                                <!-- Years 1-2 -->
+                                                <div class="mb-3">
+                                                    <div class="d-flex align-items-center mb-2">
+                                                        <i class="fas fa-chart-line text-success me-2"></i>
+                                                        <h4 class="fs-6 fw-bold mb-0">Years 1-2 (10%)</h4>
+                                                    </div>
+                                                    <div class="earnings-display bg-light rounded p-2 p-md-3">
+                                                        <div class="d-flex justify-content-between align-items-baseline">
+                                                            <span class="h4 fw-bold mb-0">$2,500</span>
+                                                            <span class="text-muted small">/month</span>
+                                                        </div>
+                                                        <div class="text-muted small">$30,000 per year</div>
+                                                    </div>
+                                                </div>
+                                                
+                                                <!-- Year 3+ -->
+                                                <div class="mb-3">
+                                                    <div class="d-flex align-items-center mb-2">
+                                                        <i class="fas fa-sync text-success me-2"></i>
+                                                        <h4 class="fs-6 fw-bold mb-0">Year 3+ (2.5%)</h4>
+                                                    </div>
+                                                    <div class="earnings-display bg-light rounded p-2 p-md-3">
+                                                        <div class="d-flex justify-content-between align-items-baseline">
+                                                            <span class="h4 fw-bold mb-0">$625</span>
+                                                            <span class="text-muted small">/month</span>
+                                                        </div>
+                                                        <div class="text-muted small">$7,500 per year</div>
+                                                    </div>
+                                                </div>
+                                                
+                                                <div class="border-top pt-3">
+                                                    <div class="text-center">
+                                                        <h4 class="fs-6 fw-bold text-muted mb-1">3-Year Total</h4>
+                                                        <h3 class="h4 fw-bold text-success mb-0">$67,500</h3>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recruitment Commission Section -->
+<div class="row mb-4" id="recruitment-commission">
+    <div class="col-12">
+        <div class="card border-0 shadow">
+            <div class="card-header text-white" style="background-color: rgb(140, 8, 17);">
+                <h2 class="fs-5 fw-bold mb-0">Driver Recruitment & Partner Program</h2>
+            </div>
+            <div class="card-body p-3 p-md-4">
+                <div class="row g-3 mb-4">
+                    <!-- Driver Recruitment -->
+                    <div class="col-12 col-md-6 mb-4 mb-md-0">
+                        <div class="p-3 p-md-4 rounded-3 h-100" style="background-color: rgba(140, 8, 17, 0.05);">
+                            <div class="d-flex align-items-center mb-2">
+                                <div class="icon-shape rounded-circle me-3" style="background-color: rgb(140, 8, 17);">
+                                    <i class="fas fa-truck text-white"></i>
+                                </div>
+                                <h3 class="fs-5 fw-bold mb-0">Driver Recruitment</h3>
+                            </div>
+                            <h2 class="display-4 fw-bold mb-0" style="color: rgb(140, 8, 17);">10%</h2>
+                            <p class="text-muted mb-2">Commission from each successfully recruited driver</p>
+                            <div class="alert alert-light mb-0">
+                                <div class="d-flex">
+                                    <div class="me-3">
+                                        <i class="fas fa-info-circle text-primary fs-5"></i>
+                                    </div>
+                                    <div>
+                                        <p class="mb-1"><strong>Driver Recruitment Focus:</strong></p>
+                                        <p class="mb-0 small">Earn a 10% commission when you help recruit drivers for our transportation network. This commission is calculated based on the driver's completed work.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Partner Program -->
+                    <div class="col-12 col-md-6">
+                        <div class="p-3 p-md-4 rounded-3 h-100" style="background-color: rgba(26, 26, 26, 0.05);">
+                            <div class="d-flex align-items-center mb-2">
+                                <div class="icon-shape rounded-circle me-3" style="background-color: #1a1a1a;">
+                                    <i class="fas fa-users text-white"></i>
+                                </div>
+                                <h3 class="fs-5 fw-bold mb-0">Partner Program</h3>
+                            </div>
+                            <h2 class="display-4 fw-bold mb-0" style="color: #1a1a1a;">2%</h2>
+                            <p class="text-muted mb-2">Commission on all sales from your first-level partners</p>
+                            <div class="alert alert-light mb-0">
+                                <div class="d-flex">
+                                    <div class="me-3">
+                                        <i class="fas fa-info-circle text-primary fs-5"></i>
+                                    </div>
+                                    <div>
+                                        <p class="mb-1"><strong>First-Level Partner Commission:</strong></p>
+                                        <p class="mb-0 small">Earn 2% of ALL sales generated by partners who join through your referral code. This includes safety services, recruitment, and any other services they sell. Only applies to your direct referrals (first level), not their own partners.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Example Earnings -->
+                <div class="row g-3 mt-2">
+                    <div class="col-12">
+                        <h2 class="fs-5 fw-bold mb-3">How It Works</h2>
+                    </div>
+                    
+                    <div class="col-12">
+                        <div class="card border-0 shadow-sm">
+                            <div class="card-body p-4">
+                                <div class="row">
+                                    <div class="col-md-6 mb-4 mb-md-0">
+                                        <h4 class="fs-6 fw-bold mb-3" style="color: rgb(140, 8, 17);">Driver Recruitment Process</h4>
+                                        <div class="steps-container">
+                                            <div class="step d-flex mb-3">
+                                                <div class="step-icon me-3">
+                                                    <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px; background-color: rgba(140, 8, 17, 0.1);">
+                                                        <i class="fas fa-truck" style="color: rgb(140, 8, 17);"></i>
+                                                    </div>
+                                                </div>
+                                                <div class="step-content">
+                                                    <h5 class="fs-6 fw-bold">1. Refer Drivers</h5>
+                                                    <p class="text-muted mb-0 small">Share your referral link with potential drivers looking for work.</p>
+                                                </div>
+                                            </div>
+                                            
+                                            <div class="step d-flex mb-3">
+                                                <div class="step-icon me-3">
+                                                    <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px; background-color: rgba(140, 8, 17, 0.1);">
+                                                        <i class="fas fa-clipboard-check" style="color: rgb(140, 8, 17);"></i>
+                                                    </div>
+                                                </div>
+                                                <div class="step-content">
+                                                    <h5 class="fs-6 fw-bold">2. Driver Gets Hired</h5>
+                                                    <p class="text-muted mb-0 small">When your referred driver joins our network and completes work.</p>
+                                                </div>
+                                            </div>
+                                            
+                                            <div class="step d-flex">
+                                                <div class="step-icon me-3">
+                                                    <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px; background-color: rgba(140, 8, 17, 0.1);">
+                                                        <i class="fas fa-dollar-sign" style="color: rgb(140, 8, 17);"></i>
+                                                    </div>
+                                                </div>
+                                                <div class="step-content">
+                                                    <h5 class="fs-6 fw-bold">3. Earn 10% Commission</h5>
+                                                    <p class="text-muted mb-0 small">You receive 10% commission on the driver's completed work.</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="col-md-6">
+                                        <h4 class="fs-6 fw-bold mb-3" style="color: #1a1a1a;">Partner Program Process</h4>
+                                        <div class="steps-container">
+                                            <div class="step d-flex mb-3">
+                                                <div class="step-icon me-3">
+                                                    <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px; background-color: rgba(26, 26, 26, 0.1);">
+                                                        <i class="fas fa-user-plus" style="color: #1a1a1a;"></i>
+                                                    </div>
+                                                </div>
+                                                <div class="step-content">
+                                                    <h5 class="fs-6 fw-bold">1. Recruit Partners</h5>
+                                                    <p class="text-muted mb-0 small">Share your network code with people who could refer clients to LOS.</p>
+                                                </div>
+                                            </div>
+                                            
+                                            <div class="step d-flex mb-3">
+                                                <div class="step-icon me-3">
+                                                    <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px; background-color: rgba(26, 26, 26, 0.1);">
+                                                        <i class="fas fa-handshake" style="color: #1a1a1a;"></i>
+                                                    </div>
+                                                </div>
+                                                <div class="step-content">
+                                                    <h5 class="fs-6 fw-bold">2. Partners Generate Sales</h5>
+                                                    <p class="text-muted mb-0 small">Your partners bring in clients who purchase any of our services.</p>
+                                                </div>
+                                            </div>
+                                            
+                                            <div class="step d-flex">
+                                                <div class="step-icon me-3">
+                                                    <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px; background-color: rgba(26, 26, 26, 0.1);">
+                                                        <i class="fas fa-percentage" style="color: #1a1a1a;"></i>
+                                                    </div>
+                                                </div>
+                                                <div class="step-content">
+                                                    <h5 class="fs-6 fw-bold">3. Earn 2% of All Sales</h5>
+                                                    <p class="text-muted mb-0 small">You receive 2% commission on ALL sales your first-level partners generate.</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="row mt-4">
+                                    <div class="col-12">
+                                        <div class="card border-0 bg-light">
+                                            <div class="card-body p-3">
+                                                <h4 class="fs-6 fw-bold mb-3">Example Earnings</h4>
+                                                
+                                                <div class="mb-4">
+                                                    <h5 class="fs-6">Driver Recruitment Example:</h5>
+                                                    <div class="d-flex justify-content-between mb-1">
+                                                        <span class="text-muted small">Driver's monthly deliveries value:</span>
+                                                        <span class="fw-bold">$5,000</span>
+                                                    </div>
+                                                    <div class="d-flex justify-content-between">
+                                                        <span class="text-muted small">Your commission (10%):</span>
+                                                        <span class="fw-bold text-success">$500/month</span>
+                                                    </div>
+                                                </div>
+                                                
+                                                <div>
+                                                    <h5 class="fs-6">Partner Program Example:</h5>
+                                                    <div class="d-flex justify-content-between mb-1">
+                                                        <span class="text-muted small">Your partner's monthly sales:</span>
+                                                        <span class="fw-bold">$10,000</span>
+                                                    </div>
+                                                    <div class="d-flex justify-content-between mb-1">
+                                                        <span class="text-muted small">Your partner earns (varies by service):</span>
+                                                        <span class="fw-bold">$1,000/month</span>
+                                                    </div>
+                                                    <div class="d-flex justify-content-between">
+                                                        <span class="text-muted small">You earn (2% of total sales):</span>
+                                                        <span class="fw-bold text-success">$200/month</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Points & Rewards Section -->
+<div class="row mb-4" id="points-rewards">
+    <div class="col-12">
+        <div class="card border-0 shadow">
+            <div class="card-header text-white" style="background-color: rgb(140, 8, 17);">
+                <h2 class="fs-5 fw-bold mb-0">Points & Rewards</h2>
+            </div>
+            <div class="card-body p-4">
+                <!-- Introduction -->
+                <div class="row mb-4">
+                    <div class="col-md-8">
+                        <h3 class="fs-5 fw-bold mb-3">Earn Points at Every Step</h3>
+                        <p class="text-muted mb-4">Our points system rewards you for every milestone in the referral journey. From initial contact to client retention, you'll earn points that can be redeemed for valuable rewards.</p>
+                    </div>
+                    <div class="col-md-4 text-center">
+                        <div class="p-3 rounded-circle mx-auto mb-2" style="background-color: rgba(140, 8, 17, 0.1); width: 80px; height: 80px; display: flex; align-items: center; justify-content: center;">
+                            <i class="fas fa-award fa-2x" style="color: rgb(140, 8, 17);"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Base Points -->
+                <div class="card bg-light border-0 mb-4">
+                    <div class="card-body">
+                        <h4 class="fs-5 fw-bold mb-3">
+                            <i class="fas fa-star me-2" style="color: rgb(140, 8, 17);"></i>
+                            Base Points
+                        </h4>
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                                <thead class="bg-light">
+                                <tr>
+                                    <th>Stage</th>
+                                        <th class="d-none d-md-table-cell">Action</th>
+                                    <th>Points</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <div class="icon-shape rounded-circle me-2" style="background-color: rgba(140, 8, 17, 0.1); width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;">
+                                                    <i class="fas fa-user-plus" style="color: rgb(140, 8, 17);"></i>
+                                                </div>
+                                                <div>
+                                                    <strong>Lead Generation</strong>
+                                                    <div class="small text-muted d-md-none">Referral form completed</div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="d-none d-md-table-cell">Referral form completed</td>
+                                        <td>
+                                            <span class="badge" style="background-color: rgba(140, 8, 17, 0.1); color: rgb(140, 8, 17); font-size: 0.9rem; padding: 8px 16px;">
+                                                <i class="fas fa-plus-circle me-1"></i> 2 pts
+                                            </span>
+                                        </td>
+                                </tr>
+                                <tr>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <div class="icon-shape rounded-circle me-2" style="background-color: rgba(140, 8, 17, 0.1); width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;">
+                                                    <i class="fas fa-calendar-check" style="color: rgb(140, 8, 17);"></i>
+                                                </div>
+                                                <div>
+                                                    <strong>Engagement</strong>
+                                                    <div class="small text-muted d-md-none">Demo scheduled</div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="d-none d-md-table-cell">Demo scheduled</td>
+                                        <td>
+                                            <span class="badge" style="background-color: rgba(140, 8, 17, 0.1); color: rgb(140, 8, 17); font-size: 0.9rem; padding: 8px 16px;">
+                                                <i class="fas fa-plus-circle me-1"></i> 5 pts
+                                            </span>
+                                        </td>
+                                </tr>
+                                <tr>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <div class="icon-shape rounded-circle me-2" style="background-color: rgba(140, 8, 17, 0.1); width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;">
+                                                    <i class="fas fa-check-circle" style="color: rgb(140, 8, 17);"></i>
+                                                </div>
+                                                <div>
+                                                    <strong>Completion</strong>
+                                                    <div class="small text-muted d-md-none">Demo completed</div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="d-none d-md-table-cell">Demo completed</td>
+                                        <td>
+                                            <span class="badge" style="background-color: rgba(140, 8, 17, 0.1); color: rgb(140, 8, 17); font-size: 0.9rem; padding: 8px 16px;">
+                                                <i class="fas fa-plus-circle me-1"></i> 15 pts
+                                            </span>
+                                        </td>
+                                </tr>
+                                <tr>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <div class="icon-shape rounded-circle me-2" style="background-color: rgba(140, 8, 17, 0.1); width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;">
+                                                    <i class="fas fa-handshake" style="color: rgb(140, 8, 17);"></i>
+                                                </div>
+                                                <div>
+                                                    <strong>Conversion</strong>
+                                                    <div class="small text-muted d-md-none">Client signed up</div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="d-none d-md-table-cell">Client signed up</td>
+                                        <td>
+                                            <span class="badge" style="background-color: rgba(140, 8, 17, 0.1); color: rgb(140, 8, 17); font-size: 0.9rem; padding: 8px 16px;">
+                                                <i class="fas fa-plus-circle me-1"></i> 50 pts
+                                            </span>
+                                        </td>
+                                </tr>
+                                <tr>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <div class="icon-shape rounded-circle me-2" style="background-color: rgba(140, 8, 17, 0.1); width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;">
+                                                    <i class="fas fa-sync" style="color: rgb(140, 8, 17);"></i>
+                                                </div>
+                                                <div>
+                                                    <strong>Retention</strong>
+                                                    <div class="small text-muted d-md-none">Client renewed</div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="d-none d-md-table-cell">Client renewed</td>
+                                        <td>
+                                            <span class="badge" style="background-color: rgba(140, 8, 17, 0.1); color: rgb(140, 8, 17); font-size: 0.9rem; padding: 8px 16px;">
+                                                <i class="fas fa-plus-circle me-1"></i> 25 pts
+                                            </span>
+                                        </td>
+                                </tr>
+                                <tr>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <div class="icon-shape rounded-circle me-2" style="background-color: rgba(140, 8, 17, 0.1); width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;">
+                                                    <i class="fas fa-arrow-up" style="color: rgb(140, 8, 17);"></i>
+                                                </div>
+                                                <div>
+                                                    <strong>Upgrade</strong>
+                                                    <div class="small text-muted d-md-none">Client upgrades plan</div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="d-none d-md-table-cell">Client upgrades plan</td>
+                                        <td>
+                                            <span class="badge" style="background-color: rgba(140, 8, 17, 0.1); color: rgb(140, 8, 17); font-size: 0.9rem; padding: 8px 16px;">
+                                                <i class="fas fa-plus-circle me-1"></i> 35 pts
+                                            </span>
+                                        </td>
+                                </tr>
+                                <tr>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <div class="icon-shape rounded-circle me-2" style="background-color: rgba(140, 8, 17, 0.1); width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;">
+                                                    <i class="fas fa-users" style="color: rgb(140, 8, 17);"></i>
+                                                </div>
+                                                <div>
+                                                    <strong>Network Growth</strong>
+                                                    <div class="small text-muted d-md-none">Partner network signup</div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="d-none d-md-table-cell">Partner network signup</td>
+                                        <td>
+                                            <span class="badge" style="background-color: rgba(140, 8, 17, 0.1); color: rgb(140, 8, 17); font-size: 0.9rem; padding: 8px 16px;">
+                                                <i class="fas fa-plus-circle me-1"></i> 25 pts
+                                            </span>
+                                        </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Bonus Points -->
+                <div class="card bg-light border-0 mb-4">
+                    <div class="card-body">
+                        <h4 class="fs-5 fw-bold mb-3">
+                            <i class="fas fa-gift me-2" style="color: rgb(140, 8, 17);"></i>
+                            Bonus Points & Multipliers
+                        </h4>
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                                <thead class="bg-light">
+                                    <tr>
+                                        <th>Bonus Type</th>
+                                        <th class="d-none d-md-table-cell">Description</th>
+                                        <th>Reward</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>
+                                            <div class="d-flex align-items-center">
+                                                <div class="icon-shape rounded-circle me-2" style="background-color: rgba(140, 8, 17, 0.1); width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;">
+                                                    <i class="fas fa-bolt" style="color: rgb(140, 8, 17);"></i>
+                                                </div>
+                                                <div>
+                                                    <strong>Fast-Track</strong>
+                                                    <div class="small text-muted d-md-none">Client signs up within 30 days of demo</div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="d-none d-md-table-cell">Client signs up within 30 days of demo completion</td>
+                                        <td>
+                                            <span class="badge" style="background-color: rgba(140, 8, 17, 0.1); color: rgb(140, 8, 17); font-size: 0.9rem; padding: 8px 16px;">
+                                                <i class="fas fa-times me-1"></i> 2x multiplier
+                                            </span>
+                                    </td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <div class="icon-shape rounded-circle me-2" style="background-color: rgba(140, 8, 17, 0.1); width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;">
+                                                    <i class="fas fa-crown" style="color: rgb(140, 8, 17);"></i>
+                                                </div>
+                                                <div>
+                                                    <strong>High-Value</strong>
+                                                    <div class="small text-muted d-md-none">Client signs up for Professional Plan</div>
+                                                </div>
+                                            </div>
+                                    </td>
+                                        <td class="d-none d-md-table-cell">Client signs up for Professional Plan</td>
+                                    <td>
+                                            <span class="badge" style="background-color: rgba(140, 8, 17, 0.1); color: rgb(140, 8, 17); font-size: 0.9rem; padding: 8px 16px;">
+                                                <i class="fas fa-plus-circle me-1"></i> 30 pts
+                                            </span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                            <div class="d-flex align-items-center">
+                                                <div class="icon-shape rounded-circle me-2" style="background-color: rgba(140, 8, 17, 0.1); width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;">
+                                                    <i class="fas fa-trophy" style="color: rgb(140, 8, 17);"></i>
+                                                </div>
+                                                <div>
+                                                    <strong>Consistent Closer</strong>
+                                                    <div class="small text-muted d-md-none">3+ clients signed in a quarter</div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="d-none d-md-table-cell">3+ clients signed in a quarter</td>
+                                        <td>
+                                            <span class="badge" style="background-color: rgba(140, 8, 17, 0.1); color: rgb(140, 8, 17); font-size: 0.9rem; padding: 8px 16px;">
+                                                <i class="fas fa-plus-circle me-1"></i> 50 pts
+                                            </span>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Example Card -->
+                <div class="card bg-light border-0">
+                    <div class="card-body">
+                        <h4 class="fs-5 fw-bold mb-3">
+                            <i class="fas fa-calculator me-2" style="color: rgb(140, 8, 17);"></i>
+                            Example Scenario
+                        </h4>
+                        <p class="mb-3">Here's how points can add up when you refer a Professional Plan client who signs up quickly:</p>
+                        <div class="table-responsive">
+                            <table class="table table-borderless mb-0">
+                                <tbody>
+                                    <tr>
+                                        <td class="w-50">Base points for client signup</td>
+                                        <td class="w-50">
+                                            <span class="badge" style="background-color: rgba(140, 8, 17, 0.1); color: rgb(140, 8, 17); font-size: 0.9rem; padding: 8px 16px;">
+                                                50 pts
+                                            </span>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>Fast-Track bonus (2x multiplier)</td>
+                                        <td>
+                                            <span class="badge" style="background-color: rgba(140, 8, 17, 0.1); color: rgb(140, 8, 17); font-size: 0.9rem; padding: 8px 16px;">
+                                                +50 pts
+                                            </span>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>High-Value Client bonus</td>
+                                        <td>
+                                            <span class="badge" style="background-color: rgba(140, 8, 17, 0.1); color: rgb(140, 8, 17); font-size: 0.9rem; padding: 8px 16px;">
+                                                +30 pts
+                                            </span>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>Potential Consistent Closer bonus</td>
+                                        <td>
+                                            <span class="badge" style="background-color: rgba(140, 8, 17, 0.1); color: rgb(140, 8, 17); font-size: 0.9rem; padding: 8px 16px;">
+                                                +50 pts
+                                            </span>
+                                    </td>
+                                    </tr>
+                                    <tr>
+                                    <td>
+                                            <strong>Total Potential Points</strong>
+                                    </td>
+                                    <td>
+                                            <span class="badge" style="background-color: rgb(140, 8, 17); color: white; font-size: 0.9rem; padding: 8px 16px;">
+                                                180 pts
+                                            </span>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                </div>
+            </div>
+                                </div>
+                            </div>
+                        </div>
+
+<!-- Help & Support Section -->
+<div class="row" id="support">
+    <div class="col-12 mb-4">
+        <div class="card border-0 shadow">
+            <div class="card-header text-white" style="background-color: #1a1a1a;">
+                <h2 class="fs-5 fw-bold mb-0">Need Help?</h2>
+            </div>
+            <div class="card-body p-4">
+                <div class="row">
+                    <div class="col-12 col-md-6 mb-4 mb-md-0">
+                        <div class="h-100 p-4 rounded" style="background-color: rgba(140, 8, 17, 0.05);">
+                            <h3 class="fs-5 fw-bold mb-3">Contact Support</h3>
+                            <div class="d-flex mb-3">
+                                <div class="icon-shape rounded-circle me-3" style="background-color: rgba(140, 8, 17, 0.1); width: 48px; height: 48px; min-width: 48px; display: flex; align-items: center; justify-content: center;">
+                                    <i class="fas fa-envelope" style="color: rgb(140, 8, 17);"></i>
+                                </div>
+                                <div>
+                                    <h4 class="fs-6 fw-bold">Email Support</h4>
+                                    <p class="mb-0 text-break">support@logisticsonesource.com</p>
+                                    <small class="text-muted">Response within 24 hours</small>
+                                </div>
+                            </div>
+                            <div class="d-flex">
+                                <div class="icon-shape rounded-circle me-3" style="background-color: rgba(140, 8, 17, 0.1); width: 48px; height: 48px; min-width: 48px; display: flex; align-items: center; justify-content: center;">
+                                    <i class="fas fa-phone" style="color: rgb(140, 8, 17);"></i>
+                        </div>
+                                <div>
+                                    <h4 class="fs-6 fw-bold">Phone Support</h4>
+                                    <p class="mb-0">(555) 123-4567</p>
+                                    <small class="text-muted">Mon-Fri, 9am-5pm EST</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-12 col-md-6">
+                        <div class="h-100 p-4 rounded" style="background-color: rgba(26, 26, 26, 0.05);">
+                            <h3 class="fs-5 fw-bold mb-3">Schedule a Call</h3>
+                            <p class="mb-4">Want to discuss strategies to maximize your referral earnings? Schedule a one-on-one call with our team.</p>
+                            <a href="#" class="btn btn-lg w-100" style="background-color:rgb(140, 8, 17); color: white;">
+                                <i class="fas fa-calendar-alt me-2"></i> Schedule a Strategy Call
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+<!-- FAQ Section -->
+<div class="row mb-4" id="faq">
+    <div class="col-12">
+        <div class="card border-0 shadow">
+            <div class="card-header text-white" style="background-color: rgb(140, 8, 17);">
+                <h2 class="fs-5 fw-bold mb-0">Frequently Asked Questions</h2>
+            </div>
+            <div class="card-body p-4">
+                <div class="accordion" id="faqAccordion">
+                    <div class="accordion-item border-0 mb-3">
+                        <h2 class="accordion-header" id="faq1">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq1Collapse" aria-expanded="false" aria-controls="faq1Collapse">
+                                How do I get started with the referral program?
+                            </button>
+                        </h2>
+                        <div id="faq1Collapse" class="accordion-collapse collapse" aria-labelledby="faq1" data-bs-parent="#faqAccordion">
+                            <div class="accordion-body">
+                                Getting started is simple! Just log in to your account, go to your profile page to get your unique referral link, and start sharing it with potential clients. You'll earn points and commissions for every successful referral.
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="accordion-item border-0 mb-3">
+                        <h2 class="accordion-header" id="faq2">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq2Collapse" aria-expanded="false" aria-controls="faq2Collapse">
+                                When and how are commissions paid?
+                            </button>
+                        </h2>
+                        <div id="faq2Collapse" class="accordion-collapse collapse" aria-labelledby="faq2" data-bs-parent="#faqAccordion">
+                            <div class="accordion-body">
+                                Commissions are paid monthly on the 15th for all commissions marked as "paid" in the previous month. Payments are made directly to your registered payment method.
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="accordion-item border-0 mb-3">
+                        <h2 class="accordion-header" id="faq3">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq3Collapse" aria-expanded="false" aria-controls="faq3Collapse">
+                                What happens if my referred client cancels?
+                            </button>
+                        </h2>
+                        <div id="faq3Collapse" class="accordion-collapse collapse" aria-labelledby="faq3" data-bs-parent="#faqAccordion">
+                            <div class="accordion-body">
+                                If a client cancels their service, you'll continue to receive commissions for any payments made up until the cancellation date. Future commissions will cease after the cancellation is processed.
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="accordion-item border-0 mb-3">
+                        <h2 class="accordion-header" id="faq4">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq4Collapse" aria-expanded="false" aria-controls="faq4Collapse">
+                                How do I track my referrals and earnings?
+                            </button>
+                        </h2>
+                        <div id="faq4Collapse" class="accordion-collapse collapse" aria-labelledby="faq4" data-bs-parent="#faqAccordion">
+                            <div class="accordion-body">
+                                You can track all your referrals, points, and commissions through your dashboard. It provides real-time updates on the status of your referrals and detailed earnings reports.
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="accordion-item border-0">
+                        <h2 class="accordion-header" id="faq5">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq5Collapse" aria-expanded="false" aria-controls="faq5Collapse">
+                                Can I refer clients from any country?
+                            </button>
+                        </h2>
+                        <div id="faq5Collapse" class="accordion-collapse collapse" aria-labelledby="faq5" data-bs-parent="#faqAccordion">
+                            <div class="accordion-body">
+                                Yes, you can refer clients from any country where our services are available. Contact support for specific details about service availability in different regions.
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="faqNetwork">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseNetwork" aria-expanded="false" aria-controls="collapseNetwork">
+                                How does the Network Partner Program work?
+                            </button>
+                        </h2>
+                        <div id="collapseNetwork" class="accordion-collapse collapse" aria-labelledby="faqNetwork" data-bs-parent="#faqAccordion">
+                            <div class="accordion-body">
+                                <p>The Network Partner Program offers two distinct commission opportunities:</p>
+                                <ul>
+                                    <li><strong>Driver Recruitment (10%):</strong> Earn 10% commission on all work completed by drivers you recruit to our transportation network.</li>
+                                    <li><strong>Partner Program (2%):</strong> Earn 2% of ALL sales generated by partners who join through your referral code. This includes safety services, recruitment services, and any other offerings they sell.</li>
+                                </ul>
+                                <p><strong>Important notes:</strong></p>
+                                <ul>
+                                    <li>The 2% partner commission applies only to your direct referrals (first level), not to their own partners.</li>
+                                    <li>This is a direct, single-level program (not a multi-level marketing scheme).</li>
+                                    <li>All commissions are paid monthly alongside your other earnings.</li>
+                                    <li>There's no limit to how many partners or drivers you can bring to the program.</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Footer Banner -->
+<div class="row">
+    <div class="col-12 mb-4">
+        <div class="card border-0 shadow">
+            <div class="card-body p-0">
+                <div class="p-4 p-md-5 text-center" style="background: linear-gradient(45deg, rgb(140, 8, 17), #1a1a1a);">
+                    <h3 class="fw-bold mb-3 text-white">Ready to Start Earning?</h3>
+                    <p class="lead mb-4 text-white-50">Get your unique referral link and start earning commissions and rewards today!</p>
+                    <div class="d-flex flex-column flex-md-row justify-content-center gap-3">
+                        <a href="{{ url_for('main.user_dashboard') }}" class="btn btn-light mb-2 mb-md-0">
+                            <i class="fas fa-tachometer-alt me-2"></i> Go to Dashboard
+                        </a>
+                        <a href="{{ url_for('users.profile') }}" class="btn btn-outline-light">
+                            <i class="fas fa-link me-2"></i> Get My Referral Link
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.hover-lift {
+    transition: all 0.2s ease;
+}
+.hover-lift:hover {
+    transform: translateY(-5px);
+}
+.earnings-display {
+    transition: all 0.2s ease;
+}
+.card:hover .earnings-display {
+    background-color: rgba(13, 110, 253, 0.05) !important;
+}
+.icon-shape {
+    width: 48px;
+    height: 48px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+.icon-md {
+    width: 56px;
+    height: 56px;
+}
+.bg-primary-soft {
+    background-color: rgb(140, 8, 17) !important;
+    color: white !important;
+    font-size: 1rem !important;
+    font-weight: 600 !important;
+    padding: 8px 16px !important;
+    border-radius: 6px !important;
+    box-shadow: 0 2px 4px rgba(140, 8, 17, 0.2) !important;
+}
+.bg-success-soft {
+    background-color: rgba(25, 135, 84, 0.1);
+}
+
+/* Mobile Optimizations */
+@media (max-width: 768px) {
+    .mobile-collapse-header {
+        background-color: rgba(140, 8, 17, 0.05);
+        padding: 0.75rem;
+        border-radius: 0.5rem;
+        margin: 0.5rem 0;
+        cursor: pointer;
+    }
+    
+    .mobile-collapse-header i {
+        transition: transform 0.2s ease;
+    }
+    
+    .mobile-collapse.active .mobile-collapse-header i {
+        transform: rotate(180deg);
+    }
+    
+    .mobile-collapse-content {
+        padding-top: 0.5rem;
+    }
+    
+    .card-body {
+        padding: 1rem !important;
+    }
+    
+    .earnings-display {
+        margin-bottom: 0.5rem;
+    }
+    
+    .h4 {
+        font-size: 1.125rem !important;
+    }
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Mobile collapse functionality
+    const mobileCollapses = document.querySelectorAll('.mobile-collapse-header');
+    mobileCollapses.forEach(header => {
+        header.addEventListener('click', function() {
+            const parent = this.parentElement;
+            parent.classList.toggle('active');
+            
+            // Find the content element
+            const content = parent.querySelector('.mobile-collapse-content');
+            
+            // Toggle display with smooth animation
+            if (parent.classList.contains('active')) {
+                content.style.display = 'block';
+            } else {
+                content.style.display = 'none';
+            }
+        });
+    });
+});
+</script>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Mobile collapse functionality
+    const mobileCollapses = document.querySelectorAll('.mobile-collapse-header');
+    mobileCollapses.forEach(header => {
+        header.addEventListener('click', function() {
+            const parent = this.parentElement;
+            parent.classList.toggle('active');
+            
+            // Find the content element
+            const content = parent.querySelector('.mobile-collapse-content');
+            
+            // Toggle display with smooth animation
+            if (parent.classList.contains('active')) {
+                content.style.display = 'block';
+            } else {
+                content.style.display = 'none';
+            }
+        });
+    });
+    
+    // Animated number counter
+    function animateValue(element, start, end, duration) {
+        const range = end - start;
+        const increment = range / (duration / 10);
+        let current = start;
+        const timer = setInterval(() => {
+            current += increment;
+            if ((increment > 0 && current >= end) || (increment < 0 && current <= end)) {
+                clearInterval(timer);
+                current = end;
+            }
+            element.textContent = Math.round(current).toLocaleString();
+        }, 10);
+    }
+
+    // Scenario data
+    const scenarios = {
+        starter: {
+            clients: 1,
+            monthlyPerClient: 1000,
+            title: "Starter Package",
+            details: [
+                "1 active client at $1,000/month",
+                "10% commission rate (Years 1-2)",
+                "Perfect for getting started with the referral program"
+            ],
+            progress: 25
+        },
+        growing: {
+            clients: 3,
+            monthlyPerClient: 1500,
+            title: "Growing Portfolio",
+            details: [
+                "3 active clients at $1,500/month each",
+                "Mix of new and established clients",
+                "Building a strong referral foundation"
+            ],
+            progress: 50
+        },
+        established: {
+            clients: 5,
+            monthlyPerClient: 2500,
+            title: "Established Partner",
+            details: [
+                "5 active clients at $2,500/month each",
+                "Diverse client portfolio",
+                "Consistent monthly earnings"
+            ],
+            progress: 75
+        },
+        expert: {
+            clients: 8,
+            monthlyPerClient: 4000,
+            title: "Expert Referrer",
+            details: [
+                "8 active clients at $4,000/month each",
+                "Premium client portfolio",
+                "Maximum earning potential"
+            ],
+            progress: 100
+        }
+    };
+
+    // Update calculator display
+    function updateCalculator(scenario) {
+        const data = scenarios[scenario];
+        const clientCountEl = document.getElementById('clientCount');
+        const monthlyEarningsEl = document.getElementById('monthlyEarnings');
+        const annualEarningsEl = document.getElementById('annualEarnings');
+        const progressEl = document.getElementById('earningsProgress');
+        const titleEl = document.getElementById('scenarioTitle');
+        const detailsEl = document.getElementById('scenarioDetails');
+
+        // Calculate values
+        const monthlyEarnings = data.clients * data.monthlyPerClient * 0.10;
+        const annualEarnings = monthlyEarnings * 12;
+
+        // Animate numbers
+        animateValue(clientCountEl, parseInt(clientCountEl.textContent.replace(/,/g, '')), data.clients, 500);
+        animateValue(monthlyEarningsEl, parseInt(monthlyEarningsEl.textContent.replace(/,/g, '')), monthlyEarnings, 1000);
+        animateValue(annualEarningsEl, parseInt(annualEarningsEl.textContent.replace(/,/g, '')), annualEarnings, 1500);
+
+        // Update progress bar with animation
+        progressEl.style.transition = 'width 1s ease-in-out';
+        progressEl.style.width = `${data.progress}%`;
+        progressEl.setAttribute('aria-valuenow', data.progress);
+
+        // Update scenario details
+        titleEl.textContent = data.title;
+        detailsEl.innerHTML = data.details.map(detail => `
+            <li class="mb-2">
+                <i class="fas fa-check-circle text-success me-2"></i>
+                ${detail}
+            </li>
+        `).join('');
+    }
+
+    // Add event listeners to scenario buttons
+    document.querySelectorAll('[data-scenario]').forEach(button => {
+        button.addEventListener('click', (e) => {
+            // Remove active class from all buttons
+            document.querySelectorAll('[data-scenario]').forEach(btn => {
+                btn.classList.remove('active');
+                btn.style.backgroundColor = '';
+                btn.style.color = 'rgb(140, 8, 17)';
+            });
+
+            // Add active class to clicked button
+            e.target.classList.add('active');
+            e.target.style.backgroundColor = 'rgb(140, 8, 17)';
+            e.target.style.color = 'white';
+
+            // Update calculator
+            updateCalculator(e.target.dataset.scenario);
+        });
+    });
+
+    // Initialize with starter scenario
+    if (document.querySelector('[data-scenario="starter"]')) {
+    document.querySelector('[data-scenario="starter"]').style.backgroundColor = 'rgb(140, 8, 17)';
+    document.querySelector('[data-scenario="starter"]').style.color = 'white';
+    updateCalculator('starter');
+    }
+});
+</script>
+{% endblock %} 

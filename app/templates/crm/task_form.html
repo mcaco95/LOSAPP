@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% from "_formhelpers.html" import render_field, render_select_field, render_date_field, render_textarea_field, render_submit_field, render_query_select_field %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <h2 class="mb-4">{{ title }}</h2>
+
+            {% include 'partials/_flash_messages.html' %}
+
+            <div class="card">
+                <div class="card-body">
+                    <form method="POST" action="{{ form_url or url_for('crm.manage_tasks') }}"> {# Default to manage_tasks if form_url not provided #}
+                        {{ form.hidden_tag() }}
+                        
+                        {{ render_field(form.title, html_class="form-control") }}
+                        {{ render_textarea_field(form.description, html_class="form-control", rows=5) }}
+                        
+                        <div class="row mt-3">
+                            <div class="col-md-6 mb-3">
+                                {{ render_date_field(form.due_date, html_class="form-control") }}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                {{ render_select_field(form.priority, html_class="form-select") }}
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                {{ render_select_field(form.status, html_class="form-select") }}
+                            </div>
+                        </div>
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                {{ render_query_select_field(form.contact_id, label_visible=True) }}
+                            </div>
+                            <div class="col-md-6">
+                                {{ render_query_select_field(form.crm_account_id, label_visible=True) }}
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                {{ render_query_select_field(form.deal_id, label_visible=True) }}
+                            </div>
+                        </div>
+                        
+                        <div class="mt-4">
+                            {{ render_submit_field(form.submit, button_class="btn btn-primary") }}
+                            <a href="{{ url_for('crm.manage_tasks') }}" class="btn btn-secondary">Cancel</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

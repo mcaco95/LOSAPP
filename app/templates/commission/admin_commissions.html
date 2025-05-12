@@ -1,0 +1,752 @@
+{% extends "base.html" %}
+
+{% block title %}Manage Commissions{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Commission admin page specific modal styles */
+    .modal-backdrop {
+        z-index: 1040 !important;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+    }
+    
+    .modal {
+        z-index: 1050 !important;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        outline: 0;
+    }
+    
+    .modal-dialog {
+        z-index: 1050 !important;
+        position: relative;
+        margin: 1.75rem auto;
+        pointer-events: auto;
+    }
+    
+    .modal-content {
+        z-index: 1051 !important;
+        position: relative;
+        background-color: #fff;
+        border-radius: 0.5rem;
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.5);
+        pointer-events: auto;
+    }
+    
+    /* Ensure modals are visible and interactive */
+    .modal.show {
+        display: block !important;
+    }
+    
+    /* Fix for modal buttons */
+    .modal .btn {
+        position: relative;
+        z-index: 1052 !important;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Summary Cards Row -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card bg-primary text-white">
+                <div class="card-body py-3">
+                    <div class="d-flex align-items-center">
+                        <i class="align-middle me-3 fas fa-fw fa-dollar-sign fa-2x"></i>
+                        <div>
+                            <h5 class="card-title mb-0">Total</h5>
+                            <h2 class="mt-2 mb-0">${{ "{:,.2f}".format(summary.total) }}</h2>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-success text-white">
+                <div class="card-body py-3">
+                    <div class="d-flex align-items-center">
+                        <i class="align-middle me-3 fas fa-fw fa-check-circle fa-2x"></i>
+                        <div>
+                            <h5 class="card-title mb-0">Paid</h5>
+                            <h2 class="mt-2 mb-0">${{ "{:,.2f}".format(summary.paid) }}</h2>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-warning text-white">
+                <div class="card-body py-3">
+                    <div class="d-flex align-items-center">
+                        <i class="align-middle me-3 fas fa-fw fa-clock fa-2x"></i>
+                        <div>
+                            <h5 class="card-title mb-0">Pending</h5>
+                            <h2 class="mt-2 mb-0">${{ "{:,.2f}".format(summary.pending) }}</h2>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-danger text-white">
+                <div class="card-body py-3">
+                    <div class="d-flex align-items-center">
+                        <i class="align-middle me-3 fas fa-fw fa-ban fa-2x"></i>
+                        <div>
+                            <h5 class="card-title mb-0">Cancelled</h5>
+                            <h2 class="mt-2 mb-0">${{ "{:,.2f}".format(summary.cancelled) }}</h2>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">Commissions</h5>
+                    <div>
+                        <a href="{{ url_for('commission.admin_partners') }}" class="btn btn-sm btn-outline-primary">Manage Partners</a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <!-- Filter Controls -->
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <div class="btn-group" role="group">
+                                <a href="{{ url_for('commission.admin_commissions') }}" class="btn btn-outline-primary {{ 'active' if not request.args.get('status') }}">All</a>
+                                <a href="{{ url_for('commission.admin_commissions', status='pending') }}" class="btn btn-outline-warning {{ 'active' if request.args.get('status') == 'pending' }}">Pending</a>
+                                <a href="{{ url_for('commission.admin_commissions', status='paid') }}" class="btn btn-outline-success {{ 'active' if request.args.get('status') == 'paid' }}">Paid</a>
+                                <a href="{{ url_for('commission.admin_commissions', status='cancelled') }}" class="btn btn-outline-danger {{ 'active' if request.args.get('status') == 'cancelled' }}">Cancelled</a>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="input-group">
+                                <input type="text" class="form-control" id="searchInput" placeholder="Search commissions...">
+                                <span class="input-group-text">
+                                    <i class="fas fa-search"></i>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Table -->
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Partner</th>
+                                    <th>Company</th>
+                                    <th>Type</th>
+                                    <th>Amount</th>
+                                    <th>Details</th>
+                                    <th>Status</th>
+                                    <th>Created</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for commission in commissions %}
+                                <tr>
+                                    <td>#{{ commission.id }}</td>
+                                    <td>{{ commission.partner.user.name }}</td>
+                                    <td>{{ commission.company.name }}</td>
+                                    <td>
+                                        {% if commission.commission_type == 'safety' %}
+                                            <span class="badge bg-primary">Safety Service</span>
+                                            {% if commission.is_initial_month %}
+                                                <span class="badge bg-info">Initial Month</span>
+                                            {% endif %}
+                                            {% if commission.commission_metadata.get('network_commission') %}
+                                                <span class="badge bg-secondary">Network</span>
+                                            {% endif %}
+                                        {% else %}
+                                            <span class="badge bg-success">Recruitment</span>
+                                            {% if commission.commission_metadata.get('network_commission') %}
+                                                <span class="badge bg-secondary">Network</span>
+                                            {% endif %}
+                                        {% endif %}
+                                    </td>
+                                    <td>${{ "%.2f"|format(commission.amount) }}</td>
+                                    <td>
+                                        {% if commission.commission_type == 'safety' %}
+                                            {% if commission.commission_metadata.get('network_commission') %}
+                                                Network commission for referred partner
+                                                <br>
+                                                Referred Partner: {{ commission.commission_metadata.get('referred_partner_id') }}
+                                            {% else %}
+                                                {{ commission.commission_metadata.get('truck_count', 0) }} trucks @ ${{ "%.2f"|format(commission.commission_metadata.get('price_per_truck', 0)) }}/truck
+                                                {% if commission.month_number %}
+                                                    <br>Month {{ commission.month_number }}
+                                                {% endif %}
+                                            {% endif %}
+                                        {% else %}
+                                            {% if commission.commission_metadata.get('network_commission') %}
+                                                Network commission for recruitment
+                                                <br>
+                                                Referred Partner: {{ commission.commission_metadata.get('referred_partner_id') }}
+                                            {% else %}
+                                                Recruitment commission for completed request
+                                            {% endif %}
+                                            <br>
+                                            Position: {{ commission.commission_metadata.get('position', 'N/A') }}
+                                            <br>
+                                            Request ID: {{ commission.commission_metadata.get('recruitment_request_id', 'N/A') }}
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if commission.status == 'pending' %}
+                                            <span class="badge bg-warning">Pending</span>
+                                        {% elif commission.status == 'paid' %}
+                                            <span class="badge bg-success">Paid</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">{{ commission.status|title }}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ commission.created_at.strftime('%Y-%m-%d') }}</td>
+                                    <td>
+                                        {% if commission.status == 'pending' %}
+                                            <button class="btn btn-sm btn-success mark-paid" data-commission-id="{{ commission.id }}">
+                                                Mark Paid
+                                            </button>
+                                            <button class="btn btn-sm btn-danger mark-cancelled" data-commission-id="{{ commission.id }}">
+                                                Cancel
+                                            </button>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% else %}
+                                <tr>
+                                    <td colspan="9" class="text-center">
+                                        <div class="py-4">
+                                            <i class="align-middle fas fa-fw fa-file-invoice-dollar fa-3x mb-3 text-muted"></i>
+                                            <h5>No commissions found</h5>
+                                            <p class="text-muted">
+                                                {% if request.args.get('status') %}
+                                                    No {{ request.args.get('status') }} commissions found.
+                                                {% else %}
+                                                    There are no commissions in the system yet.
+                                                {% endif %}
+                                            </p>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Pagination -->
+                    {% if pagination.pages > 1 %}
+                    <nav aria-label="Commission pagination" class="mt-4">
+                        <ul class="pagination justify-content-center">
+                            <li class="page-item {{ 'disabled' if not pagination.has_prev }}">
+                                <a class="page-link" href="{{ url_for('commission.admin_commissions', page=pagination.prev_num, status=request.args.get('status', '')) if pagination.has_prev else '#' }}">
+                                    <i class="fas fa-chevron-left"></i>
+                                </a>
+                            </li>
+                            
+                            {% for page_num in pagination.iter_pages(left_edge=2, left_current=2, right_current=3, right_edge=2) %}
+                                {% if page_num %}
+                                    <li class="page-item {{ 'active' if page_num == pagination.page }}">
+                                        <a class="page-link" href="{{ url_for('commission.admin_commissions', page=page_num, status=request.args.get('status', '')) }}">
+                                            {{ page_num }}
+                                        </a>
+                                    </li>
+                                {% else %}
+                                    <li class="page-item disabled">
+                                        <span class="page-link">...</span>
+                                    </li>
+                                {% endif %}
+                            {% endfor %}
+                            
+                            <li class="page-item {{ 'disabled' if not pagination.has_next }}">
+                                <a class="page-link" href="{{ url_for('commission.admin_commissions', page=pagination.next_num, status=request.args.get('status', '')) if pagination.has_next else '#' }}">
+                                    <i class="fas fa-chevron-right"></i>
+                                </a>
+                            </li>
+                        </ul>
+                    </nav>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- View Commission Modal -->
+<div class="modal fade" id="viewCommissionModal" tabindex="-1" aria-labelledby="viewCommissionModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="viewCommissionModalLabel">Commission Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Commission Information</h6>
+                        <table class="table table-sm">
+                            <tr>
+                                <th>Commission ID:</th>
+                                <td id="commissionDetailId"></td>
+                            </tr>
+                            <tr>
+                                <th>Amount:</th>
+                                <td id="commissionDetailAmount"></td>
+                            </tr>
+                            <tr>
+                                <th>Service Type:</th>
+                                <td id="commissionDetailServiceType"></td>
+                            </tr>
+                            <tr>
+                                <th>Month:</th>
+                                <td id="commissionDetailMonth"></td>
+                            </tr>
+                            <tr>
+                                <th>Status:</th>
+                                <td id="commissionDetailStatus"></td>
+                            </tr>
+                            <tr>
+                                <th>Created:</th>
+                                <td id="commissionDetailCreated"></td>
+                            </tr>
+                            <tr>
+                                <th>Paid Date:</th>
+                                <td id="commissionDetailPaid"></td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Related Information</h6>
+                        <table class="table table-sm">
+                            <tr>
+                                <th>Partner:</th>
+                                <td id="commissionDetailPartner"></td>
+                            </tr>
+                            <tr>
+                                <th>Partner Email:</th>
+                                <td id="commissionDetailPartnerEmail"></td>
+                            </tr>
+                            <tr>
+                                <th>Company:</th>
+                                <td id="commissionDetailCompany"></td>
+                            </tr>
+                            <tr>
+                                <th>Company Status:</th>
+                                <td id="commissionDetailCompanyStatus"></td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+                
+                <div class="mt-4" id="commissionMetadataSection">
+                    <h6>Additional Information</h6>
+                    <div class="card bg-light">
+                        <div class="card-body">
+                            <pre id="commissionDetailMetadata" class="mb-0"></pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <div id="commissionActionButtons">
+                    <button type="button" class="btn btn-success" id="modalMarkPaidBtn">Mark as Paid</button>
+                    <button type="button" class="btn btn-danger" id="modalCancelBtn">Cancel Commission</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Mark Paid Modal -->
+<div class="modal fade" id="markPaidModal" tabindex="-1" aria-labelledby="markPaidModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="markPaidModalLabel">Mark Commission as Paid</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="markPaidForm" action="{{ url_for('commission.mark_commission_paid', commission_id=0) }}" method="post">
+                    <input type="hidden" id="markPaidCommissionId" name="commission_id">
+                    <p>Are you sure you want to mark this commission of <strong id="markPaidAmount"></strong> for <strong id="markPaidPartner"></strong> as paid?</p>
+                    <p>This action cannot be undone.</p>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="submit" form="markPaidForm" class="btn btn-success">Mark as Paid</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Cancel Commission Modal -->
+<div class="modal fade" id="cancelCommissionModal" tabindex="-1" aria-labelledby="cancelCommissionModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="cancelCommissionModalLabel">Cancel Commission</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="cancelCommissionForm" action="{{ url_for('commission.cancel_commission', commission_id=0) }}" method="post">
+                    <input type="hidden" id="cancelCommissionId" name="commission_id">
+                    <p>Are you sure you want to cancel this commission for <strong id="cancelCommissionPartner"></strong>?</p>
+                    <div class="mb-3">
+                        <label for="reason" class="form-label">Reason for Cancellation</label>
+                        <textarea class="form-control" id="reason" name="reason" rows="3" required></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="submit" form="cancelCommissionForm" class="btn btn-danger">Cancel Commission</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Bulk Pay Modal -->
+<div class="modal fade" id="bulkPayModal" tabindex="-1" aria-labelledby="bulkPayModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="bulkPayModalLabel">Pay All Pending Commissions</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to mark all pending commissions as paid?</p>
+                <p>This will affect <strong id="pendingCount">{{ commissions|selectattr('status', 'equalto', 'pending')|list|length }}</strong> commissions totaling <strong id="pendingTotal">${{ "{:,.2f}".format(commissions|selectattr('status', 'equalto', 'pending')|map(attribute='amount')|sum) }}</strong>.</p>
+                <p>This action cannot be undone.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-success" id="confirmBulkPayBtn">Mark All as Paid</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        // Ensure any lingering modal artifacts are cleaned up
+        if (window.ModalUtils) {
+            window.ModalUtils.cleanupModalArtifacts();
+        }
+        
+        // Initialize tooltips
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl)
+        });
+        
+        // Table search functionality
+        document.getElementById('searchInput').addEventListener('keyup', function() {
+            var input, filter, table, tr, td, i, txtValue;
+            input = document.getElementById('searchInput');
+            filter = input.value.toUpperCase();
+            table = document.getElementById('commissionsTable');
+            tr = table.getElementsByTagName('tr');
+
+            for (i = 1; i < tr.length; i++) {
+                var found = false;
+                var tds = tr[i].getElementsByTagName('td');
+                
+                for (var j = 0; j < tds.length; j++) {
+                    td = tds[j];
+                    if (td) {
+                        txtValue = td.textContent || td.innerText;
+                        if (txtValue.toUpperCase().indexOf(filter) > -1) {
+                            found = true;
+                            break;
+                        }
+                    }
+                }
+                
+                if (found) {
+                    tr[i].style.display = '';
+                } else {
+                    tr[i].style.display = 'none';
+                }
+            }
+        });
+
+        try {
+            // Chart initialization with error handling
+            const canvas = document.getElementById('commissionChart');
+            if (!canvas) {
+                console.error('Commission chart canvas not found');
+                return;
+            }
+
+            const ctx = canvas.getContext('2d');
+            if (!ctx) {
+                console.error('Could not get 2D context for commission chart');
+                return;
+            }
+
+            const paidAmount = {{ commissions|selectattr('status', 'equalto', 'paid')|map(attribute='amount')|sum }};
+            const pendingAmount = {{ commissions|selectattr('status', 'equalto', 'pending')|map(attribute='amount')|sum }};
+            const cancelledAmount = {{ commissions|selectattr('status', 'equalto', 'cancelled')|map(attribute='amount')|sum }};
+
+            console.log('Chart data:', { paidAmount, pendingAmount, cancelledAmount });
+
+            const chart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Paid', 'Pending', 'Cancelled'],
+                    datasets: [{
+                        data: [paidAmount, pendingAmount, cancelledAmount],
+                        backgroundColor: [
+                            '#28a745',  // Success green
+                            '#ffc107',  // Warning yellow
+                            '#dc3545'   // Danger red
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                padding: 20,
+                                font: {
+                                    size: 12
+                                }
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const value = context.raw;
+                                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                    const percentage = total > 0 ? Math.round((value / total) * 100) : 0;
+                                    return `$${value.toFixed(2)} (${percentage}%)`;
+                                }
+                            }
+                        }
+                    },
+                    cutout: '60%'
+                }
+            });
+
+            console.log('Chart initialized successfully');
+
+            // Initialize Partner Commission Bar Chart
+            const partnerCanvas = document.getElementById('partnerCommissionChart');
+            if (!partnerCanvas) {
+                console.error('Partner commission chart canvas not found');
+                return;
+            }
+
+            const partnerCtx = partnerCanvas.getContext('2d');
+            if (!partnerCtx) {
+                console.error('Could not get 2D context for partner commission chart');
+                return;
+            }
+
+            // Process commission data by partner
+            const partnerData = {};
+            {% for commission in commissions %}
+            const partner = "{{ commission.partner.user.name or commission.partner.user.username }}";
+            if (!partnerData[partner]) {
+                partnerData[partner] = {
+                    paid: 0,
+                    pending: 0,
+                    cancelled: 0
+                };
+            }
+            const amount = {{ commission.amount }};
+            const status = "{{ commission.status }}";
+            partnerData[partner][status] += amount;
+            {% endfor %}
+
+            // Convert partner data into chart format
+            const partners = Object.keys(partnerData);
+            const paidData = partners.map(p => partnerData[p].paid);
+            const pendingData = partners.map(p => partnerData[p].pending);
+            const cancelledData = partners.map(p => partnerData[p].cancelled);
+
+            const partnerChart = new Chart(partnerCtx, {
+                type: 'bar',
+                data: {
+                    labels: partners,
+                    datasets: [
+                        {
+                            label: 'Paid',
+                            data: paidData,
+                            backgroundColor: '#28a745',
+                            borderColor: '#28a745',
+                            borderWidth: 1
+                        },
+                        {
+                            label: 'Pending',
+                            data: pendingData,
+                            backgroundColor: '#ffc107',
+                            borderColor: '#ffc107',
+                            borderWidth: 1
+                        },
+                        {
+                            label: 'Cancelled',
+                            data: cancelledData,
+                            backgroundColor: '#dc3545',
+                            borderColor: '#dc3545',
+                            borderWidth: 1
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Commission by Partner',
+                            font: {
+                                size: 14
+                            }
+                        },
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                padding: 20,
+                                font: {
+                                    size: 12
+                                }
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return `${context.dataset.label}: $${context.raw.toFixed(2)}`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            stacked: true,
+                            ticks: {
+                                maxRotation: 45,
+                                minRotation: 45
+                            }
+                        },
+                        y: {
+                            stacked: true,
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return '$' + value.toFixed(2);
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            console.log('Partner chart initialized successfully');
+        } catch (error) {
+            console.error('Error initializing commission chart:', error);
+        }
+        
+        // Mark Paid Modal
+        var markPaidModal = document.getElementById('markPaidModal');
+        if (markPaidModal) {
+            markPaidModal.addEventListener('show.bs.modal', function(event) {
+                var button = event.relatedTarget;
+                var commissionId = button.getAttribute('data-commission-id');
+                var amount = button.getAttribute('data-commission-amount');
+                var partnerName = button.getAttribute('data-partner-name');
+                
+                document.getElementById('markPaidCommissionId').value = commissionId;
+                document.getElementById('markPaidAmount').textContent = '$' + parseFloat(amount).toFixed(2);
+                document.getElementById('markPaidPartner').textContent = partnerName;
+                
+                // Update form action
+                document.getElementById('markPaidForm').action = "{{ url_for('commission.mark_commission_paid', commission_id=0) }}".replace('0', commissionId);
+            });
+        }
+        
+        // Cancel Commission Modal
+        var cancelCommissionModal = document.getElementById('cancelCommissionModal');
+        if (cancelCommissionModal) {
+            cancelCommissionModal.addEventListener('show.bs.modal', function(event) {
+                var button = event.relatedTarget;
+                var commissionId = button.getAttribute('data-commission-id');
+                var partnerName = button.getAttribute('data-partner-name');
+                
+                document.getElementById('cancelCommissionId').value = commissionId;
+                document.getElementById('cancelCommissionPartner').textContent = partnerName;
+                
+                // Update form action
+                document.getElementById('cancelCommissionForm').action = "{{ url_for('commission.cancel_commission', commission_id=0) }}".replace('0', commissionId);
+            });
+        }
+        
+        // View Commission Modal
+        var viewCommissionModal = document.getElementById('viewCommissionModal');
+        if (viewCommissionModal) {
+            viewCommissionModal.addEventListener('show.bs.modal', function(event) {
+                var button = event.relatedTarget;
+                var commissionId = button.getAttribute('data-commission-id');
+                
+                // TODO: Fetch commission details via AJAX
+                // For now, we'll just show a placeholder
+                document.getElementById('commissionDetailId').textContent = '#' + commissionId;
+                
+                // Hide action buttons for now
+                document.getElementById('commissionActionButtons').style.display = 'none';
+            });
+        }
+        
+        // Process Monthly Button
+        document.getElementById('processMonthlyBtn').addEventListener('click', function() {
+            // TODO: Send AJAX request to process monthly commissions
+            alert('Processing monthly commissions...');
+        });
+        
+        // Export Buttons
+        document.getElementById('exportCsvBtn').addEventListener('click', function() {
+            // TODO: Export to CSV
+            alert('Exporting to CSV...');
+        });
+        
+        document.getElementById('exportExcelBtn').addEventListener('click', function() {
+            // TODO: Export to Excel
+            alert('Exporting to Excel...');
+        });
+        
+        // Confirm Bulk Pay Button
+        document.getElementById('confirmBulkPayBtn').addEventListener('click', function() {
+            // TODO: Send AJAX request to mark all pending commissions as paid
+            alert('Marking all pending commissions as paid...');
+            
+            // Close modal
+            var modal = bootstrap.Modal.getInstance(document.getElementById('bulkPayModal'));
+            modal.hide();
+        });
+    });
+</script>
+{% endblock %} 

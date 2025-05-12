@@ -1,0 +1,83 @@
+roles:
+  architect_devops:
+    description: "Designs system architecture, ensures scalability, and manages deployment & security."
+    references:
+      - "./docs/TunneaB2B_Architecture.md"
+      - "./infra/"
+      - "./backend/config/settings.py"
+    tasks:
+      - "Define and refine architecture."
+      - "Manage infrastructure and deployment."
+      - "Ensure security best practices."
+    dependencies:
+      - backend_engineer
+      - frontend_engineer
+    workflow:
+      - "Works with Backend Engineer to optimize APIs and data flow."
+      - "Supports Frontend Engineer in API integration."
+
+  backend_engineer:
+    description: "Develops and maintains backend logic, APIs, and AI-related services."
+    references:
+      - "./backend/api/"
+      - "./backend/models/"
+      - "./backend/services/"
+      - "./backend/ai_services/"
+    tasks:
+      - "Optimize backend performance."
+      - "Refactor APIs for efficiency."
+      - "Integrate AI models and data processing."
+    dependencies:
+      - frontend_engineer
+      - architect_devops
+    workflow:
+      - "Works with Architect to ensure clean architecture."
+      - "Supports Frontend Engineer by providing API endpoints."
+
+  frontend_engineer:
+    description: "Develops and maintains the frontend UI using Vue.js."
+    references:
+      - "./frontend/components/"
+      - "./frontend/pages/"
+      - "./frontend/store/"
+    tasks:
+      - "Improve UI performance."
+      - "Ensure proper API integration."
+      - "Enhance user experience with better design."
+    dependencies:
+      - backend_engineer
+      - product_manager
+    workflow:
+      - "Works with Backend Engineer to connect APIs."
+      - "Follows Product Manager's vision for UI."
+
+  product_manager:
+    description: "Defines product vision, prioritizes features, and ensures business alignment."
+    references:
+      - "./docs/Product_Requirements.md"
+      - "./frontend/pages/"
+    tasks:
+      - "Prioritize features based on business needs."
+      - "Align development with user feedback."
+    dependencies:
+      - frontend_engineer
+      - qa_engineer
+    workflow:
+      - "Works with Frontend Engineer to shape the UI."
+      - "Collaborates with QA Engineer to ensure feature quality."
+
+  qa_engineer:
+    description: "Ensures the application meets quality standards through testing."
+    references:
+      - "./tests/"
+      - "./docs/Test_Cases.md"
+    tasks:
+      - "Write and maintain test scripts."
+      - "Perform API and UI testing."
+      - "Identify and report bugs."
+    dependencies:
+      - backend_engineer
+      - frontend_engineer
+    workflow:
+      - "Tests backend API with Backend Engineer."
+      - "Validates frontend changes with Frontend Engineer."

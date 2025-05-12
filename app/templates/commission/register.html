@@ -1,0 +1,182 @@
+{% extends "base.html" %}
+
+{% block title %}Become a Commission Partner{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Become a Commission Partner</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-4">
+                                <h4>Commission Program Benefits</h4>
+                                <ul class="list-group list-group-flush mt-3">
+                                    <li class="list-group-item d-flex align-items-center">
+                                        <i class="align-middle me-2 fas fa-fw fa-percentage"></i>
+                                        <span>Earn 10% commission on client payments for the first 2 years</span>
+                                    </li>
+                                    <li class="list-group-item d-flex align-items-center">
+                                        <i class="align-middle me-2 fas fa-fw fa-sync-alt"></i>
+                                        <span>Earn 2.5% commission from year 3 onwards</span>
+                                    </li>
+                                    <li class="list-group-item d-flex align-items-center">
+                                        <i class="align-middle me-2 fas fa-fw fa-network-wired"></i>
+                                        <span>Build your network and earn 2.5% from your network's clients</span>
+                                    </li>
+                                    <li class="list-group-item d-flex align-items-center">
+                                        <i class="align-middle me-2 fas fa-fw fa-chart-line"></i>
+                                        <span>Track your earnings in real-time</span>
+                                    </li>
+                                    <li class="list-group-item d-flex align-items-center">
+                                        <i class="align-middle me-2 fas fa-fw fa-money-bill-wave"></i>
+                                        <span>Monthly commission payouts</span>
+                                    </li>
+                                </ul>
+                            </div>
+
+                            <div class="mb-4">
+                                <h4>Example Commission Calculations</h4>
+                                <div class="card bg-light">
+                                    <div class="card-body">
+                                        <h6 class="mb-3">Direct Client Referral</h6>
+                                        <p>For a client with a monthly payment of $1,000:</p>
+                                        <ul class="mb-4">
+                                            <li>Years 1-2: $100/month (10% commission)</li>
+                                            <li>Year 3+: $25/month (2.5% commission)</li>
+                                        </ul>
+                                        
+                                        <h6 class="mb-3">Network Partner Earnings</h6>
+                                        <p>When your network partners bring in clients:</p>
+                                        <ul>
+                                            <li>You earn 2.5% from all your network's client payments</li>
+                                            <li>Example: 5 network clients paying $1,000/month each = $125/month in network commissions</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="card border">
+                                <div class="card-header bg-primary text-white">
+                                    <h5 class="card-title mb-0">Register as a Partner</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="alert alert-info mb-4">
+                                        <i class="fas fa-info-circle me-2"></i>
+                                        <strong>Important:</strong> By registering and accepting the terms, you'll be eligible for both direct referral commissions and network partner earnings.
+                                    </div>
+                                    <form action="{{ url_for('commission.register_partner') }}" method="post">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                        <div class="mb-3">
+                                            <label class="form-label">Your Information</label>
+                                            <div class="input-group">
+                                                <span class="input-group-text">
+                                                    <i class="align-middle fas fa-fw fa-user"></i>
+                                                </span>
+                                                <input type="text" class="form-control" value="{{ current_user.name or current_user.username }}" disabled>
+                                            </div>
+                                        </div>
+                                        <div class="mb-3">
+                                            <div class="input-group">
+                                                <span class="input-group-text">
+                                                    <i class="align-middle fas fa-fw fa-envelope"></i>
+                                                </span>
+                                                <input type="text" class="form-control" value="{{ current_user.email }}" disabled>
+                                            </div>
+                                        </div>
+
+                                        <div class="mb-3">
+                                            <label class="form-label">Referrer Code (Optional)</label>
+                                            <div class="input-group">
+                                                <span class="input-group-text">
+                                                    <i class="align-middle fas fa-fw fa-link"></i>
+                                                </span>
+                                                <input type="text" class="form-control" name="referrer_code" placeholder="Enter referrer code if you have one" value="{{ referrer_code or '' }}">
+                                            </div>
+                                            <div class="form-text">If someone referred you to our partner program, enter their code here.</div>
+                                        </div>
+
+                                        <div class="mb-3 form-check">
+                                            <input type="checkbox" class="form-check-input" id="terms" required>
+                                            <label class="form-check-label" for="terms">I agree to the <a href="#" data-bs-toggle="modal" data-bs-target="#termsModal">Terms and Conditions</a></label>
+                                        </div>
+
+                                        <div class="d-grid gap-2">
+                                            <button type="submit" class="btn btn-primary">Register as Partner</button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Terms and Conditions Modal -->
+<div class="modal fade" id="termsModal" tabindex="-1" aria-labelledby="termsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="termsModalLabel">Commission Partner Terms and Conditions</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <h5>1. Commission Structure</h5>
+                <p><strong>Direct Client Referrals:</strong></p>
+                <ul>
+                    <li>10% commission on all client payments for the first two years</li>
+                    <li>2.5% commission on all client payments from year three onwards</li>
+                </ul>
+                <p><strong>Network Partner Earnings:</strong></p>
+                <ul>
+                    <li>2.5% commission on all monthly payments from your network partners' clients</li>
+                    <li>Network commissions are not time-limited and continue as long as the clients remain active</li>
+                </ul>
+                
+                <h5>2. Payment Terms</h5>
+                <p>Commissions are paid monthly, on the 15th of each month, for all commissions marked as "paid" in the previous month. A minimum payout threshold of $50 applies.</p>
+                
+                <h5>3. Commission Eligibility</h5>
+                <p>To be eligible for any commissions (both direct referrals and network earnings):</p>
+                <ul>
+                    <li>You must be a registered partner and have accepted these terms and conditions</li>
+                    <li>Commissions are only earned when referred clients sign up for a paid plan</li>
+                    <li>Commissions are not earned for free trials or demo bookings</li>
+                    <li>The client must maintain an active, paid subscription</li>
+                </ul>
+                
+                <h5>4. Network Building</h5>
+                <p>As a registered partner, you can:</p>
+                <ul>
+                    <li>Share your unique referral code to build your network</li>
+                    <li>Earn network commissions from all clients brought in by your network partners</li>
+                    <li>Access tools and resources to help grow your network</li>
+                </ul>
+                
+                <h5>5. Termination</h5>
+                <p>We reserve the right to terminate any partner account for violations of these terms, including but not limited to:</p>
+                <ul>
+                    <li>Fraudulent activity or misrepresentation</li>
+                    <li>Spam or aggressive marketing tactics</li>
+                    <li>Violation of our terms of service</li>
+                </ul>
+                
+                <h5>6. Changes to Terms</h5>
+                <p>We may modify these terms at any time. Partners will be notified of any changes via email. Continued participation in the program after changes constitutes acceptance of the new terms.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

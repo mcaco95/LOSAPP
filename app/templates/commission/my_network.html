@@ -1,0 +1,233 @@
+{% extends "base.html" %}
+
+{% block title %}My Partner Network{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">My Partner Network</h5>
+                    <div>
+                        <a href="{{ url_for('commission.dashboard') }}" class="btn btn-sm btn-outline-primary">Back to Dashboard</a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    {% if network %}
+                    <!-- Network Stats -->
+                    <div class="row mb-4">
+                        <div class="col-md-4">
+                            <div class="card bg-primary text-white">
+                                <div class="card-body py-3">
+                                    <div class="d-flex align-items-center">
+                                        <i class="align-middle me-3 fas fa-fw fa-users fa-2x"></i>
+                                        <div>
+                                            <h5 class="card-title mb-0">Total Partners</h5>
+                                            <h2 class="mt-2 mb-0">{{ network|length }}</h2>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card bg-success text-white">
+                                <div class="card-body py-3">
+                                    <div class="d-flex align-items-center">
+                                        <i class="align-middle me-3 fas fa-fw fa-building fa-2x"></i>
+                                        <div>
+                                            <h5 class="card-title mb-0">Active Companies</h5>
+                                            <h2 class="mt-2 mb-0">{{ network|map(attribute='active_companies')|sum }}</h2>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card bg-info text-white">
+                                <div class="card-body py-3">
+                                    <div class="d-flex align-items-center">
+                                        <i class="align-middle me-3 fas fa-fw fa-dollar-sign fa-2x"></i>
+                                        <div>
+                                            <h5 class="card-title mb-0">Network Commissions</h5>
+                                            <h2 class="mt-2 mb-0">${{ "%.2f"|format(network|map(attribute='total_commissions')|sum) }}</h2>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Network Table -->
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover" id="networkTable">
+                            <thead>
+                                <tr>
+                                    <th>Partner</th>
+                                    <th>Joined</th>
+                                    <th>Tier</th>
+                                    <th>Active Companies</th>
+                                    <th>Total Commissions</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for partner in network %}
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="avatar avatar-sm me-2 bg-primary">
+                                                <div class="avatar-content">{{ partner.user[:1] }}</div>
+                                            </div>
+                                            <div>{{ partner.user }}</div>
+                                        </div>
+                                    </td>
+                                    <td>{{ partner.created_at.split('T')[0] }}</td>
+                                    <td>
+                                        <span class="badge bg-{{ 'primary' if partner.commission_tier == 'premium' else 'secondary' }}">
+                                            {{ partner.commission_tier|title }}
+                                        </span>
+                                    </td>
+                                    <td>{{ partner.active_companies }}</td>
+                                    <td>${{ "%.2f"|format(partner.total_commissions) }}</td>
+                                    <td>
+                                        {% if partner.is_active %}
+                                            <span class="badge bg-success">Active</span>
+                                        {% else %}
+                                            <span class="badge bg-danger">Inactive</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <!-- Empty Network State -->
+                    <div class="text-center py-5">
+                        <i class="align-middle fas fa-fw fa-users fa-4x mb-3 text-muted"></i>
+                        <h4>You haven't referred any partners yet</h4>
+                        <p class="text-muted">Share your unique link to invite others to the partner program.</p>
+                        
+                        <div class="row justify-content-center mt-4">
+                            <div class="col-md-8">
+                                <div class="card border">
+                                    <div class="card-header bg-primary text-white">
+                                        <h5 class="card-title mb-0">Your Partner Referral Code</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="input-group mb-3">
+                                            <input type="text" class="form-control" id="partnerLink" value="{{ current_user.unique_link }}" readonly>
+                                            <button class="btn btn-outline-primary" type="button" onclick="copyPartnerLink()">Copy</button>
+                                        </div>
+                                        <p class="text-muted">Partners can enter this code during registration or on the partner sign-up page.</p>
+                                        <div class="d-grid gap-2 d-md-flex justify-content-md-center mt-3">
+                                            <a href="mailto:?subject=Join%20our%20Partner%20Program&body=I'd%20like%20to%20invite%20you%20to%20join%20our%20partner%20program.%20Use%20my%20referral%20code:%20{{ current_user.unique_link }}" class="btn btn-outline-primary">
+                                                <i class="fas fa-envelope me-2"></i> Email Invite
+                                            </a>
+                                            <a href="https://twitter.com/intent/tweet?text=Join%20our%20partner%20program%20using%20my%20referral%20code:%20{{ current_user.unique_link }}" target="_blank" class="btn btn-outline-info">
+                                                <i class="fab fa-twitter me-2"></i> Tweet
+                                            </a>
+                                            <a href="https://www.linkedin.com/sharing/share-offsite/?url={{ request.host_url }}commission/partners" target="_blank" class="btn btn-outline-secondary">
+                                                <i class="fab fa-linkedin me-2"></i> LinkedIn
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Partner Program Information -->
+    <div class="row mt-4">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Partner Network Benefits</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex mb-4">
+                        <div class="flex-shrink-0">
+                            <i class="align-middle fas fa-fw fa-users fa-2x text-primary"></i>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h5>Build Your Network</h5>
+                            <p>Invite others to become commission partners and build your own network of partners.</p>
+                        </div>
+                    </div>
+                    <div class="d-flex mb-4">
+                        <div class="flex-shrink-0">
+                            <i class="align-middle fas fa-fw fa-award fa-2x text-primary"></i>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h5>Earn Points</h5>
+                            <p>Earn bonus points when someone joins the partner program through your referral link.</p>
+                        </div>
+                    </div>
+                    <div class="d-flex">
+                        <div class="flex-shrink-0">
+                            <i class="align-middle fas fa-fw fa-chart-line fa-2x text-primary"></i>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h5>Track Performance</h5>
+                            <p>Monitor the performance of your partner network and see how they're contributing.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Partner Recruitment Tips</h5>
+                </div>
+                <div class="card-body">
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item d-flex align-items-center">
+                            <i class="align-middle me-2 fas fa-fw fa-bullseye text-primary"></i>
+                            <span><strong>Target the right people</strong> - Focus on professionals who have access to potential clients.</span>
+                        </li>
+                        <li class="list-group-item d-flex align-items-center">
+                            <i class="align-middle me-2 fas fa-fw fa-comment-dollar text-primary"></i>
+                            <span><strong>Highlight the benefits</strong> - Emphasize the commission structure and recurring revenue.</span>
+                        </li>
+                        <li class="list-group-item d-flex align-items-center">
+                            <i class="align-middle me-2 fas fa-fw fa-handshake text-primary"></i>
+                            <span><strong>Offer support</strong> - Let potential partners know you'll help them succeed.</span>
+                        </li>
+                        <li class="list-group-item d-flex align-items-center">
+                            <i class="align-middle me-2 fas fa-fw fa-share-alt text-primary"></i>
+                            <span><strong>Use social media</strong> - Share your partner link on your professional networks.</span>
+                        </li>
+                        <li class="list-group-item d-flex align-items-center">
+                            <i class="align-middle me-2 fas fa-fw fa-user-plus text-primary"></i>
+                            <span><strong>Personal outreach</strong> - Direct messages often work better than general posts.</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    function copyPartnerLink() {
+        var copyText = document.getElementById("partnerLink");
+        copyText.select();
+        copyText.setSelectionRange(0, 99999);
+        navigator.clipboard.writeText(copyText.value);
+        alert("Partner link copied to clipboard!");
+    }
+    
+    document.addEventListener("DOMContentLoaded", function() {
+        // Add any additional JavaScript functionality here
+    });
+</script>
+{% endblock %} 

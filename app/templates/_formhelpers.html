@@ -1,0 +1,227 @@
+{# This file contains Jinja2 macros for rendering Flask-WTF form fields #}
+
+{# Macro to render a single field with label, errors, and Bootstrap styling #}
+{% macro render_field(field, label_visible=True) %}
+    {# Combine default class with provided kwargs class (using implicit kwargs) #}
+    {% set field_kwargs = kwargs.copy() %}
+    {% set default_class = 'form-control' %}
+    {% if field_kwargs.get('class') %}
+        {% do field_kwargs.update({'class': default_class + ' ' + field_kwargs['class']}) %}
+    {% else %}
+        {% do field_kwargs.update({'class': default_class}) %}
+    {% endif %}
+    {% if field.errors %}
+        {% do field_kwargs.update({'class': field_kwargs['class'] + ' is-invalid'}) %}
+    {% endif %}
+
+    <div class="form-group mb-3">
+        {% if label_visible and field.label %}
+            {{ field.label(class='form-label') }}
+        {% endif %}
+        
+        {% if field.type == 'BooleanField' %}
+            <div class="form-check">
+                 {# BooleanField uses different styling, remove default form-control #}
+                {% set check_kwargs = kwargs.copy() %}
+                {% do check_kwargs.update({'class': 'form-check-input'}) %}
+                {% if field.errors %}{% do check_kwargs.update({'class': check_kwargs['class'] + ' is-invalid'}) %}{% endif %}
+                {{ field(**check_kwargs) }}
+                {% if field.label %}
+                    {{ field.label(class='form-check-label') }}
+                {% endif %}
+            </div>
+        {% elif field.type == 'RadioField' %}
+            {% for subfield in field %}
+                 {# RadioField uses different styling #}
+                {% set radio_kwargs = kwargs.copy() %}
+                {% do radio_kwargs.update({'class': 'form-check-input'}) %}
+                {% if field.errors %}{% do radio_kwargs.update({'class': radio_kwargs['class'] + ' is-invalid'}) %}{% endif %}
+                <div class="form-check">
+                    {{ subfield(**radio_kwargs) }}
+                    {{ subfield.label(class='form-check-label') }}
+                </div>
+            {% endfor %}
+        {% elif field.type == 'FileField' %}
+             {{ field(**field_kwargs) }}
+        {% else %}
+            {# Render standard fields (Text, Password, Email, etc.) #}
+            {{ field(**field_kwargs) }}
+        {% endif %}
+
+        {% if field.errors %}
+            <div class="invalid-feedback d-block">
+                {% for error in field.errors %}
+                    <span>{{ error }}</span><br>
+                {% endfor %}
+            </div>
+        {% elif field.description and not field.errors %}
+            <small class="form-text text-muted">{{ field.description }}</small>
+        {% endif %}
+    </div>
+{% endmacro %}
+
+{# Macro to render a submit button with Bootstrap styling #}
+{% macro render_submit_field(field) %}
+    {% set button_kwargs = kwargs.copy() %}
+    {% set default_class = 'btn btn-primary' %}
+    {% if button_kwargs.get('class') %}
+        {% do button_kwargs.update({'class': default_class + ' ' + button_kwargs['class']}) %}
+    {% else %}
+        {% do button_kwargs.update({'class': default_class}) %}
+    {% endif %}
+    {{ field(**button_kwargs) }}
+{% endmacro %}
+
+{# Macro specifically for a QuerySelectField #}
+{% macro render_query_select_field(field, label_visible=True) %}
+    {% set field_kwargs = kwargs.copy() %}
+    {% set default_class = 'form-select' %}
+    {% if field_kwargs.get('class') %}
+        {% do field_kwargs.update({'class': default_class + ' ' + field_kwargs['class']}) %}
+    {% else %}
+        {% do field_kwargs.update({'class': default_class}) %}
+    {% endif %}
+    {% if field.errors %}
+        {% do field_kwargs.update({'class': field_kwargs['class'] + ' is-invalid'}) %}
+    {% endif %}
+
+    <div class="form-group mb-3">
+        {% if label_visible and field.label %}
+            {{ field.label(class='form-label') }}
+        {% endif %}
+        {{ field(**field_kwargs) }}
+        {% if field.errors %}
+            <div class="invalid-feedback d-block">
+                {% for error in field.errors %}
+                    <span>{{ error }}</span><br>
+                {% endfor %}
+            </div>
+        {% elif field.description and not field.errors %}
+            <small class="form-text text-muted">{{ field.description }}</small>
+        {% endif %}
+    </div>
+{% endmacro %}
+
+{# Macro specifically for a standard SelectField #}
+{% macro render_select_field(field, label_visible=True) %}
+    {% set field_kwargs = kwargs.copy() %}
+    {% set default_class = 'form-select' %}
+    {% if field_kwargs.get('class') %}
+        {% do field_kwargs.update({'class': default_class + ' ' + field_kwargs['class']}) %}
+    {% else %}
+        {% do field_kwargs.update({'class': default_class}) %}
+    {% endif %}
+    {% if field.errors %}
+        {% do field_kwargs.update({'class': field_kwargs['class'] + ' is-invalid'}) %}
+    {% endif %}
+
+    <div class="form-group mb-3">
+        {% if label_visible and field.label %}
+            {{ field.label(class='form-label') }}
+        {% endif %}
+        {{ field(**field_kwargs) }}
+        {% if field.errors %}
+            <div class="invalid-feedback d-block">
+                {% for error in field.errors %}
+                    <span>{{ error }}</span><br>
+                {% endfor %}
+            </div>
+        {% elif field.description and not field.errors %}
+            <small class="form-text text-muted">{{ field.description }}</small>
+        {% endif %}
+    </div>
+{% endmacro %}
+
+{# Macro specifically for a FileField #}
+{% macro render_file_field(field, label_visible=True) %}
+    {% set field_kwargs = kwargs.copy() %}
+    {% set default_class = 'form-control' %}
+    {% if field_kwargs.get('class') %}
+        {% do field_kwargs.update({'class': default_class + ' ' + field_kwargs['class']}) %}
+    {% else %}
+        {% do field_kwargs.update({'class': default_class}) %}
+    {% endif %}
+    {% if field.errors %}
+        {% do field_kwargs.update({'class': field_kwargs['class'] + ' is-invalid'}) %}
+    {% endif %}
+
+    <div class="form-group mb-3">
+        {% if label_visible and field.label %}
+            {{ field.label(class='form-label') }}
+        {% endif %}
+        {{ field(**field_kwargs) }}
+        {% if field.errors %}
+            <div class="invalid-feedback d-block">
+                {% for error in field.errors %}
+                    <span>{{ error }}</span><br>
+                {% endfor %}
+            </div>
+        {% elif field.description and not field.errors %}
+            <small class="form-text text-muted">{{ field.description }}</small>
+        {% endif %}
+    </div>
+{% endmacro %}
+
+{# Macro specifically for a TextAreaField #}
+{% macro render_textarea_field(field, label_visible=True) %}
+    {% set field_kwargs = kwargs.copy() %}
+    {% set default_class = 'form-control' %}
+    {% if field_kwargs.get('class') %}
+        {% do field_kwargs.update({'class': default_class + ' ' + field_kwargs['class']}) %}
+    {% else %}
+        {% do field_kwargs.update({'class': default_class}) %}
+    {% endif %}
+    {% if field.errors %}
+        {% do field_kwargs.update({'class': field_kwargs['class'] + ' is-invalid'}) %}
+    {% endif %}
+    {# Default rows attribute #}
+    {% if 'rows' not in field_kwargs %}
+        {% do field_kwargs.update({'rows': 3}) %}
+    {% endif %}
+
+    <div class="form-group mb-3">
+        {% if label_visible and field.label %}
+            {{ field.label(class='form-label') }}
+        {% endif %}
+        {{ field(**field_kwargs) }}
+        {% if field.errors %}
+            <div class="invalid-feedback d-block">
+                {% for error in field.errors %}
+                    <span>{{ error }}</span><br>
+                {% endfor %}
+            </div>
+        {% elif field.description and not field.errors %}
+            <small class="form-text text-muted">{{ field.description }}</small>
+        {% endif %}
+    </div>
+{% endmacro %}
+
+{# Macro specifically for a DateField #}
+{% macro render_date_field(field, label_visible=True) %}
+    {% set field_kwargs = kwargs.copy() %}
+    {% set default_class = 'form-control' %}
+    {% if field_kwargs.get('class') %}
+        {% do field_kwargs.update({'class': default_class + ' ' + field_kwargs['class']}) %}
+    {% else %}
+        {% do field_kwargs.update({'class': default_class}) %}
+    {% endif %}
+    {% if field.errors %}
+        {% do field_kwargs.update({'class': field_kwargs['class'] + ' is-invalid'}) %}
+    {% endif %}
+
+    <div class="form-group mb-3">
+        {% if label_visible and field.label %}
+            {{ field.label(class='form-label') }}
+        {% endif %}
+        {{ field(**field_kwargs) }} {# DateField might not support placeholder directly in the same way #}
+        {% if field.errors %}
+            <div class="invalid-feedback d-block">
+                {% for error in field.errors %}
+                    <span>{{ error }}</span><br>
+                {% endfor %}
+            </div>
+        {% elif field.description and not field.errors %}
+            <small class="form-text text-muted">{{ field.description }}</small>
+        {% endif %}
+    </div>
+{% endmacro %} 

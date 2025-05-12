@@ -1,0 +1,75 @@
+{% extends "crm/layout.html" %}
+
+{% block page_title %}{{ title }}{% endblock %}
+
+{% block page_description %}Select an existing contact to associate with {{ account.name }}.{% endblock %}
+
+{% block page_content %}
+<div class="row mb-3">
+    <div class="col">
+        <h1 class="h3">{{ title }}</h1>
+    </div>
+    <div class="col text-end">
+        <a href="{{ url_for('crm.view_account', account_id=account.id) }}" class="btn btn-link text-gray ms-auto">Back to {{ account.name }}</a>
+    </div>
+</div>
+
+<div class="card border-0 shadow">
+    <div class="card-header">
+        <h2 class="h5 mb-0">Available Contacts</h2>
+        <small>Showing contacts not currently linked to {{ account.name }}.</small>
+    </div>
+    <div class="card-body">
+        {% if contacts %}
+            <div class="table-responsive">
+                <table class="table table-centered table-nowrap mb-0 rounded">
+                    <thead class="thead-light">
+                        <tr>
+                            <th class="border-0 rounded-start">Name</th>
+                            <th class="border-0">Email</th>
+                            <th class="border-0">Phone</th>
+                            <th class="border-0">Current Company</th>
+                            <th class="border-0 rounded-end">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for contact in contacts %}
+                        <tr>
+                            <td>
+                                <a href="{{ url_for('crm.view_contact', contact_id=contact.id) }}" target="_blank" title="View contact details (opens new tab)">
+                                    {{ contact.full_name }}
+                                </a>
+                            </td>
+                            <td>{{ contact.email or '-' }}</td>
+                            <td>{{ contact.phone_number or '-' }}</td>
+                            <td>
+                                {% if contact.crm_account %}
+                                    {{ contact.crm_account.name }}
+                                {% else %}
+                                    <span class="text-muted"><em>Unassigned</em></span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <form method="POST" action="{{ url_for('crm.link_contact_to_account', account_id=account.id, contact_id=contact.id) }}" style="display: inline;">
+                                    <input type="hidden" name="csrf_token" value="{{ generated_csrf_token }}">
+                                    <button type="submit" class="btn btn-sm btn-primary">
+                                        Link to {{ account.name }}
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="text-center py-4">
+                <p class="lead">No other contacts available to link for {{ current_user.sales_profile.user.name }}.</p>
+                <p>All your contacts are either already linked to {{ account.name }} or you have no other contacts.</p>
+                <a href="{{ url_for('crm.create_contact') }}" class="btn btn-primary mt-2">Create a New Contact</a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+{% endblock %} 

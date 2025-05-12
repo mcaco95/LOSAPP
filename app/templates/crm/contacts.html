@@ -1,0 +1,134 @@
+{% extends "base.html" %}
+{% from "partials/_pagination.html" import render_pagination %}
+{% from "_formhelpers.html" import render_field %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="py-4">
+    {# Optional: Breadcrumbs or Header #}
+    <nav aria-label="breadcrumb" class="d-none d-md-inline-block">
+        <ol class="breadcrumb breadcrumb-dark breadcrumb-transparent">
+            <li class="breadcrumb-item">
+                <a href="{{ url_for('main.dashboard') }}">
+                    <svg class="icon icon-xxs" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
+                </a>
+            </li>
+            <li class="breadcrumb-item"><a href="{{ url_for('crm.dashboard') }}">CRM</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Contacts</li>
+        </ol>
+    </nav>
+    <div class="d-flex justify-content-between w-100 flex-wrap">
+        <div class="mb-3 mb-lg-0">
+            <h1 class="h4">{{ title }}</h1>
+            <p class="mb-0">Manage CRM contacts.</p>
+        </div>
+        <div>
+            <a href="{{ url_for('crm.create_contact') }}" class="btn btn-outline-gray-600 d-inline-flex align-items-center">
+                <svg class="icon icon-xs me-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
+                Add New Contact
+            </a>
+            {# Optional: Add Import Button Link Here if desired #}
+             <a href="{{ url_for('crm.import_csv') }}" class="btn btn-secondary d-inline-flex align-items-center">
+                <i class="fas fa-file-csv me-2"></i>
+                Import Contacts
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="card border-0 shadow mb-4">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-centered table-nowrap mb-0 rounded">
+                <thead class="thead-light">
+                    <tr>
+                        <th class="border-0 rounded-start">Name</th>
+                        <th class="border-0">Email</th>
+                        <th class="border-0">Phone</th>
+                        <th class="border-0">Company</th>
+                        <th class="border-0">Job Title</th>
+                        <th class="border-0">Status</th>
+                        <th class="border-0">Owner</th>
+                        <th class="border-0 rounded-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if contacts %}
+                        {% for contact in contacts %} {# Iterate over pagination.items #}
+                        <tr>
+                            <td><a href="{{ url_for('crm.view_contact', contact_id=contact.id) }}">{{ contact.full_name }}</a></td>
+                            <td>{{ contact.email or 'N/A' }}</td>
+                            <td>{{ contact.phone_number or 'N/A' }}</td>
+                            <td>
+                                {% if contact.crm_account %}
+                                    <a href="{{ url_for('crm.view_account', account_id=contact.crm_account.id) }}">{{ contact.crm_account.name }}</a>
+                                {% else %}
+                                    -
+                                {% endif %}
+                            </td>
+                            <td>{{ contact.job_title or 'N/A' }}</td>
+                            <td><span class="badge bg-secondary">{{ contact.status }}</span></td>
+                            <td>{{ contact.sales_rep.user.name if contact.sales_rep else 'Unknown' }}</td>
+                            <td>
+                                <a href="{{ url_for('crm.view_contact', contact_id=contact.id) }}" class="btn btn-sm btn-outline-gray-600" title="View">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                <a href="{{ url_for('crm.edit_contact', contact_id=contact.id) }}" class="btn btn-sm btn-outline-info" title="Edit">
+                                     <i class="fas fa-edit"></i>
+                                </a>
+                                <button class="btn btn-sm btn-outline-danger" title="Delete" 
+                                        data-bs-toggle="modal" 
+                                        data-bs-target="#confirmDeleteModal" 
+                                        data-delete-url="{{ url_for('crm.delete_contact', contact_id=contact.id) }}"
+                                        data-item-name="{{ contact.full_name }}"
+                                        data-csrf-token="{{ generated_csrf_token }}">
+                                    <i class="fas fa-trash-alt"></i>
+                                </button>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="8" class="text-center">No contacts found.</td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+        
+        {# Render pagination controls #}
+        {% if pagination %}
+            {{ render_pagination(pagination, 'crm.contacts') }}
+        {% endif %}
+    </div>
+</div>
+
+{% include 'partials/_confirm_delete_modal.html' %}
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // JavaScript for setting data in the delete confirmation modal
+    const confirmDeleteModal = document.getElementById('confirmDeleteModal');
+    if (confirmDeleteModal) {
+        confirmDeleteModal.addEventListener('show.bs.modal', function (event) {
+            const button = event.relatedTarget;
+            const deleteUrl = button.getAttribute('data-delete-url');
+            const itemName = button.getAttribute('data-item-name');
+            const csrfToken = button.getAttribute('data-csrf-token');
+
+            const modalTitle = confirmDeleteModal.querySelector('.modal-title');
+            const modalBody = confirmDeleteModal.querySelector('.modal-body');
+            const deleteForm = confirmDeleteModal.querySelector('#deleteForm');
+            const csrfInput = confirmDeleteModal.querySelector('#csrf_token');
+
+            modalTitle.textContent = `Delete ${itemName}`;
+            modalBody.textContent = `Are you sure you want to delete ${itemName}? This action cannot be undone.`;
+            deleteForm.action = deleteUrl;
+            csrfInput.value = csrfToken;
+        });
+    }
+</script>
+{% endblock %} 

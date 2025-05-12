@@ -1,0 +1,128 @@
+{% extends "crm/layout.html" %}
+{% from "_formhelpers.html" import render_field, render_select_field, render_date_field, render_textarea_field, render_submit_field %}
+
+{% block page_title %}{{ title }}{% endblock %}
+
+{% block page_content %}
+<div class="py-4">
+    <nav aria-label="breadcrumb" class="d-none d-md-inline-block">
+        <ol class="breadcrumb breadcrumb-dark breadcrumb-transparent">
+            <li class="breadcrumb-item">
+                <a href="{{ url_for('crm.dashboard') }}">
+                    <svg class="icon icon-xxs" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
+                </a>
+            </li>
+            <li class="breadcrumb-item"><a href="{{ url_for('crm.list_deals') }}">Deals</a></li>
+            <li class="breadcrumb-item active" aria-current="page">{{ title }}</li>
+        </ol>
+    </nav>
+    <div class="d-flex justify-content-between w-100 flex-wrap">
+        <div class="mb-3 mb-lg-0">
+            <h1 class="h4">{{ title }}</h1>
+            <p class="mb-0">{{ legend|default('Fill in the details below.') }}</p>
+        </div>
+        <div>
+             <a href="{{ url_for('crm.list_deals') }}" class="btn btn-outline-gray-600 d-inline-flex align-items-center">
+                <i class="bi bi-arrow-left me-2"></i> Back to Deals
+            </a>
+        </div>
+    </div>
+</div>
+
+{% include 'partials/_flash_messages.html' %}
+
+<div class="row">
+    <div class="col-12 mb-4">
+        <div class="card border-0 shadow components-section">
+            <div class="card-body">
+                <form method="POST" action="{{ form_action_url or '#' }}">
+                    {{ form.hidden_tag() }} {# CSRF token #}
+
+                    <div class="row mb-4">
+                        <div class="col-lg-8 col-sm-12">
+                            {{ render_field(form.name, placeholder="e.g., New Website Project, Annual Subscription") }}
+                        </div>
+                        <div class="col-lg-4 col-sm-12">
+                            {{ render_field(form.amount, placeholder="e.g., 5000.00") }} 
+                        </div>
+                    </div>
+
+                    <div class="row mb-4">
+                        <div class="col-lg-4 col-sm-6">
+                            {{ render_select_field(form.stage) }}
+                        </div>
+                        <div class="col-lg-4 col-sm-6">
+                            {{ render_date_field(form.expected_close_date) }}
+                        </div>
+                        <div class="col-lg-4 col-sm-12">
+                            {{ render_field(form.probability, placeholder="e.g., 75") }}
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            {{ render_select_field(form.crm_account_id, id="deal_crm_account_id") }}
+                        </div>
+                         <div class="col-md-6">
+                            {{ render_select_field(form.contact_id, id="deal_contact_id") }}
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        {{ render_textarea_field(form.description, placeholder="Enter any additional details about this deal...") }}
+                    </div>
+
+                    <div class="mt-3">
+                        {{ render_submit_field(form.submit, button_class="btn btn-gray-800 mt-2 animate-up-2") }}
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{# Optional: Add JavaScript here for dynamic filtering of contacts based on selected account #}
+{# {% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const accountSelect = document.getElementById('deal_crm_account_id');
+        const contactSelect = document.getElementById('deal_contact_id');
+        
+        if (accountSelect && contactSelect) {
+            // Store original options for contactSelect
+            const originalContactOptions = Array.from(contactSelect.options);
+
+            accountSelect.addEventListener('change', function() {
+                const selectedAccountId = this.value;
+                // Clear current contact options (except blank)
+                contactSelect.options.length = 0;
+                if (contactSelect.querySelector('option[value=""]')) {
+                     contactSelect.add(originalContactOptions.find(opt => opt.value === ""));
+                }
+                
+                // Filter and add relevant contacts
+                // This part needs backend support to fetch contacts for the selected account_id
+                // For now, this is a placeholder for client-side filtering if all contacts are available
+                // Or it would trigger an AJAX call to a new endpoint.
+                // Example (if all contacts are loaded and have a data-account-id attribute):
+                /* 
+                originalContactOptions.forEach(option => {
+                    if (option.value === "" || option.dataset.accountId === selectedAccountId) {
+                        contactSelect.add(option.cloneNode(true));
+                    }
+                });
+                */
+                // Simpler: just re-enable all if we are not doing dynamic fetching
+                // This would require the query_factory for contact_id to be more dynamic or an AJAX call.
+                // For now, no dynamic filtering is implemented here, it shows all user contacts.
+                // To implement dynamic filtering, you'd typically make an AJAX request here
+                // to an endpoint like /crm/accounts/<account_id>/contacts
+                // and repopulate the contactSelect.
+                console.log("Account changed to: " + selectedAccountId + ". Dynamic contact filtering not yet implemented.");
+            });
+        }
+    });
+</script>
+{% endblock %} #} 
