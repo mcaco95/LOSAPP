@@ -104,7 +104,7 @@
     function openCrmPhoneWindow() {
         console.log('[CRM Phone Widget] openCrmPhoneWindow function called.');
         const windowFeatures = 'width=320,height=650,resizable=yes,top=100,left=150,menubar=no,toolbar=no,location=no,status=no,titlebar=yes';
-        const windowUrl = "{{ url_for('crm.phone_interface') }}";
+        const windowUrl = "{{ url_for('crm_phone.phone_interface') }}";
         const windowName = "LOS_CRM_Phone_Window";
         console.log('[CRM Phone Widget] Attempting to open window. URL:', windowUrl, 'Name:', windowName, 'Features:', windowFeatures);
         

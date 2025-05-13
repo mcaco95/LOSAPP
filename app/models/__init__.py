@@ -17,6 +17,8 @@ from .note import Note
 # from .referral import Referral # Removed as referral.py does not exist
 from .task import Task, TASK_STATUSES, TASK_PRIORITIES
 from .deal import Deal, DEAL_STAGES
+from .custom_field import CustomFieldDefinition, CustomFieldValue
+from .samsara import SamsaraVehicle, SamsaraWebhookEvent, SamsaraClient, SamsaraVehicleLocation, SamsaraAlert, SamsaraAlertAssignment
 
 __all__ = [
     'User',
@@ -41,5 +43,13 @@ __all__ = [
     'TASK_STATUSES',
     'TASK_PRIORITIES',
     'Deal',
-    'DEAL_STAGES'
+    'DEAL_STAGES',
+    'CustomFieldDefinition',
+    'CustomFieldValue',
+    'SamsaraVehicle',
+    'SamsaraWebhookEvent',
+    'SamsaraClient',
+    'SamsaraVehicleLocation',
+    'SamsaraAlert',
+    'SamsaraAlertAssignment'
 ] 

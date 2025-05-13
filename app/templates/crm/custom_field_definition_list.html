@@ -1,0 +1,77 @@
+{% extends 'crm/layout.html' %}
+{% from '_formhelpers.html' import render_pagination, render_field %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center py-4">
+    <div class="d-block mb-4 mb-md-0">
+        <nav aria-label="breadcrumb" class="d-none d-md-inline-block">
+            <ol class="breadcrumb breadcrumb-dark breadcrumb-transparent">
+                <li class="breadcrumb-item">
+                    <a href="{{ url_for('crm.dashboard') }}">
+                        <svg class="icon icon-xxs" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
+                    </a>
+                </li>
+                <li class="breadcrumb-item active" aria-current="page">Custom Fields</li>
+            </ol>
+        </nav>
+        <h2 class="h4">Manage Custom Fields</h2>
+        <p class="mb-0">Define custom fields to store additional information for Contacts and Accounts.</p>
+    </div>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <a href="{{ url_for('crm.create_custom_field_definition') }}" class="btn btn-sm btn-gray-800 d-inline-flex align-items-center">
+            <svg class="icon icon-xs me-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
+            Add New Custom Field
+        </a>
+        {# Add buttons for export/import later if needed #}
+    </div>
+</div>
+
+<div class="card card-body border-0 shadow table-wrapper table-responsive">
+    <table class="table table-hover">
+        <thead>
+            <tr>
+                <th class="border-gray-200">Name</th>
+                <th class="border-gray-200">Type</th>
+                <th class="border-gray-200">Applies To</th>
+                <th class="border-gray-200">Options (Dropdown)</th>
+                <th class="border-gray-200">Created</th>
+                <th class="border-gray-200">Actions</th> {# Placeholder for Edit/Delete #}
+            </tr>
+        </thead>
+        <tbody>
+            {% if definitions %}
+                {% for definition in definitions %}
+                <tr>
+                    <td><span class="fw-normal">{{ definition.name }}</span></td>
+                    <td><span class="fw-normal">{{ definition.field_type.value.replace('_',' ').title() }}</span></td>
+                    <td><span class="fw-normal">{{ definition.applies_to.value.replace('Crm', '') }}</span></td>
+                    <td>
+                        {% if definition.field_type.value == 'dropdown' and definition.options and definition.options.options %}
+                        <ul class="list-unstyled mb-0">
+                            {% for option in definition.options.options %}
+                            <li><small>{{ option }}</small></li>
+                            {% endfor %}
+                        </ul>
+                        {% else %}
+                        <span class="text-muted">N/A</span>
+                        {% endif %}
+                    </td>
+                    <td><span class="fw-normal">{{ definition.created_at.strftime('%Y-%m-%d') }}</span></td>
+                    <td>
+                        {# Add Edit/Delete buttons here later #}
+                         <a href="#" class="btn btn-sm btn-outline-gray disabled">Edit</a> {# Placeholder #}
+                        <a href="#" class="btn btn-sm btn-outline-danger disabled">Delete</a> {# Placeholder #}
+                    </td>
+                </tr>
+                {% endfor %}
+            {% else %}
+                <tr>
+                    <td colspan="6" class="text-center">No custom fields defined yet.</td>
+                </tr>
+            {% endif %}
+        </tbody>
+    </table>
+    {# Add pagination if needed later #}
+</div>
+
+{% endblock %} 

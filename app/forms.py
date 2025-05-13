@@ -1,7 +1,7 @@
 from flask_wtf import FlaskForm
 from flask_wtf.file import FileField, FileAllowed, FileRequired
 from wtforms import StringField, PasswordField, BooleanField, SubmitField, HiddenField, SelectField, TextAreaField, DateField, FloatField, IntegerField
-from wtforms.validators import DataRequired, Email, Length, EqualTo, Optional, NumberRange
+from wtforms.validators import DataRequired, Email, Length, EqualTo, Optional, NumberRange, URL
 from wtforms_sqlalchemy.fields import QuerySelectField
 from flask_login import current_user
 
@@ -11,6 +11,8 @@ from .models.contact import Contact, CONTACT_STATUSES, CONTACT_SOURCES # Import 
 from .models.note import Note
 from .models.task import Task, TASK_STATUSES, TASK_PRIORITIES # Added Task model and constants
 from .models.deal import Deal, DEAL_STAGES # Added Deal model and stages
+from .models.custom_field import CustomFieldType, CustomFieldAppliesTo
+from .models.call_log import CALL_OUTCOMES # Added for CallLogDetailForm
 
 class LoginForm(FlaskForm):
     email = StringField('Email', validators=[DataRequired(), Email()])
@@ -166,12 +168,6 @@ class ContactForm(FlaskForm):
         validators=[Optional()]
     )
     
-    custom_data = TextAreaField(
-        'Additional Information / Notes',
-        validators=[Optional()],
-        description='You can store unstructured notes or structured data (e.g., {"key": "value"}) here.'
-    )
-    
     submit = SubmitField('Save Contact')
 
 # You might want to add a CrmAccountForm later as well
@@ -191,21 +187,27 @@ class NoteForm(FlaskForm):
 
 # --- CrmAccount Form --- 
 class CrmAccountForm(FlaskForm):
-    name = StringField('Company Name', validators=[DataRequired(), Length(max=255)])
-    website = StringField('Website', validators=[Optional(), Length(max=255)])
-    industry = StringField('Industry', validators=[Optional(), Length(max=100)])
-    phone_number = StringField('Company Phone', validators=[Optional(), Length(max=30)])
-    address = TextAreaField('Address', validators=[Optional()], render_kw={'rows': 3})
-    status = SelectField('Status', 
-                         choices=[('-', '-- Select Status --')] + [(s, s) for s in CRM_ACCOUNT_STATUSES], 
-                         validators=[Optional()]) # Optional for now, maybe required later?
-    custom_data = TextAreaField(
-        'Additional Information / Notes', 
-        validators=[Optional()], 
-        render_kw={'rows': 4},
-        description='You can store unstructured notes or structured data (e.g., {"key": "value"}) here.'
-    )
-    submit = SubmitField('Save Company')
+    name = StringField('Company Name', validators=[DataRequired()])
+    website = StringField('Website', validators=[Optional(), URL()])
+    phone_number = StringField('Main Phone Number', validators=[Optional()])
+    industry = StringField('Industry', validators=[Optional()])
+    
+    # REMOVING these fields for now
+    # address_street = StringField('Street Address', validators=[Optional()])
+    # address_city = StringField('City', validators=[Optional()])
+    # address_state = StringField('State/Province', validators=[Optional()])
+    # address_zip = StringField('ZIP/Postal Code', validators=[Optional()])
+    # address_country = StringField('Country', validators=[Optional()])
+    
+    # Keep the general address field for now
+    address = TextAreaField('Address (General)', validators=[Optional()]) 
+    
+    # Status field
+    # Use choices defined in the model or config
+    status_choices = [('-', '-- Select Status --')] + [(s, s) for s in CRM_ACCOUNT_STATUSES]
+    status = SelectField('Status', choices=status_choices, validators=[Optional()])
+    
+    submit = SubmitField('Save Account')
 
 # --- CSV Import Form --- #
 class ImportCsvForm(FlaskForm):
@@ -285,3 +287,53 @@ class LinkContactToCompanyForm(FlaskForm):
         validators=[Optional()]
     )
     submit = SubmitField('Update Company Link')
+
+# --- Custom Field Definition Form --- #
+class CustomFieldDefinitionForm(FlaskForm):
+    name = StringField('Field Name', 
+                       validators=[DataRequired(), Length(max=100)],
+                       description='The label that will be shown for this field (e.g., \'Lead Score\', \'Contract Renewal Date\').')
+    
+    field_type = SelectField('Field Type', 
+                             choices=[(ft.value, ft.name.replace('_', ' ').title()) for ft in CustomFieldType],
+                             validators=[DataRequired()],
+                             description='The type of data this field will hold.')
+    
+    applies_to = SelectField('Applies To', 
+                             choices=[(at.value, at.name.replace('_', ' ').title()) for at in CustomFieldAppliesTo],
+                             validators=[DataRequired()],
+                             description='Which type of record this field is for (Contact or Account).')
+
+    # Options field, specifically for dropdowns
+    options = TextAreaField('Dropdown Options (one per line)', 
+                            validators=[Optional()], 
+                            render_kw={'rows': 4},
+                            description='Required only if Field Type is \'Dropdown\'. Enter each choice on a new line.')
+
+    submit = SubmitField('Save Custom Field')
+
+    def validate_options(self, field):
+        # Custom validator: 'options' is required if 'field_type' is DROPDOWN
+        if self.field_type.data == CustomFieldType.DROPDOWN.value:
+            if not field.data or not field.data.strip():
+                raise ValidationError('Dropdown Options are required when the Field Type is Dropdown.')
+            # Optional: Validate that options are unique or meet other criteria
+            lines = [line.strip() for line in field.data.strip().split('\n') if line.strip()]
+            if not lines:
+                 raise ValidationError('Dropdown Options cannot be empty or just whitespace when the Field Type is Dropdown.')
+            if len(lines) != len(set(lines)):
+                raise ValidationError('Dropdown options must be unique.')
+
+# +++ Call Log Detail Form +++
+class CallLogDetailForm(FlaskForm):
+    outcome = SelectField('Call Outcome',
+                          choices=[('', '-- Select Outcome --')] + CALL_OUTCOMES,
+                          validators=[Optional()])
+    notes = TextAreaField('Notes', validators=[Optional()])
+    contact_id = QuerySelectField('Linked Contact',
+                                query_factory=lambda: Contact.query.filter_by(sales_rep_id=current_user.sales_profile.id).order_by(Contact.first_name).all() if hasattr(current_user, 'sales_profile') and current_user.sales_profile else Contact.query.order_by(Contact.first_name).all(), # Fallback for non-sales users or general view
+                                get_label=lambda contact: f"{contact.full_name} (ID: {contact.id})",
+                                allow_blank=True,
+                                blank_text='-- Unlink/Select Contact --',
+                                validators=[Optional()])
+    submit = SubmitField('Update Call Log')

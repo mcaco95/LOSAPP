@@ -33,9 +33,10 @@
             flex-grow: 1;
             display: flex;
             flex-direction: column;
+            background: linear-gradient(145deg, #e6e6e6, #ffffff); /* Lighter gradient */
         }
         .phone-header {
-            background-color: #007bff;
+            background-color: #4a90e2; /* Softer blue */
             color: white;
             padding: 10px 15px;
             display: flex;
@@ -43,7 +44,7 @@
             align-items: center;
         }
         .phone-body {
-            padding: 15px;
+            padding: 20px; /* Increased padding */
             flex-grow: 1;
             display: flex;
             flex-direction: column;
@@ -98,10 +99,91 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            margin-bottom: 15px;
-            padding: 10px;
+            margin-bottom: 20px; /* Increased margin */
+            padding: 15px; /* Increased padding */
             border-radius: 8px;
+            background-color: #e9ecef; /* Lighter background */
+        }
+
+        /* New Styles */
+        .dialpad-display-container {
             background-color: #f8f9fa;
+            border: 1px solid #ced4da;
+            border-radius: .25rem;
+            padding: 10px 15px;
+            margin-bottom: 15px;
+            text-align: right;
+            min-height: 50px; /* Ensure height */
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+        }
+
+        #dialpad-display {
+            font-size: 1.8rem; /* Larger font */
+            font-weight: bold;
+            color: #343a40;
+            letter-spacing: 1px; /* Add spacing */
+            flex-grow: 1;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        #backspace-button {
+            font-size: 1.2rem;
+            color: #6c757d;
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 0 5px;
+            margin-left: 10px;
+            opacity: 0.7;
+            transition: opacity 0.2s;
+        }
+        #backspace-button:hover {
+            opacity: 1;
+        }
+
+        #keypad {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px; /* Increased gap */
+            margin-bottom: 15px;
+        }
+
+        .keypad-button {
+            padding: 15px 10px; /* More padding */
+            font-size: 1.5rem; /* Larger numbers */
+            font-weight: 500; /* Slightly bolder */
+            border-radius: 50px; /* Circular buttons */
+            border: 1px solid #adb5bd;
+            background-color: #fff;
+            cursor: pointer;
+            transition: background-color 0.2s, box-shadow 0.2s;
+            text-align: center;
+            color: #495057;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .keypad-button:hover {
+            background-color: #e9ecef;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .keypad-button:active {
+            background-color: #dee2e6;
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        /* Style for caller info */
+        #caller-info {
+            text-align: center;
+            margin-top: -10px; /* Pull it closer to display */
+            margin-bottom: 10px;
+            font-size: 0.9rem;
+            color: #6c757d;
+            min-height: 20px; /* Prevent layout shifts */
+            font-weight: 500;
         }
     </style>
 </head>
@@ -134,10 +216,37 @@
                 <div class="call-timer" id="call-timer"></div>
             </div>
             
-            <div class="input-group" id="phone-number-container">
-                <span class="input-group-text"><i class="fas fa-phone"></i></span>
-                <input type="text" id="phone-number" class="form-control" placeholder="Enter phone number (+1234567890)">
+            <!-- NEW: Dialpad Display Area -->
+            <div class="dialpad-display-container">
+                 <span id="dialpad-display"></span>
+                 <button id="backspace-button"><i class="fas fa-backspace"></i></button>
             </div>
+
+            <!-- NEW: Caller Info Display -->
+            <div id="caller-info"></div>
+
+            <!-- Keep original input hidden, keypad will populate this -->
+            <div class="input-group mb-3" id="phone-number-container">
+                <span class="input-group-text"><i class="fas fa-phone"></i></span>
+                <input type="text" id="phone-number" class="form-control" placeholder="Enter number or use keypad" aria-label="Phone Number">
+            </div>
+
+            <!-- NEW: Keypad -->
+            <div id="keypad">
+                <button class="keypad-button" data-digit="1">1</button>
+                <button class="keypad-button" data-digit="2">2</button>
+                <button class="keypad-button" data-digit="3">3</button>
+                <button class="keypad-button" data-digit="4">4</button>
+                <button class="keypad-button" data-digit="5">5</button>
+                <button class="keypad-button" data-digit="6">6</button>
+                <button class="keypad-button" data-digit="7">7</button>
+                <button class="keypad-button" data-digit="8">8</button>
+                <button class="keypad-button" data-digit="9">9</button>
+                <button class="keypad-button" data-digit="+">+</button>
+                <button class="keypad-button" data-digit="0">0</button>
+                <button class="keypad-button" data-digit="#">#</button>
+            </div>
+            <!-- END: Keypad -->
             
             <div class="form-check mb-3">
                 <input class="form-check-input" type="checkbox" id="record-call">
@@ -164,6 +273,40 @@
                 </div>
             </div>
             
+            <!-- NEW: Pending Incoming Call Alert (Initially Hidden) -->
+            <div id="pending-call-alert" class="alert alert-info alert-sm mt-2 hidden" role="alert">
+                <!-- Content will be set by JavaScript -->
+            </div>
+            <!-- END: Pending Incoming Call Alert -->
+
+            <!-- NEW: Call Details Form (Initially Hidden) -->
+            <div id="call-details-form" class="mt-3 p-3 border rounded bg-light shadow-sm hidden">
+                <h5 class="mb-3"><i class="fas fa-edit me-2"></i>Log Call Details</h5>
+                <input type="hidden" id="details-call-sid">
+                <div class="mb-3">
+                    <label for="call-notes" class="form-label">Call Notes</label>
+                    <textarea id="call-notes" class="form-control form-control-sm" rows="3" placeholder="Enter notes about the call..."></textarea>
+                </div>
+                <div class="mb-3">
+                    <label for="call-outcome" class="form-label">Call Outcome</label>
+                    <select id="call-outcome" class="form-select form-select-sm">
+                        <option value="" selected disabled>Select outcome...</option>
+                        {# Options will be populated by JavaScript dynamically #}
+                    </select>
+                </div>
+                <div class="d-grid gap-2">
+                    <button id="save-call-details" class="btn btn-primary btn-sm">
+                        <i class="fas fa-save me-1"></i> Save Details
+                    </button>
+                    <button id="close-call-details" class="btn btn-secondary btn-sm mt-1">
+                        <i class="fas fa-times me-1"></i> Close Form
+                    </button>
+                </div>
+                 <div id="call-details-success" class="alert alert-success alert-sm mt-2 hidden" role="alert">Details saved!</div>
+                 <div id="call-details-error" class="alert alert-danger alert-sm mt-2 hidden" role="alert">Error saving details.</div>
+            </div>
+            <!-- END: Call Details Form -->
+            
             <div class="spacer"></div>
         </div>
         
@@ -172,12 +315,20 @@
         </div>
     </div>
 
+    <!-- NEW: Placeholder Audio Elements for Keypad Sounds -->
+    <audio id="keypad-sound" src="/path/to/your/dtmf-sound.wav" preload="auto"></audio>
+    <!-- You will need to replace '/path/to/your/dtmf-sound.wav' with an actual path to a subtle sound file -->
+
     <script>
         let device;
         let currentCall = null;
+        let currentCallSidForDetails = null; // NEW: To store CallSid for the details form
         let callTimer = null;
         let callStartTime = null;
         let deviceReady = false;
+        let currentContactId = null; // NEW: Store looked-up contact ID OR ID from URL
+        let currentCompanyId = null; // NEW: Store looked-up company ID
+        let pendingIncomingCallConnection = null; // NEW: Store connection if form is active
         
         // Use CRM-specific keys for localStorage
         const CRM_CALL_ACTIVE_KEY = 'twilio_crm_call_active';
@@ -185,6 +336,7 @@
         const CRM_CALL_START_TIME_KEY = 'twilio_crm_call_start_time';
         const CRM_CALL_RECORD_KEY = 'twilio_crm_call_record';
         const CRM_DEVICE_READY_KEY = 'twilio_crm_device_ready';
+        const CRM_CALL_OUTCOMES_KEY = 'crm_call_outcomes_list'; // For localStorage
         
         // Function to save call state (uses CRM keys)
         function saveCallState(isActive, phoneNumber = '', startTime = null, recordCall = false) {
@@ -276,14 +428,98 @@
         // Function to end the current call
         function endCurrentCall() {
             if (currentCall) {
+                // For incoming calls, parent_call_sid might have been set on currentCall directly
+                // or already stored in currentCallSidForDetails by the 'incoming' handler.
+                // For outbound, currentCall.parameters.CallSid or currentCall.sid is the one.
+                // The 'incoming' handler now sets currentCallSidForDetails correctly.
+                // So, we primarily rely on currentCallSidForDetails if it was set by 'incoming',
+                // otherwise, we get it from currentCall.parameters or currentCall.sid for outbound.
+
+                let sidToLog = currentCallSidForDetails; // This should be already set by 'incoming' if it was an incoming call with parent_call_sid
+
+                if (!sidToLog) { // If not set by 'incoming' (e.g. outbound call, or older incoming flow)
+                    if (currentCall.parameters && currentCall.parameters.CallSid) {
+                        sidToLog = currentCall.parameters.CallSid;
+                    } else if (currentCall.sid) { 
+                        sidToLog = currentCall.sid;
+                    }
+                }
+                
+                // Update currentCallSidForDetails one last time to ensure it's the one we are using
+                currentCallSidForDetails = sidToLog; 
+                console.log("Storing SID for details form (endCurrentCall):", currentCallSidForDetails);
                 currentCall.disconnect();
-                currentCall = null;
             }
+            // Reset UI and state regardless of whether currentCall existed
             updateCallStatus('Ready', 'bg-secondary');
             $('#hangup-call').prop('disabled', true);
-            $('#make-call').prop('disabled', false);
+            $('#make-call').prop('disabled', !deviceReady); // Re-enable based on device readiness
+            $('#accept-call').addClass('hidden'); // Hide incoming call buttons
+            $('#reject-call').addClass('hidden');
             $('#reconnect-message').addClass('hidden');
             stopCallTimer();
+
+            // NEW: Clear caller info and IDs
+            callerInfoDisplay.text('');
+            currentContactId = null;
+            currentCompanyId = null;
+
+            currentCall = null; // Ensure currentCall is nullified after potentially disconnecting
+            
+            // Make sure regular call button is visible again if hidden by incoming call UI
+            if ($('#make-call').hasClass('hidden')) {
+                 $('#make-call').removeClass('hidden');
+            }
+
+            // NEW: Show call details form if a CallSid was captured
+            if (currentCallSidForDetails) {
+                $('#details-call-sid').val(currentCallSidForDetails);
+                $('#call-notes').val(''); // Clear previous notes
+                $('#call-outcome').val(''); // Reset outcome
+                $('#call-details-form').removeClass('hidden');
+                $('#call-details-success').addClass('hidden'); // Hide any previous success/error messages
+                $('#call-details-error').addClass('hidden');
+            } else {
+                 $('#call-details-form').addClass('hidden'); // Keep it hidden if no SID
+            }
+        }
+        
+        // NEW: Function to fetch contact info from backend
+        async function fetchContactInfo(phoneNumber) {
+            if (!phoneNumber) {
+                callerInfoDisplay.text(''); // Clear display if no number
+                currentContactId = null;
+                currentCompanyId = null;
+                return;
+            }
+            console.log(`Looking up number: ${phoneNumber}`);
+            try {
+                // Construct URL carefully, ensuring phone number is URL-encoded
+                const lookupUrl = `{{ url_for("crm_phone.lookup_number") }}?phone_number=${encodeURIComponent(phoneNumber)}`;
+                const response = await fetch(lookupUrl);
+                const data = await response.json();
+
+                if (response.ok && data.success) {
+                    let displayText = data.contact_name;
+                    if (data.company_name) {
+                        displayText += ` (${data.company_name})`;
+                    }
+                    callerInfoDisplay.text(displayText);
+                    currentContactId = data.contact_id;
+                    currentCompanyId = data.company_id;
+                    console.log(`Lookup success: ContactID=${currentContactId}, CompanyID=${currentCompanyId}`);
+                } else {
+                    console.log(`Lookup failed or contact not found: ${data.message || 'Unknown reason'}`);
+                    callerInfoDisplay.text('Unknown Number'); // Indicate lookup failed or no match
+                    currentContactId = null;
+                    currentCompanyId = null;
+                }
+            } catch (error) {
+                console.error("Error fetching contact info:", error);
+                callerInfoDisplay.text('Lookup Error'); // Indicate a technical error
+                currentContactId = null;
+                currentCompanyId = null;
+            }
         }
         
         // Function to setup the Twilio device
@@ -293,7 +529,7 @@
             
             try {
                 // Fetch token from CRM endpoint
-                const response = await fetch('{{ url_for("crm.get_token") }}'); 
+                const response = await fetch('{{ url_for("crm_phone.get_token") }}'); 
                 if (!response.ok) {
                     throw new Error(`Failed to fetch token: ${response.statusText}`);
                 }
@@ -327,6 +563,19 @@
                     $('#setup-device').prop('disabled', false).text('Retry Setup');
                 });
                 
+                // NEW: Listen for offline event
+                device.on('offline', function (device) {
+                    console.warn("Twilio.Device Offline. Attempting to re-setup.", device);
+                    updateUIState(false); // Reflect offline status in UI
+                    // Optionally, you might want to automatically attempt to re-run setupDevice()
+                    // after a short delay, or provide a more prominent "Reconnect" button.
+                    // For now, just logging and updating UI.
+                    $('#error-message').text('Device went offline. Try setting up again.');
+                    $('#error-container').removeClass('hidden');
+                    $('#setup-device').prop('disabled', false).text('Retry Setup').removeClass('hidden');
+                });
+                // END NEW
+                
                 device.on('connect', function(connection) {
                     console.log("Successfully connected call!");
                     currentCall = connection;
@@ -356,61 +605,28 @@
                 // *** ADD INCOMING CALL HANDLER ***
                 device.on('incoming', function(connection) {
                     console.log('Incoming connection from ' + connection.parameters.From);
-                    // Automatically reject incoming calls if already in a call
-                    if (currentCall) {
-                        console.log('Rejecting incoming call because already in an active call.');
+
+                    // Check if the call details form is active
+                    if ($('#call-details-form').is(':visible')) {
+                        console.log("Call details form is active. Storing incoming call.");
+                        if (pendingIncomingCallConnection) {
+                            // If there's already a pending call, reject the new one to simplify.
+                            // Advanced handling could queue multiple, but let's start with one.
+                            console.log("Another call is already pending. Rejecting new incoming call: " + connection.parameters.From);
                         connection.reject();
                         return;
                     }
-                    
-                    currentCall = connection;
-                    updateCallStatus('Incoming Call', 'bg-warning');
-                    // Update UI to show incoming call details and accept/reject buttons
-                    $('#call-status-badge').html(`Incoming: ${connection.parameters.From}`);
-                    // You'll need to add Accept/Reject buttons to your HTML, 
-                    // maybe replacing the standard Call/Hangup or showing them conditionally.
-                    // For now, let's assume buttons with IDs 'accept-call' and 'reject-call' exist.
-                    $('#make-call').addClass('hidden'); // Hide normal call button
-                    $('#hangup-call').addClass('hidden'); // Hide normal hangup button
-                    $('#accept-call').removeClass('hidden').prop('disabled', false); // Show/enable accept
-                    $('#reject-call').removeClass('hidden').prop('disabled', false); // Show/enable reject
+                        pendingIncomingCallConnection = connection;
+                        const incomingNumberDisplay = connection.parameters.From; // Or a looked-up name if available quickly
+                        $('#pending-call-alert').html(`<i class="fas fa-phone-alt me-1"></i> Incoming call from: <strong>${incomingNumberDisplay}</strong>. Save or close current log to answer.`).removeClass('hidden');
+                        
+                        // Optional: Play a subtle sound to notify user of the pending call
 
-                    // Add listeners specific to this incoming connection
-                    $('#accept-call').off('click').on('click', function() {
-                        console.log("Accepting incoming call...");
-                        connection.accept();
-                        updateCallStatus('Connected', 'bg-success');
-                        startCallTimer(); 
-                        $('#accept-call').addClass('hidden');
-                        $('#reject-call').addClass('hidden');
-                        $('#hangup-call').removeClass('hidden').prop('disabled', false); // Show hangup
-                    });
+                        return; // Don't process this call with the main UI yet
+                    }
 
-                    $('#reject-call').off('click').on('click', function() {
-                        console.log("Rejecting incoming call...");
-                        connection.reject();
-                        endCurrentCall(); // Resets UI to ready state
-                        $('#accept-call').addClass('hidden');
-                        $('#reject-call').addClass('hidden');
-                        $('#make-call').removeClass('hidden'); // Show normal call button
-                    });
-                    
-                    // Also handle if the caller hangs up before acceptance
-                    connection.on('cancel', function() {
-                         console.log("Incoming call cancelled by caller.");
-                         endCurrentCall(); 
-                         $('#accept-call').addClass('hidden');
-                         $('#reject-call').addClass('hidden');
-                         $('#make-call').removeClass('hidden');
-                    });
-                    connection.on('reject', function() { // Should not happen if we didn't reject, but good practice
-                         console.log("Incoming call was rejected (possibly by another client).");
-                         endCurrentCall(); 
-                         $('#accept-call').addClass('hidden');
-                         $('#reject-call').addClass('hidden');
-                         $('#make-call').removeClass('hidden');
-                    });
-
+                    // If form not visible, process the incoming call immediately.
+                    processStoredIncomingCall(connection);
                 });
                 // *** END INCOMING CALL HANDLER ***
                 
@@ -443,9 +659,63 @@
             }
         }
 
-        // Make an outbound call
+        const dialpadDisplay = $('#dialpad-display');
+        const phoneNumberInput = $('#phone-number');
+        const keypadSound = document.getElementById('keypad-sound'); // Get native element for play()
+        const callerInfoDisplay = $('#caller-info'); // NEW: Caller info display element
+
+        // NEW: Function to play keypad sound
+        function playKeypadSound() {
+            if (keypadSound) {
+                keypadSound.currentTime = 0; // Rewind to start
+                keypadSound.play().catch(error => console.log("Keypad sound play failed:", error)); // Play and catch potential errors
+            }
+        }
+
+        // Updated: Function to handle keypad input
+        function handleKeypadInput(digit) {
+            const currentNumber = phoneNumberInput.val();
+            let newNumber;
+
+            if (digit === '+') {
+                // Only add '+' if the input is empty
+                if (currentNumber.length === 0) {
+                    newNumber = '+';
+                } else {
+                    // If input is not empty, do nothing when + is pressed
+                    return; // Exit function early
+                }
+            } else {
+                // Append other digits/symbols normally
+                newNumber = currentNumber + digit;
+            }
+
+            phoneNumberInput.val(newNumber);
+            dialpadDisplay.text(newNumber); // Update visual display
+            playKeypadSound(); // Play sound on key press
+
+            // If call is active, send DTMF tones (consider if + should send DTMF?)
+            // Typically + is not a DTMF tone, so maybe skip sending it.
+            if (digit !== '+' && currentCall && currentCall.status() === 'open') {
+                 console.log(`Sending DTMF: ${digit}`);
+                 currentCall.sendDigits(digit);
+            }
+        }
+
+        // Updated: Function to handle backspace
+        function handleBackspace() {
+            const currentNumber = phoneNumberInput.val();
+            if (currentNumber.length > 0) {
+                const newNumber = currentNumber.slice(0, -1);
+                phoneNumberInput.val(newNumber);
+                dialpadDisplay.text(newNumber); // Ensure visual display is updated
+                // Optional: Play a different sound for backspace?
+            }
+        }
+
+        // Make an outbound call (Ensure it uses the updated input value)
         async function makeCall() {
-            const numberToCall = $('#phone-number').val();
+            const numberToCall = phoneNumberInput.val();
             const recordCall = $('#record-call').is(':checked');
             
             if (!numberToCall) {
@@ -458,35 +728,51 @@
                 return;
             }
             
+            // NEW: Look up number before calling
+            await fetchContactInfo(numberToCall); // Use await to ensure lookup attempts before call
+            
             console.log(`CRM Initiating call to ${numberToCall}...`);
             updateCallStatus('Calling...', 'bg-info');
             $('#hangup-call').prop('disabled', false);
             $('#make-call').prop('disabled', true);
             
             try {
-                // Parameters to send to Twilio
-                // REMOVED the params object wrapper
-                // const params = {
-                //     To: numberToCall,
-                //     Record: recordCall
-                // };
-                
-                // Make the call using Twilio Device, passing params directly
+                // Make the call using Twilio Device
                 currentCall = await device.connect({
                     To: numberToCall,
-                    Record: recordCall
+                    Record: recordCall,
+                    ContactID: currentContactId // Pass currentContactId
                 });
                 console.log("CRM Call initiated via Twilio.Device:", currentCall);
-                // Connection events will handle status updates
-                // Use CRM localStorage keys
+                
+                // Handle call connection/disconnection within device/connection listeners
+                currentCall.on('disconnect', function() {
+                     console.log("Outgoing call disconnected.");
+                     endCurrentCall(); 
+                 });
+                currentCall.on('cancel', function() { // If call fails before connecting
+                     console.log("Outgoing call cancelled/failed.");
+                     updateCallStatus('Call Failed', 'bg-danger'); 
+                     // endCurrentCall will reset UI, but keep status as Failed briefly before Ready
+                     setTimeout(endCurrentCall, 1500); // Reset after a short delay
+                 });
+                 currentCall.on('error', function(error) { // Handle specific call errors
+                     console.error("Outgoing call error:", error);
+                     updateCallStatus('Call Error', 'bg-danger'); 
+                     callerInfoDisplay.text(`Error: ${error.message}`);
+                     setTimeout(endCurrentCall, 2500); // Reset after a delay showing error
+                 });
+                 
+                 // Save state after successful initiation attempt
                 saveCallState(true, numberToCall, new Date(), recordCall); 
                 
             } catch (error) {
-                console.error("CRM Call failed:", error);
+                console.error("CRM Call failed to initiate:", error);
                 updateCallStatus('Call Failed', 'bg-danger');
-                $('#hangup-call').prop('disabled', true);
-                $('#make-call').prop('disabled', false);
-                saveCallState(false); // Use CRM localStorage keys
+                callerInfoDisplay.text('Initiation Error'); // Display specific error
+                // Ensure UI resets correctly even if device.connect throws error
+                endCurrentCall(); // Use endCurrentCall to reset hangup/call buttons etc.
+                saveCallState(false); 
             }
         }
         
@@ -496,9 +782,99 @@
             return $('meta[name="csrf-token"]').attr('content');
         }
 
+        // Function to fetch and cache call outcomes
+        async function fetchAndCacheCallOutcomes() {
+            let outcomes = localStorage.getItem(CRM_CALL_OUTCOMES_KEY);
+            if (outcomes) {
+                try {
+                    populateCallOutcomeSelect(JSON.parse(outcomes));
+                    return;
+                } catch (e) {
+                    console.error("Error parsing cached outcomes", e);
+                    localStorage.removeItem(CRM_CALL_OUTCOMES_KEY); // Clear bad cache
+                }
+            }
+            
+            try {
+                // Assuming you have an endpoint to fetch CALL_OUTCOMES
+                // If not, we might need to pass it directly when phone.html is rendered
+                // For now, let's assume an endpoint or that it's passed via Jinja
+                // This is a placeholder URL, replace with your actual endpoint or Jinja variable
+                const response = await fetch("{{ url_for('crm.get_call_outcomes_list') }}"); 
+                if (!response.ok) {
+                    throw new Error('Failed to fetch call outcomes');
+                }
+                const data = await response.json();
+                if (data.success && data.outcomes) {
+                    localStorage.setItem(CRM_CALL_OUTCOMES_KEY, JSON.stringify(data.outcomes));
+                    populateCallOutcomeSelect(data.outcomes);
+                } else {
+                    console.error("Could not fetch outcomes:", data.message);
+                }
+            } catch (error) {
+                console.error("Error fetching call outcomes:", error);
+                // Fallback or hardcode some basic outcomes if fetch fails?
+                const fallbackOutcomes = [
+                    { value: 'Connected', text: 'Connected' },
+                    { value: 'Left Voicemail', text: 'Left Voicemail' },
+                    { value: 'No Answer', text: 'No Answer' }
+                ];
+                populateCallOutcomeSelect(fallbackOutcomes);
+            }
+        }
+
+        function populateCallOutcomeSelect(outcomes) {
+            const selectElement = $('#call-outcome');
+            selectElement.empty().append('<option value="" selected disabled>Select outcome...</option>'); // Clear existing options and add default
+            if (Array.isArray(outcomes)) {
+                 outcomes.forEach(outcome => {
+                    // Assuming outcome is an object like {value: 'val', text: 'Display Text'}
+                    // or just a list of strings ['Outcome 1', 'Outcome 2']
+                    // Adjust based on how CALL_OUTCOMES is structured and sent
+                    if (typeof outcome === 'object' && outcome.value && outcome.text) {
+                        selectElement.append(new Option(outcome.text, outcome.value));
+                    } else if (typeof outcome === 'string') {
+                         selectElement.append(new Option(outcome, outcome));
+                    }
+                });
+            }
+        }
+
         // Document Ready
         $(document).ready(function() {
             console.log("Phone Interface Ready");
+            
+            // Initialize UI elements
+            const phoneNumberInput = $('#phone-number');
+            const dialpadDisplay = $('#dialpad-display');
+            const backspaceButton = $('#backspace-button');
+            const keypadButtons = $('.keypad-button');
+            const makeCallButton = $('#make-call');
+            const hangupCallButton = $('#hangup-call');
+            const setupDeviceButton = $('#setup-device');
+            const recordCallCheckbox = $('#record-call');
+            const callerInfoDisplay = $('#caller-info');
+            const saveCallDetailsButton = $('#save-call-details'); // NEW Save button
+
+            // --- NEW: Handle URL Query Parameters ---
+            const urlParams = new URLSearchParams(window.location.search);
+            const phoneNumberFromUrl = urlParams.get('phone_number');
+            const contactIdFromUrl = urlParams.get('contact_id');
+
+            if (phoneNumberFromUrl) {
+                phoneNumberInput.val(phoneNumberFromUrl);
+                dialpadDisplay.text(phoneNumberFromUrl); // Also update dialpad display
+                // Optionally, trigger a lookup if you want to display contact name immediately
+                fetchContactInfo(phoneNumberFromUrl); 
+            }
+            if (contactIdFromUrl) {
+                currentContactId = contactIdFromUrl;
+                console.log("Contact ID from URL: ", currentContactId);
+                 // If we have a contact ID, and a number, we might already have the contact info
+                // or we could re-fetch it to be sure the name is displayed.
+                // fetchContactInfo is already called if phoneNumberFromUrl is present.
+            }
+            // --- END NEW ---
             
             // Event listeners
             $('#setup-device').on('click', setupDevice);
@@ -514,6 +890,12 @@
             if (deviceReady) {
                 console.log("Attempting automatic device setup...");
                 setupDevice();
+            } else {
+                // If device not ready, ensure details form is hidden initially unless a SID is present
+                // (e.g. page reloaded while form was shown - unlikely but good to handle)
+                if (!$('#details-call-sid').val()) {
+                     $('#call-details-form').addClass('hidden');
+                }
             }
             
             // If a call was active, attempt to restore state
@@ -530,7 +912,163 @@
             } else {
                  updateCallStatus('Ready', 'bg-secondary');
             }
+
+            // NEW: Event listeners for keypad buttons
+            $('.keypad-button').on('click', function() {
+                const digit = $(this).data('digit');
+                handleKeypadInput(digit);
+            });
+
+            // NEW: Event listener for backspace button
+            $('#backspace-button').on('click', handleBackspace);
+
+            // Allow typing directly into the input field as well
+             phoneNumberInput.on('input', function() {
+                dialpadDisplay.text($(this).val());
+             });
+
+            // NEW: Event listener for save call details button
+            saveCallDetailsButton.on('click', async function() {
+                const callSid = $('#details-call-sid').val();
+                const notes = $('#call-notes').val();
+                const outcome = $('#call-outcome').val();
+
+                if (!callSid) {
+                    $('#call-details-error').text('Error: Call SID is missing.').removeClass('hidden');
+                    $('#call-details-success').addClass('hidden');
+                    return;
+                }
+                if (!outcome) {
+                    // Optionally, make outcome mandatory
+                    alert('Please select a call outcome.');
+                    // $('#call-details-error').text('Please select a call outcome.').removeClass('hidden');
+                    // $('#call-details-success').addClass('hidden');
+                    return;
+                }
+                
+                $(this).prop('disabled', true).html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Saving...');
+                $('#call-details-error').addClass('hidden');
+                $('#call-details-success').addClass('hidden');
+
+                try {
+                    const csrfToken = "{{ csrf_token() if csrf_token else '' }}"; // Get CSRF token if available/needed by endpoint
+                    const response = await fetch(`/crm/call-logs/${callSid}/update-details`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRFToken': csrfToken 
+                        },
+                        body: JSON.stringify({
+                            notes: notes,
+                            outcome: outcome
+                        })
+                    });
+                    const data = await response.json();
+
+                    if (response.ok && data.success) {
+                        $('#call-details-success').text(data.message || 'Details saved successfully!').removeClass('hidden');
+                        // Optionally hide the form after successful save
+                        setTimeout(() => {
+                            $('#call-details-form').addClass('hidden');
+                            currentCallSidForDetails = null; // Clear SID after saving
+                            $('#pending-call-alert').addClass('hidden'); // Hide pending call alert
+                            // Check for and process a pending incoming call
+                            if (pendingIncomingCallConnection) {
+                                console.log("Processing pending incoming call after saving details.");
+                                processStoredIncomingCall(pendingIncomingCallConnection);
+                                pendingIncomingCallConnection = null;
+                            }
+                        }, 2000);
+                    } else {
+                        $('#call-details-error').text(data.message || 'Failed to save call details.').removeClass('hidden');
+                    }
+                } catch (error) {
+                    console.error("Error saving call details:", error);
+                    $('#call-details-error').text('An unexpected error occurred.').removeClass('hidden');
+                } finally {
+                    $(this).prop('disabled', false).html('<i class="fas fa-save me-1"></i> Save Details');
+                }
+            });
+            
+            // Fetch call outcomes when document is ready
+            fetchAndCacheCallOutcomes();
+
+            // NEW: Event listener for close call details button
+            $('#close-call-details').on('click', function() {
+                console.log("Closing call details form.");
+                $('#call-details-form').addClass('hidden');
+                $('#call-details-success').addClass('hidden');
+                $('#call-details-error').addClass('hidden');
+                currentCallSidForDetails = null; // Clear SID
+                $('#pending-call-alert').addClass('hidden'); // Hide pending call alert
+
+                // Check for and process a pending incoming call
+                if (pendingIncomingCallConnection) {
+                    console.log("Processing pending incoming call after closing form.");
+                    processStoredIncomingCall(pendingIncomingCallConnection);
+                    pendingIncomingCallConnection = null;
+                }
+            });
+
         });
+
+        // NEW: Function to handle the UI for an incoming call (can be called directly or for a pending call)
+        function processStoredIncomingCall(connection) {
+            if (!connection) return;
+
+            console.log('Processing stored incoming connection from ' + connection.parameters.From);
+            
+            // Automatically reject if already in a different call (should be rare here, but good check)
+            if (currentCall && currentCall !== connection) { // Ensure not to reject self if currentCall is somehow this connection
+                console.log('Rejecting stored incoming call because already in another active call.');
+                connection.reject();
+                return;
+            }
+
+            currentCall = connection;
+            const parentCallSidFromParam = connection.customParameters ? connection.customParameters.get('parent_call_sid') : null;
+            currentCallSidForDetails = parentCallSidFromParam || connection.parameters.CallSid;
+            console.log("Effective Call SID for this (pending) incoming call leg:", currentCallSidForDetails);
+
+            updateCallStatus('Incoming Call', 'bg-warning');
+            const incomingNumber = connection.parameters.From;
+            fetchContactInfo(incomingNumber);
+            $('#call-status-badge').html(`Incoming: ${incomingNumber}`);
+            
+            $('#make-call').addClass('hidden');
+            $('#hangup-call').addClass('hidden');
+            $('#accept-call').removeClass('hidden').prop('disabled', false);
+            $('#reject-call').removeClass('hidden').prop('disabled', false);
+
+            $('#accept-call').off('click').on('click', function() {
+                console.log("Accepting stored incoming call...");
+                connection.accept();
+                updateCallStatus('Connected', 'bg-success');
+                startCallTimer(); 
+                $('#accept-call').addClass('hidden');
+                $('#reject-call').addClass('hidden');
+                $('#hangup-call').removeClass('hidden').prop('disabled', false);
+            });
+
+            $('#reject-call').off('click').on('click', function() {
+                console.log("Rejecting stored incoming call...");
+                connection.reject();
+                endCurrentCall();
+            });
+            
+            connection.on('cancel', function() {
+                 console.log("Stored incoming call cancelled by caller.");
+                 endCurrentCall(); 
+            });
+             connection.on('reject', function() {
+                 console.log("Stored incoming call was rejected.");
+                 endCurrentCall(); 
+             });
+             connection.on('disconnect', function() {
+                 console.log("Stored incoming call disconnected after acceptance.");
+                 endCurrentCall(); 
+            });
+        }
     </script>
 </body>
 </html> 

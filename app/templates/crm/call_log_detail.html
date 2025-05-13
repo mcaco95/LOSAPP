@@ -1,0 +1,89 @@
+{% extends "crm/layout.html" %}
+{% from "_formhelpers.html" import render_field, render_submit_field, render_custom_fields %}
+
+{% block page_title %}{{ title }}{% endblock %}
+
+{% block page_description %}View and update details for this call log.{% endblock %}
+
+{% block page_content %}
+<div class="row">
+    <div class="col-md-8">
+        <div class="card border-0 shadow mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Call Details</h5>
+            </div>
+            <div class="card-body">
+                <dl class="row">
+                    <dt class="col-sm-4">Call SID</dt>
+                    <dd class="col-sm-8">{{ call_log.call_sid }}</dd>
+
+                    <dt class="col-sm-4">Direction</dt>
+                    <dd class="col-sm-8">
+                        {% if call_log.direction == 'outbound' %}
+                            <i class="bi bi-telephone-outbound-fill text-primary"></i> Outbound
+                        {% elif call_log.direction == 'inbound' %}
+                            <i class="bi bi-telephone-inbound-fill text-success"></i> Inbound
+                        {% else %}
+                            {{ call_log.direction | title }} 
+                        {% endif %}
+                    </dd>
+
+                    <dt class="col-sm-4">From Number</dt>
+                    <dd class="col-sm-8">{{ call_log.from_number }}</dd>
+
+                    <dt class="col-sm-4">To Number</dt>
+                    <dd class="col-sm-8">{{ call_log.to_number }}</dd>
+
+                    <dt class="col-sm-4">Timestamp</dt>
+                    <dd class="col-sm-8">{{ call_log.created_at | format_datetime if call_log.created_at else 'N/A' }}</dd>
+                    
+                    <dt class="col-sm-4">Start Time</dt>
+                    <dd class="col-sm-8">{{ call_log.start_time | format_datetime if call_log.start_time else 'N/A' }}</dd>
+
+                    <dt class="col-sm-4">End Time</dt>
+                    <dd class="col-sm-8">{{ call_log.end_time | format_datetime if call_log.end_time else 'N/A' }}</dd>
+
+                    <dt class="col-sm-4">Duration</dt>
+                    <dd class="col-sm-8">{{ call_log.duration ~ 's' if call_log.duration is not none else 'N/A' }}</dd>
+
+                    <dt class="col-sm-4">Current Status</dt>
+                    <dd class="col-sm-8">
+                        <span class="badge bg-info">{{ call_log.status | title | replace('_', ' ') }}</span>
+                    </dd>
+
+                    <dt class="col-sm-4">Recording</dt>
+                    <dd class="col-sm-8">
+                        {% if call_log.recording_url %}
+                            <a href="{{ call_log.recording_url }}" target="_blank" class="btn btn-sm btn-outline-secondary"><i class="bi bi-play-circle"></i> Listen</a>
+                        {% else %}
+                            -
+                        {% endif %}
+                    </dd>
+                </dl>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card border-0 shadow mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Update Call Log</h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('crm.view_edit_call_log', log_id=call_log.id) }}">
+                    {{ form.csrf_token }}
+                    
+                    {{ render_field(form.outcome, class="form-select") }}
+                    {{ render_field(form.notes, rows=4, class="form-control") }}
+                    {{ render_field(form.contact_id, class="form-select") }}
+                    
+                    <div class="mt-3">
+                        {{ render_submit_field(form.submit, class="btn btn-primary w-100") }}
+                    </div>
+                </form>
+            </div>
+        </div>
+        <a href="{{ url_for('crm.calls') }}" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> Back to Call Logs</a>
+    </div>
+</div>
+
+{% endblock %} 

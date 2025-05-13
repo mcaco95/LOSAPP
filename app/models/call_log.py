@@ -4,6 +4,20 @@ from .sales_user import SalesUser
 # Ensure Contact model is imported if not already (adjust path if necessary)
 # from .contact import Contact # Uncomment if needed, or handle via __init__.py
 
+# --- ADDED: Predefined Call Outcomes --- #
+CALL_OUTCOMES = [
+    ('Connected', 'Connected'),
+    ('Left Voicemail', 'Left Voicemail'),
+    ('No Answer', 'No Answer'),
+    ('Follow Up Required', 'Follow Up Required'),
+    ('Appointment Set', 'Appointment Set'),
+    ('Not Interested', 'Not Interested'),
+    ('Wrong Number', 'Wrong Number'),
+    ('Information Sent', 'Information Sent'),
+    # Add more outcomes as needed
+]
+# --- END ADDED ---
+
 class CallLog(db.Model):
     """Model for tracking call activities"""
     __tablename__ = 'call_logs'
@@ -21,6 +35,7 @@ class CallLog(db.Model):
     recording_url = db.Column(db.Text)
     call_data = db.Column(db.JSON)  # Additional call metadata
     notes = db.Column(db.Text)
+    outcome = db.Column(db.String(50), nullable=True)
     start_time = db.Column(db.DateTime)  # When the call was answered
     end_time = db.Column(db.DateTime)  # When the call ended
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
@@ -99,10 +114,12 @@ class CallLog(db.Model):
             'call_sid': self.call_sid,
             'from_number': self.from_number,
             'to_number': self.to_number,
+            'direction': self.direction,
             'duration': self.duration,
             'status': self.status,
             'recording_url': self.recording_url,
             'notes': self.notes,
+            'outcome': self.outcome,
             'call_data': self.call_data,
             'created_at': self.created_at.isoformat(),
             'updated_at': self.updated_at.isoformat(),

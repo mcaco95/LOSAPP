@@ -10,6 +10,7 @@ import logging
 from logging.handlers import RotatingFileHandler
 import os
 from jinja2.ext import do
+from datetime import datetime
 
 # Initialize extensions
 db = SQLAlchemy()
@@ -26,6 +27,15 @@ def create_app():
     
     # Enable the 'do' extension in Jinja
     app.jinja_env.add_extension(do) 
+
+    # --- Define and register custom Jinja filter ---
+    def format_datetime_filter(value, fmt='%b %d, %Y, %I:%M %p'):
+        if isinstance(value, datetime):
+            return value.strftime(fmt)
+        return value # Return original value if not a datetime object (or None)
+    
+    app.jinja_env.filters['format_datetime'] = format_datetime_filter
+    # --- End custom filter ---
 
     # Configure ProxyFix for handling proxy headers (needed for Ngrok)
     app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1)
@@ -61,6 +71,7 @@ def create_app():
         from .api.v1 import bp as api_v1_bp
         # Import the new CRM blueprint correctly
         from .routes import crm
+        from .routes.crm_phone import crm_phone_bp
         
         # Initialize OAuth
         from .oauth import init_oauth
@@ -98,7 +109,7 @@ def create_app():
        
         # Register the CRM blueprint
         app.register_blueprint(crm.crm_bp)
-
+        app.register_blueprint(crm_phone_bp)
         # Exempt Samsara webhook routes from CSRF protection
         csrf.exempt(samsara.webhook)
         csrf.exempt(samsara.test_webhook)

@@ -16,10 +16,16 @@ class CrmAccount(db.Model):
     # For simplicity now, a text field. Can be enhanced to JSONB.
     address = db.Column(db.Text, nullable=True) 
     
+    # --- REMOVED Address Fields ---
+    # address_street = db.Column(db.String(255), nullable=True)
+    # address_city = db.Column(db.String(100), nullable=True)
+    # address_state = db.Column(db.String(100), nullable=True) # State or Province
+    # address_zip = db.Column(db.String(20), nullable=True) # ZIP or Postal Code
+    # address_country = db.Column(db.String(100), nullable=True)
+    # --- END REMOVED ---
+
     status = db.Column(db.String(50), nullable=True, default='Prospect', index=True) 
     # Example statuses: 'Prospect', 'Active Client', 'Former Client', 'Partner', 'On Hold'
-    
-    custom_data = db.Column(JSONB, nullable=True) # For flexible, user-defined fields
     
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
@@ -29,6 +35,9 @@ class CrmAccount(db.Model):
     sales_rep = db.relationship('SalesUser', backref=db.backref('crm_accounts', lazy='dynamic'))
     # Contacts associated with this account
     contacts = db.relationship('Contact', backref='crm_account', lazy='dynamic', order_by='Contact.first_name')
+
+    # Relationship to custom field values
+    custom_field_values = db.relationship('CustomFieldValue', back_populates='account', lazy='dynamic', cascade='all, delete-orphan')
 
     def __repr__(self):
         return f'<CrmAccount {self.id}: {self.name}>'
@@ -43,7 +52,6 @@ class CrmAccount(db.Model):
             'phone_number': self.phone_number,
             'address': self.address,
             'status': self.status,
-            'custom_data': self.custom_data or {},
             'created_at': self.created_at.isoformat() if self.created_at else None,
             'updated_at': self.updated_at.isoformat() if self.updated_at else None,
             'sales_rep_name': self.sales_rep.user.name if self.sales_rep and self.sales_rep.user else None

@@ -21,8 +21,6 @@ class Contact(db.Model):
     source = db.Column(db.String(50), nullable=True) 
     # Example sources: 'Website Lead', 'Referral', 'Cold Call', 'Event', 'Advertisement', 'Other'
     
-    custom_data = db.Column(JSONB, nullable=True) # For flexible, user-defined fields
-    
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
@@ -32,6 +30,9 @@ class Contact(db.Model):
     # crm_account = db.relationship('CrmAccount', backref=db.backref('contacts', lazy='dynamic')) # Removed to avoid conflict
     # call_logs relationship is now handled by the backref in CallLog.contact
     notes = db.relationship('Note', backref='contact', lazy='dynamic', order_by='desc(Note.timestamp)', cascade="all, delete-orphan")
+    
+    # Relationship to custom field values
+    custom_field_values = db.relationship('CustomFieldValue', back_populates='contact', lazy='dynamic', cascade='all, delete-orphan')
 
     def __repr__(self):
         return f'<Contact {self.id}: {self.first_name} {self.last_name}>'
@@ -55,7 +56,6 @@ class Contact(db.Model):
             'job_title': self.job_title,
             'status': self.status,
             'source': self.source,
-            'custom_data': self.custom_data or {},
             'created_at': self.created_at.isoformat() if self.created_at else None,
             'updated_at': self.updated_at.isoformat() if self.updated_at else None,
             'sales_rep_name': self.sales_rep.user.name if self.sales_rep and self.sales_rep.user else None,

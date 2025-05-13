@@ -37,9 +37,42 @@ Manage your CRM accounts/companies here. You can view, edit, or delete accounts.
                 <i class="fas fa-file-csv me-2"></i>
                 Import Accounts
             </a>
+            {# --- ADDED Configure Columns Button --- #}
+            <button type="button" class="btn btn-outline-secondary ms-2" data-bs-toggle="modal" data-bs-target="#configureColumnsModal">
+                <i class="fas fa-cog me-2"></i> Configure Columns
+            </button>
+            {# --- END ADDED --- #}
         </div>
     </div>
 </div>
+
+{# --- ADDED Configure Columns Modal --- #}
+<div class="modal fade" id="configureColumnsModal" tabindex="-1" aria-labelledby="configureColumnsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="configureColumnsModalLabel">Configure Table Columns</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Select the columns you want to display in the accounts table.</p>
+                <div id="column-selection-standard" class="mb-3">
+                    <h6>Standard Fields</h6>
+                    <!-- Checkboxes for standard fields will be populated by JS -->
+                </div>
+                <div id="column-selection-custom">
+                    <h6>Custom Fields</h6>
+                    <!-- Checkboxes for custom fields will be populated by JS -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" id="applyColumnConfiguration">Apply</button> {# Apply might just be closing and letting live updates happen #}
+            </div>
+        </div>
+    </div>
+</div>
+{# --- END ADDED --- #}
 
 <div class="card border-0 shadow mb-4">
     <div class="card-body">
@@ -47,26 +80,94 @@ Manage your CRM accounts/companies here. You can view, edit, or delete accounts.
             <table class="table table-centered table-nowrap mb-0 rounded">
                 <thead class="thead-light">
                     <tr>
-                        <th class="border-0 rounded-start">Name</th>
-                        <th class="border-0">Website</th>
-                        <th class="border-0">Phone</th>
-                        <th class="border-0">Industry</th>
-                        <th class="border-0">Status</th>
-                        <th class="border-0">Owner</th>
-                        <th class="border-0 rounded-end">Actions</th>
+                        <th class="border-bottom" data-column-id="name">Account Name</th>
+                        <th class="border-bottom" data-column-id="status">Status</th>
+                        <th class="border-bottom" data-column-id="phone_number">Phone</th>
+                        <th class="border-bottom" data-column-id="website">Website</th>
+                        <th class="border-bottom" data-column-id="industry">Industry</th>
+                        <th class="border-bottom" data-column-id="created_at">Created</th>
+                        {# --- ADDED Custom Field Headers --- #}
+                        {% for definition in custom_field_definitions %}
+                        <th class="border-bottom" data-column-id="custom_{{ definition.id }}">{{ definition.name }}</th>
+                        {% endfor %}
+                        {# --- END ADDED --- #}
+                        {% if title == 'All CRM Companies/Accounts' %}
+                        <th class="border-bottom" data-column-id="sales_rep_name">Assigned Rep</th>
+                        {% endif %}
+                        <th class="border-bottom" data-column-id="actions">Actions</th>
                     </tr>
                 </thead> 
                 <tbody>
                     {% if accounts %}
                         {% for account in accounts %} {# Iterate over pagination.items #}
                             <tr>
-                                <td><a href="{{ url_for('crm.view_account', account_id=account.id) }}">{{ account.name }}</a></td>
-                                <td><a href="{{ account.website if account.website and (account.website.startswith('http')) else '#' }}" target="_blank" rel="noopener noreferrer">{{ account.website or 'N/A' }}</a></td>
-                                <td>{{ account.phone_number or 'N/A' }}</td>
-                                <td>{{ account.industry or 'N/A' }}</td>
-                                <td><span class="badge bg-info">{{ account.status or 'N/A' }}</span></td>
-                                <td>{{ account.sales_rep.user.name if account.sales_rep else 'Unknown' }}</td>
-                                <td>
+                                <td class="inline-edit-text-cell" data-field-name="name" data-column-id="name">
+                                    <span class="current-value fw-bold" role="button" tabindex="0">
+                                        <a href="{{ url_for('.view_account', account_id=account.id) }}" class="text-decoration-none inherit-color">{{ account.name }}</a>
+                                        <i class="fas fa-pencil-alt ms-2 edit-trigger-icon" role="button" tabindex="0" title="Edit"></i>
+                                    </span>
+                                    <input type="text" class="form-control form-control-sm d-none edit-input" 
+                                           value="{{ account.name or '' }}" 
+                                           data-account-id="{{ account.id }}">
+                                </td>
+                                <td class="inline-edit-status-cell" data-column-id="status">
+                                    <span class="badge bg-info status-badge" 
+                                          data-account-id="{{ account.id }}" 
+                                          data-current-status="{{ account.status or '' }}" 
+                                          role="button" 
+                                          tabindex="0">{{ account.status or '-' }}</span>
+                                    <select class="form-select form-select-sm d-none status-select" 
+                                            data-account-id="{{ account.id }}">
+                                        <option value="">-- Select --</option>
+                                        {% for stat_val in CRM_ACCOUNT_STATUSES %}
+                                            <option value="{{ stat_val }}" {% if account.status == stat_val %}selected{% endif %}>{{ stat_val }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </td>
+                                <td class="inline-edit-text-cell" data-field-name="phone_number" data-column-id="phone_number">
+                                    <span class="current-value" role="button" tabindex="0">{{ account.phone_number or '-' }}</span>
+                                    <input type="text" class="form-control form-control-sm d-none edit-input" 
+                                           value="{{ account.phone_number or '' }}" 
+                                           data-account-id="{{ account.id }}">
+                                </td>
+                                <td class="inline-edit-text-cell" data-field-name="website" data-column-id="website">
+                                    <span class="current-value" role="button" tabindex="0">
+                                        {% if account.website %}
+                                            <a href="{{ account.website if account.website.startswith('http') else 'http://' + account.website }}" target="_blank" rel="noopener noreferrer" class="text-decoration-none inherit-color">{{ account.website }}</a>
+                                            <i class="fas fa-pencil-alt ms-2 edit-trigger-icon" role="button" tabindex="0" title="Edit"></i>
+                                        {% else %}
+                                            - <i class="fas fa-pencil-alt ms-2 edit-trigger-icon" role="button" tabindex="0" title="Edit"></i>
+                                        {% endif %}
+                                    </span>
+                                    <input type="text" class="form-control form-control-sm d-none edit-input" 
+                                           value="{{ account.website or '' }}" 
+                                           data-account-id="{{ account.id }}">
+                                </td>
+                                <td class="inline-edit-text-cell" data-field-name="industry" data-column-id="industry">
+                                    <span class="current-value" role="button" tabindex="0">{{ account.industry or '-' }}</span>
+                                    <input type="text" class="form-control form-control-sm d-none edit-input" 
+                                           value="{{ account.industry or '' }}" 
+                                           data-account-id="{{ account.id }}">
+                                </td>
+                                <td data-column-id="created_at">{{ account.created_at.strftime('%Y-%m-%d') if account.created_at else '-' }}</td>
+                                {# --- ADDED Custom Field Data Cells --- #}
+                                {% for definition in custom_field_definitions %}
+                                <td data-column-id="custom_{{ definition.id }}">
+                                    {# Look up the value: custom_field_values_data[account.id][definition.id] #}
+                                    {{ custom_field_values_data.get(account.id, {}).get(definition.id, '-') }}
+                                </td>
+                                {% endfor %}
+                                {# --- END ADDED --- #}
+                                {% if title == 'All CRM Companies/Accounts' %}
+                                <td data-column-id="sales_rep_name">
+                                    {% if account.sales_rep and account.sales_rep.user %}
+                                        {{ account.sales_rep.user.name }}
+                                    {% else %}
+                                        <span class="text-muted">Unassigned/Error</span>
+                                    {% endif %}
+                                </td>
+                                {% endif %}
+                                <td data-column-id="actions">
                                     <a href="{{ url_for('crm.view_account', account_id=account.id) }}" class="btn btn-sm btn-outline-gray-600" title="View">
                                         <i class="fas fa-eye"></i>
                                     </a>
@@ -85,8 +186,10 @@ Manage your CRM accounts/companies here. You can view, edit, or delete accounts.
                             </tr>
                         {% endfor %}
                     {% else %}
+                        {# Adjust colspan based on number of columns, including custom ones #}
+                        {% set base_colspan = 5 + (1 if title == 'All CRM Companies/Accounts' else 0) %}
                         <tr>
-                            <td colspan="7" class="text-center">No accounts found.</td>
+                            <td colspan="{{ base_colspan + custom_field_definitions|length }}" class="text-center">No accounts found.</td>
                         </tr>
                     {% endif %}
                 </tbody>
@@ -126,5 +229,339 @@ Manage your CRM accounts/companies here. You can view, edit, or delete accounts.
             csrfInput.value = csrfToken;
         });
     }
+    
+    // --- Inline Status Edit --- //
+    document.querySelectorAll('.status-badge').forEach(badge => {
+        badge.addEventListener('click', function() {
+            const cell = this.closest('.inline-edit-status-cell');
+            const select = cell.querySelector('.status-select');
+            this.classList.add('d-none'); // Hide badge
+            select.classList.remove('d-none'); // Show select
+            select.focus();
+        });
+        // Allow activating with Enter key for accessibility
+        badge.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                this.click();
+            }
+        });
+    });
+
+    document.querySelectorAll('.status-select').forEach(select => {
+        select.addEventListener('change', function() {
+            const accountId = this.dataset.accountId;
+            const newStatus = this.value;
+            const csrfToken = "{{ generated_csrf_token }}"; // Get CSRF token from page
+            const badge = this.closest('.inline-edit-status-cell').querySelector('.status-badge');
+            
+            // Send AJAX request to update status
+            fetch(`/crm/accounts/${accountId}/update-status`, { // Use the new route
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrfToken // Include CSRF token in headers
+                },
+                body: JSON.stringify({ status: newStatus })
+            })
+            .then(response => {
+                 if (!response.ok) {
+                     // Attempt to get error message from JSON response, or use default
+                     return response.json().then(err => { 
+                         throw new Error(err.message || 'Network response was not ok'); 
+                     });
+                 }
+                 return response.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    // Update the badge text and data attribute
+                    badge.textContent = data.new_status || '-';
+                    badge.dataset.currentStatus = data.new_status || '';
+                    // Optional: Show success toast (requires toast-utils.js)
+                    if (window.showToast) { window.showToast('Success', 'Account status updated.', 'success'); }
+                } else {
+                    // Show error toast
+                    if (window.showToast) { window.showToast('Error', data.message || 'Failed to update status.', 'danger'); }
+                     // Revert select to original value visually? Or let user retry?
+                    // For now, just log error and keep select visible.
+                    console.error("Update failed:", data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error updating status:', error);
+                 if (window.showToast) { window.showToast('Error', error.message || 'An unexpected error occurred.', 'danger'); }
+                 // Revert select value on network error
+                 this.value = badge.dataset.currentStatus;
+            })
+            .finally(() => {
+                // Always hide select and show badge after attempt (success or fail)
+                this.classList.add('d-none'); 
+                badge.classList.remove('d-none'); 
+            });
+        });
+
+        // Handle losing focus (blur) - revert if no change was made
+        select.addEventListener('blur', function() {
+            // Use a small timeout to allow the 'change' event to process first
+            setTimeout(() => {
+                if (!this.classList.contains('d-none')) { // Check if it hasn't been hidden by 'change' event
+                    const badge = this.closest('.inline-edit-status-cell').querySelector('.status-badge');
+                    this.classList.add('d-none'); 
+                    badge.classList.remove('d-none');
+                    // Optionally reset value if needed, but change event handles the update
+                    // this.value = badge.dataset.currentStatus; 
+                }
+            }, 150);
+        });
+    });
+    // --- End Inline Status Edit --- //
+
+    // --- Generic Inline Text Edit --- //
+    document.querySelectorAll('.inline-edit-text-cell .current-value').forEach(span => {
+        span.addEventListener('click', function(event) {
+            // --- REVISED LOGIC --- //
+            const hasLink = this.querySelector('a');
+            const clickedOnIcon = event.target.classList.contains('edit-trigger-icon');
+
+            if (hasLink && !clickedOnIcon) {
+                // Cell has a link, but the icon wasn't clicked. Let the link navigate.
+                return; 
+            }
+            // Proceed with edit if: 
+            // 1. There is no link OR 
+            // 2. There is a link AND the icon was clicked.
+            // --- END REVISED LOGIC ---
+
+            const cell = this.closest('.inline-edit-text-cell');
+            const input = cell.querySelector('.edit-input');
+            // Hide the span (which contains the link and icon)
+            this.classList.add('d-none'); 
+            input.classList.remove('d-none');
+            input.focus();
+            input.select(); // Select current text for easy replacement
+        });
+    });
+
+    document.querySelectorAll('.inline-edit-text-cell .edit-input').forEach(input => {
+        const saveChanges = function() {
+            const cell = input.closest('.inline-edit-text-cell');
+            const span = cell.querySelector('.current-value');
+            const accountId = input.dataset.accountId;
+            const fieldName = cell.dataset.fieldName;
+            const newValue = input.value.trim();
+            const oldValue = span.textContent.trim() === '-' ? '' : span.textContent.trim();
+            const csrfToken = "{{ generated_csrf_token }}";
+
+            if (newValue === oldValue) {
+                input.classList.add('d-none');
+                span.classList.remove('d-none');
+                return; // No change, no need to save
+            }
+
+            fetch(`/crm/accounts/${accountId}/update-field`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrfToken
+                },
+                body: JSON.stringify({ 
+                    field: fieldName, 
+                    value: newValue 
+                })
+            })
+            .then(response => {
+                if (!response.ok) {
+                    return response.json().then(err => { 
+                        throw new Error(err.message || 'Network response was not ok'); 
+                    });
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    span.textContent = data.new_value || '-';
+                    if (window.showToast) { window.showToast('Success', data.message || 'Field updated.', 'success'); }
+                } else {
+                    if (window.showToast) { window.showToast('Error', data.message || 'Failed to update field.', 'danger'); }
+                    input.value = oldValue; // Revert on failure
+                }
+            })
+            .catch(error => {
+                console.error(`Error updating ${fieldName}:`, error);
+                if (window.showToast) { window.showToast('Error', error.message || 'An unexpected error occurred.', 'danger'); }
+                input.value = oldValue; // Revert on error
+            })
+            .finally(() => {
+                input.classList.add('d-none');
+                span.classList.remove('d-none');
+            });
+        };
+
+        input.addEventListener('blur', saveChanges);
+    });
+    // --- End Generic Inline Text Edit --- //
+
+    // --- Column Configuration Logic --- //
+    document.addEventListener('DOMContentLoaded', function() {
+        const STORAGE_KEY = 'accountTableColumnPrefs';
+        const table = document.querySelector('.table-centered'); // Target the specific table
+        const modalStandardBody = document.getElementById('column-selection-standard');
+        const modalCustomBody = document.getElementById('column-selection-custom');
+        const configureModal = document.getElementById('configureColumnsModal');
+
+        // --- Define Columns --- 
+        const standardColumns = [
+            { id: 'name', name: 'Account Name', defaultVisible: true },
+            { id: 'status', name: 'Status', defaultVisible: true },
+            { id: 'phone_number', name: 'Phone', defaultVisible: true },
+            { id: 'website', name: 'Website', defaultVisible: true },
+            { id: 'industry', name: 'Industry', defaultVisible: true },
+            { id: 'created_at', name: 'Created', defaultVisible: true },
+            // Note: 'sales_rep_name' might only exist if manager, handle this
+            { id: 'sales_rep_name', name: 'Assigned Rep', defaultVisible: true, managerOnly: true }, 
+            { id: 'actions', name: 'Actions', defaultVisible: true, nonConfigurable: true } // Actions always visible
+        ];
+        
+        // Get custom columns from Flask variable (ensure it's safely converted to JSON)
+        let customColumns = [];
+        try {
+             // Get the list of dictionaries directly from the Flask context
+            const rawCustomDefs = {{ custom_field_definitions | tojson | safe }};
+            console.log('Raw Custom Definitions from Flask:', rawCustomDefs); // DEBUGGING
+            customColumns = rawCustomDefs.map(def => ({ 
+                id: `custom_${def.id}`, // Match data-column-id
+                name: def.name, 
+                defaultVisible: true 
+            }));
+        } catch (e) {
+            console.error("Error parsing custom field definitions:", e);
+            // Handle case where custom_field_definitions might not be valid JSON or is empty
+        }
+
+        // Combine all columns (filter manager-only if necessary)
+        const isManagerView = {% if title == 'All CRM Companies/Accounts' %}true{% else %}false{% endif %};
+        let allColumns = standardColumns.filter(col => !col.managerOnly || isManagerView);
+        allColumns = allColumns.concat(customColumns);
+        console.log('All Columns for Modal:', allColumns); // DEBUGGING
+
+        // --- Local Storage --- 
+        function getPreferences() {
+            const stored = localStorage.getItem(STORAGE_KEY);
+            try {
+                return stored ? JSON.parse(stored) : null;
+            } catch (e) {
+                console.error("Error parsing column preferences from localStorage:", e);
+                localStorage.removeItem(STORAGE_KEY); // Clear corrupted data
+                return null;
+            }
+        }
+
+        function savePreferences(prefs) {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(prefs));
+        }
+
+        // --- Apply Visibility --- 
+        function toggleColumn(columnId, isVisible) {
+            if (!table) return;
+            // Select all th and td elements with the matching data-column-id
+            const cells = table.querySelectorAll(`th[data-column-id='${columnId}'], td[data-column-id='${columnId}']`);
+            cells.forEach(cell => {
+                cell.style.display = isVisible ? '' : 'none'; // Use default display or hide
+            });
+        }
+        
+        function applyPreferences(prefs) {
+             allColumns.forEach(col => {
+                 if (col.nonConfigurable) {
+                     toggleColumn(col.id, true); // Always show non-configurable
+                 } else {
+                     const isVisible = prefs ? prefs[col.id] : col.defaultVisible;
+                     toggleColumn(col.id, isVisible);
+                 }
+             });
+        }
+
+        // --- Populate Modal --- 
+        function populateModal(prefs) {
+            if (!modalStandardBody || !modalCustomBody) return;
+            modalStandardBody.innerHTML = '<h6>Standard Fields</h6>'; // Clear previous
+            modalCustomBody.innerHTML = '<h6>Custom Fields</h6>';   // Clear previous
+
+            allColumns.forEach(col => {
+                if (col.nonConfigurable) return; // Don't add checkbox for non-configurable columns
+
+                const isVisible = prefs ? prefs[col.id] : col.defaultVisible;
+                const checkboxId = `col-checkbox-${col.id}`;
+                
+                const div = document.createElement('div');
+                div.classList.add('form-check');
+                
+                const input = document.createElement('input');
+                input.classList.add('form-check-input');
+                input.type = 'checkbox';
+                input.value = col.id;
+                input.id = checkboxId;
+                input.checked = isVisible;
+                
+                const label = document.createElement('label');
+                label.classList.add('form-check-label');
+                label.htmlFor = checkboxId;
+                label.textContent = col.name;
+                
+                div.appendChild(input);
+                div.appendChild(label);
+
+                // Append to correct section
+                if (standardColumns.some(stdCol => stdCol.id === col.id)) {
+                    modalStandardBody.appendChild(div);
+                } else {
+                    modalCustomBody.appendChild(div);
+                }
+
+                // Attach event listener
+                input.addEventListener('change', function() {
+                    const currentPrefs = getPreferences() || {};
+                    currentPrefs[this.value] = this.checked;
+                    savePreferences(currentPrefs);
+                    toggleColumn(this.value, this.checked);
+                });
+            });
+            
+            // Hide custom fields section if none exist
+            if (!customColumns.length) {
+                modalCustomBody.style.display = 'none';
+            }
+        }
+
+        // --- Initialization --- 
+        const currentPreferences = getPreferences();
+        // If no preferences saved, initialize with defaults
+        if (!currentPreferences) {
+            const initialPrefs = {};
+            allColumns.forEach(col => {
+                 if (!col.nonConfigurable) { // Only store prefs for configurable cols
+                    initialPrefs[col.id] = col.defaultVisible;
+                 }
+            });
+            savePreferences(initialPrefs);
+            applyPreferences(initialPrefs); 
+            populateModal(initialPrefs);
+        } else {
+            applyPreferences(currentPreferences); // Apply stored preferences on load
+            populateModal(currentPreferences); // Populate modal based on stored preferences
+        }
+        
+        // Handle modal's Apply button (might just close)
+        const applyButton = document.getElementById('applyColumnConfiguration');
+        if(applyButton) {
+            applyButton.addEventListener('click', function() {
+                 const modalInstance = bootstrap.Modal.getInstance(configureModal);
+                 if(modalInstance) modalInstance.hide();
+            });
+        }
+
+    });
+    // --- End Column Configuration Logic --- //
+
 </script>
 {% endblock %} 

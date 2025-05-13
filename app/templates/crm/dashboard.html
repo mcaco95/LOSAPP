@@ -250,7 +250,19 @@
                                     </span>
                                 </div>
                                 <div class="col ms--2">
-                                    <h4 class="h6 mb-0"><a href="{{ activity.url }}">{{ activity.text }}</a></h4>
+                                    <h4 class="h6 mb-0"><a href="{{ activity.url }}" class="text-decoration-none text-dark fw-bold">{{ activity.text }}</a>
+                                    {% if activity.type == 'call_log' and (activity.notes or activity.outcome) %}
+                                        <div class="mt-1 ps-3 border-start border-2 border-light">
+                                            {% if activity.outcome %}
+                                                <p class="mb-0"><span class="badge bg-info text-dark me-1">{{ activity.outcome }}</span></p>
+                                            {% endif %}
+                                            {% if activity.notes %}
+                                                <small class="text-muted d-block lh-sm">{{ activity.notes | truncate(100, True) }}</small>
+                                            {% endif %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                <div class="ms-auto text-end">
                                     <span class="text-muted small">{{ activity.timestamp.strftime('%b %d, %Y %I:%M %p') if activity.timestamp else '-' }}</span>
                                 </div>
                             </div>

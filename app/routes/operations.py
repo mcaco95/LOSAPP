@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, jsonify, request, current_app
+from flask import Blueprint, render_template, jsonify, request, current_app, url_for
 from flask_login import login_required, current_user
 from ..decorators import operations_required
 from ..services.operations_service.twilio.call_manager import CallManager
@@ -6,10 +6,12 @@ from ..models.operations_user import OperationsUser
 from .. import db, csrf
 from twilio.jwt.access_token import AccessToken
 from twilio.jwt.access_token.grants import VoiceGrant
-from twilio.twiml.voice_response import VoiceResponse, Dial
+from twilio.twiml.voice_response import VoiceResponse, Dial, Say, Parameter
 from datetime import datetime
 from app.models.call_log import CallLog
 from app.models.sales_user import SalesUser
+from app.models.contact import Contact
+from app.routes.crm_phone import normalize_phone_number
 
 bp = Blueprint('operations', __name__)
 
@@ -326,6 +328,39 @@ def call_status_callback():
         current_app.logger.exception("Full exception:")
         return '', 500 # Return 500 to indicate server error to Twilio
 
+@bp.route('/webhooks/recording-status', methods=['POST'])
+@csrf.exempt
+def recording_status_callback():
+    """Handle Twilio recording status callbacks."""
+    call_sid = request.form.get('CallSid')
+    recording_url = request.form.get('RecordingUrl')
+    recording_status = request.form.get('RecordingStatus')
+    
+    current_app.logger.info(f"Recording status callback for CallSid: {call_sid}, Status: {recording_status}, URL: {recording_url}")
+
+    if not call_sid or not recording_url:
+        current_app.logger.warning("Recording status callback missing CallSid or RecordingUrl.")
+        return '', 400 # Bad request
+
+    if recording_status == 'completed': # Process only when recording is ready
+        call_log = CallLog.query.filter_by(call_sid=call_sid).first()
+        if call_log:
+            try:
+                call_log.recording_url = recording_url
+                # Potentially add recording duration, size etc. if needed from request.form
+                # call_log.recording_duration = request.form.get('RecordingDuration')
+                db.session.commit()
+                current_app.logger.info(f"Recording URL {recording_url} saved for CallLog SID {call_sid}")
+            except Exception as e:
+                db.session.rollback()
+                current_app.logger.error(f"Error saving recording URL for CallSid {call_sid}: {e}")
+                return '', 500 # Internal server error
+        else:
+            current_app.logger.warning(f"CallLog not found for CallSid {call_sid} in recording_status_callback.")
+            # Don't return 404 to Twilio, as it might retry. Log it and accept.
+            
+    return '', 200
+
 @bp.route('/operations/token', methods=['GET'])
 @csrf.exempt
 @login_required
@@ -392,9 +427,23 @@ def voice_twiml():
 
     if is_incoming_call:
         current_app.logger.info(f"Incoming call detected: From={from_number}, To={to_number}")
+        # --- REVERTED TEMPORARY DEBUGGING ---
+        # response.say("Debugging incoming call. If you hear this, Twilio is processing the call leg.")
+        # current_app.logger.info(f"INCOMING_CALL_DEBUG: Responded with <Say> instead of <Dial client>")
+        # --- END REVERTED TEMPORARY DEBUGGING ---
+
+        # ORIGINAL LOGIC (restored):
         target_client = None
-        
-        # Find user associated with the dialed Twilio number ('To')
+        normalized_incoming_from = normalize_phone_number(from_number)
+        linked_contact_id = None
+        if normalized_incoming_from:
+            contact = Contact.query.filter_by(phone_number=normalized_incoming_from).first()
+            if contact:
+                linked_contact_id = contact.id
+                current_app.logger.info(f"Incoming call from known Contact ID: {linked_contact_id} ({contact.full_name}) based on number {normalized_incoming_from}")
+            else:
+                current_app.logger.info(f"No contact found for incoming number {normalized_incoming_from}")
+
         if to_number:
             sales_user = SalesUser.query.filter_by(phone_number=to_number).first()
             if sales_user:
@@ -411,7 +460,6 @@ def voice_twiml():
              current_app.logger.warning("Incoming call webhook missing 'To' number (dialed Twilio number).")
 
         if target_client:
-            # Log the incoming call attempt before dialing client
             call_log = CallLog.query.filter_by(call_sid=call_sid).first()
             if not call_log:
                 log_user_id = None
@@ -425,10 +473,11 @@ def voice_twiml():
                     call_sid=call_sid,
                     from_number=from_number,
                     to_number=to_number, 
-                    status='ringing', # Indicate it's ringing the client
+                    status='ringing', 
                     direction='incoming',
                     operator_id=log_user_id,
-                    sales_rep_id=log_sales_id
+                    sales_rep_id=log_sales_id,
+                    contact_id=linked_contact_id
                 )
                 db.session.add(call_log)
                 try:
@@ -438,29 +487,40 @@ def voice_twiml():
                     db.session.rollback()
                     current_app.logger.error(f"Error logging incoming call {call_sid}: {e_commit}")
             
-            # Dial the target client
-            dial = Dial(timeout=20) # Give 20 seconds for the client to answer
-            dial.client(target_client.split(':', 1)[1]) # Pass identity without 'client:' prefix
+            dial = Dial(
+                timeout=20,
+                record='record-from-answer',
+                recording_status_callback=url_for('operations.recording_status_callback', _external=True),
+                recording_status_callback_event='completed',
+                caller_id=from_number 
+            )
+            client = dial.client(target_client.split(':', 1)[1]) # Get client identity string
+            client.parameter(name='parent_call_sid', value=call_sid) # Pass original CallSid
             response.append(dial)
         else:
-            # No user found for this number, or 'To' number missing
             response.say("We could not connect your call at this time. Please try again later.")
-            # Optionally, use <Reject reason="busy"/> or <Reject reason="no-answer"/>
-            # response.reject(reason='no-answer')
             current_app.logger.info(f"Rejecting incoming call {call_sid} - no target client found for {to_number}")
-
     else: # Handle outbound calls initiated by device.connect()
         # Read parameters from request.form (sent by Twilio Voice SDK's Device.connect())
         # Note: 'To' here is the *destination* number for the outbound call
         outbound_to_number = request.form.get('To')
         record_call_param = request.form.get('Record', 'false').lower() == 'true'
         from_identity_raw = request.form.get('From', '') # Should be client:type-id
+        contact_id_str = request.form.get('ContactID')
 
-        current_app.logger.info(f"Outbound TwiML request: CallSid={call_sid}, FromIdentityRaw={from_identity_raw}, To(Destination)='{outbound_to_number}', Record={record_call_param}")
+        current_app.logger.info(f"Outbound TwiML request: CallSid={call_sid}, FromIdentityRaw={from_identity_raw}, To(Destination)='{outbound_to_number}', Record={record_call_param}, ContactID={contact_id_str}")
 
         operator_id = None
         sales_rep_id = None
+        parsed_contact_id = None
         determined_from_number_for_dial = current_app.config['TWILIO_PHONE_NUMBER'] # Default
+
+        if contact_id_str:
+            try:
+                parsed_contact_id = int(contact_id_str)
+            except ValueError:
+                current_app.logger.warning(f"Outbound TwiML: Invalid ContactID format: {contact_id_str}")
+                parsed_contact_id = None
 
         # Parse identity and determine caller ID (existing logic)
         if from_identity_raw and from_identity_raw.startswith('client:'):
@@ -516,7 +576,8 @@ def voice_twiml():
                         status='initiated',
                         direction='outbound',
                         operator_id=operator_id,
-                        sales_rep_id=sales_rep_id
+                        sales_rep_id=sales_rep_id,
+                        contact_id=parsed_contact_id
                     )
                     db.session.add(call_log)
                     try:
@@ -534,10 +595,18 @@ def voice_twiml():
 
         # Generate TwiML for outbound call
         if outbound_to_number and (outbound_to_number.startswith('+') or outbound_to_number.startswith('client:')):
-            dial = Dial(
-                caller_id=determined_from_number_for_dial, # Use the determined number
-                record='record-from-answer' if record_call_param else 'do-not-record'
-            )
+            dial_attrs = {
+                'caller_id': determined_from_number_for_dial
+            }
+            if record_call_param:
+                dial_attrs['record'] = 'record-from-answer'
+                dial_attrs['recording_status_callback'] = url_for('operations.recording_status_callback', _external=True)
+                dial_attrs['recording_status_callback_event'] = 'completed'
+            else:
+                dial_attrs['record'] = 'do-not-record'
+            
+            dial = Dial(**dial_attrs)
+            
             if outbound_to_number.startswith('client:'):
                 client_identifier = outbound_to_number.split(':', 1)[1]
                 dial.client(client_identifier)
@@ -550,7 +619,7 @@ def voice_twiml():
             current_app.logger.warning(f"Outbound TwiML: 'To' number '{outbound_to_number}' is invalid or missing. Saying fallback message.")
             response.say("The number you are trying to call is not valid, or was not provided. Please check the number and try again.")
 
-    return str(response)
+    return str(response), 200, {'Content-Type': 'text/xml'}
 
 @bp.route('/phone', methods=['GET'])
 @login_required
