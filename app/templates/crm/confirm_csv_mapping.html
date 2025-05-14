@@ -60,8 +60,8 @@
                                 <option value="{{ choice_value }}"
                                     {# Basic pre-selection attempt for existing fields - can be refined #}
                                     {% if header.lower().replace(' ', '').replace('_', '') == choice_label.lower().replace(' ', '').replace('_', '').replace('custom:', '') %}
-                                        selected
-                                    {% endif %}>
+                                            selected
+                                        {% endif %}>
                                     {{ choice_label }}
                                 </option>
                             {% endfor %}

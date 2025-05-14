@@ -52,16 +52,16 @@
                             {{ render_field(form.source, html_class="form-select") }}
                         </div>
                     </div>
-
+                    
                     {# MODIFIED: Add Sales Rep Assignment Dropdown for Managers #}
                     {% if form.sales_rep_id %}
                     <div class="row mb-3">
                         <div class="col-md-6">
                              {{ render_query_select_field(form.sales_rep_id, html_class='form-select') }}
                         </div>
-                    </div>
-                    {% endif %}
-                    
+                            </div>
+                        {% endif %}
+
                     {% if dynamic_fields %}
                         <hr>
                         <h5 class="mt-4 mb-3">Additional Information</h5>

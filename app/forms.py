@@ -301,49 +301,77 @@ class CrmAccountForm(FlaskForm):
     def __init__(self, formdata=None, obj=None, **kwargs):
         super(CrmAccountForm, self).__init__(formdata=formdata, obj=obj, **kwargs)
         
-        # Handling for sales_rep_id (for managers) or sales_rep_id_hidden (for non-managers)
         field_name_srid = 'sales_rep_id'
         field_name_srid_hidden = 'sales_rep_id_hidden'
+        processed_dynamic_srid_field = False # Flag to track if we handled SRID field
 
         if hasattr(current_user, 'sales_profile') and current_user.sales_profile and current_user.sales_profile.role == 'sales_manager':
-            if not hasattr(self, field_name_srid):
-                unbound_field = QuerySelectField(
-                    'Assigned Sales Rep',
-                    query_factory=lambda: SalesUser.query.join(User).order_by(User.name).all(),
-                    get_label=lambda sr: sr.user.name if sr.user else 'Unknown Rep',
-                    allow_blank=True,
-                    blank_text='-- Unassigned --'
-                )
-                bound_field = unbound_field.bind(form=self, name=field_name_srid, prefix=self._prefix, _meta=self.meta)
-                self._fields[field_name_srid] = bound_field
-                setattr(self, field_name_srid, bound_field)
+            # Manager: Add QuerySelectField for sales_rep_id
+            if field_name_srid_hidden in self._fields: # Clean up hidden field if it exists from a different context
+                del self._fields[field_name_srid_hidden]
+            if hasattr(self, field_name_srid_hidden):
+                delattr(self, field_name_srid_hidden)
+
+            unbound_field = QuerySelectField(
+                'Assigned Sales Rep',
+                query_factory=lambda: SalesUser.query.join(User).order_by(User.name).all(),
+                get_label=lambda sr: sr.user.name if sr.user else 'Unknown Rep',
+                allow_blank=True,
+                blank_text='-- Unassigned --',
+                validators=[Optional()] # Added Optional validator
+            )
+            # Bind the field to the form instance
+            bound_field = unbound_field.bind(form=self, name=field_name_srid, prefix=self._prefix, _meta=self.meta)
+            setattr(self, field_name_srid, bound_field) # Make it an attribute of the form
+            self._fields[field_name_srid] = bound_field   # Add to form's _fields dictionary
+
+            # Explicitly process the field using the original formdata and obj's relevant data
+            # The `bind` method above should call `process`, but we ensure it here with correct data.
+            # `data` should be the actual SalesUser object if `obj` has `sales_rep`.
+            data_for_field = getattr(obj, 'sales_rep', unset_value) # Use 'sales_rep' if obj is CrmAccount
             
-            if obj and obj.sales_rep and hasattr(self, field_name_srid):
-                getattr(self, field_name_srid).data = obj.sales_rep
+            # Process with the formdata specific to this field, or None if not in formdata
+            # And data from the object if available.
+            field_formdata = formdata.getlist(field_name_srid) if formdata else None
+            bound_field.process(field_formdata, data=data_for_field)
+            
+            # Safeguard: Ensure _formdata attribute exists, as QuerySelectField expects it.
+            # It should be None if no form data was provided for this field.
+            if not hasattr(bound_field, '_formdata'):
+                bound_field._formdata = None # Explicitly set if missing after process
+
+            processed_dynamic_srid_field = True
         
-        else: # Non-manager or no sales profile
-            if not hasattr(self, field_name_srid_hidden):
-                unbound_hidden_field = HiddenField()
-                bound_hidden_field = unbound_hidden_field.bind(form=self, name=field_name_srid_hidden, prefix=self._prefix, _meta=self.meta)
-                self._fields[field_name_srid_hidden] = bound_hidden_field
-                setattr(self, field_name_srid_hidden, bound_hidden_field)
+        elif hasattr(current_user, 'sales_profile'): # Non-manager sales user
+            # Non-Manager: Add HiddenField for sales_rep_id_hidden
+            if field_name_srid in self._fields: # Clean up QuerySelectField if it exists
+                del self._fields[field_name_srid]
+            if hasattr(self, field_name_srid):
+                delattr(self, field_name_srid)
 
-            hidden_field_value = None
-            if obj and obj.sales_rep_id:
-                hidden_field_value = obj.sales_rep_id
-            elif not obj and hasattr(current_user, 'sales_profile') and current_user.sales_profile:
-                hidden_field_value = current_user.sales_profile.id
+            default_value_for_hidden = current_user.sales_profile.id # Default to current user's ID
+            if obj and obj.sales_rep_id is not None: # If editing, use existing ID
+                default_value_for_hidden = obj.sales_rep_id
             
-            hidden_field_instance = getattr(self, field_name_srid_hidden)
-            # MODIFIED: Set .data directly
-            hidden_field_instance.data = str(hidden_field_value) if hidden_field_value is not None else ''
+            unbound_hidden_field = HiddenField(default=str(default_value_for_hidden))
+            bound_hidden_field = unbound_hidden_field.bind(form=self, name=field_name_srid_hidden, prefix=self._prefix, _meta=self.meta)
+            setattr(self, field_name_srid_hidden, bound_hidden_field)
+            self._fields[field_name_srid_hidden] = bound_hidden_field
+            
+            field_formdata = formdata.getlist(field_name_srid_hidden) if formdata else None
+            bound_hidden_field.process(field_formdata, data=str(default_value_for_hidden))
 
-        # Explicitly process dynamically added fields if formdata is present
-        if formdata is not None:
-            if hasattr(self, field_name_srid) and field_name_srid in self._fields:
-                getattr(self, field_name_srid).process(formdata)
-            if hasattr(self, field_name_srid_hidden) and field_name_srid_hidden in self._fields:
-                getattr(self, field_name_srid_hidden).process(formdata)
+            if not hasattr(bound_hidden_field, '_formdata'):
+                bound_hidden_field._formdata = None
+            
+            processed_dynamic_srid_field = True
+
+        # If no sales_profile, or some other case where neither field was added, ensure no lingering fields.
+        if not processed_dynamic_srid_field:
+            if field_name_srid in self._fields: del self._fields[field_name_srid]
+            if hasattr(self, field_name_srid): delattr(self, field_name_srid)
+            if field_name_srid_hidden in self._fields: del self._fields[field_name_srid_hidden]
+            if hasattr(self, field_name_srid_hidden): delattr(self, field_name_srid_hidden)
 
 # --- CSV Import Form --- #
 class ImportCsvForm(FlaskForm):

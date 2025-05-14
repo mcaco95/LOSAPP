@@ -473,7 +473,7 @@ def contacts():
     """List contacts based on user role, now with pagination and filtering."""
     if not current_user.sales_profile:
         flash('Sales profile not found for this user.', 'error')
-        return redirect(url_for('main.dashboard'))
+        return redirect(url_for('main.dashboard')) 
 
     page = request.args.get('page', 1, type=int)
     # MODIFIED: Allow user to select items per page
@@ -537,9 +537,9 @@ def contacts():
     # For account filter, consider which accounts should be listable.
     # For now, all accounts. Could be refined to accounts relevant to the manager's team or user's accounts.
     accounts_for_filter = CrmAccount.query.order_by(CrmAccount.name).all()
-
+    
     return render_template('crm/contacts.html', 
-                           title=page_title, 
+                           title=page_title,
                            contacts=contacts_on_page, 
                            pagination=pagination,
                            is_manager=is_manager,
@@ -572,7 +572,7 @@ def create_contact():
     # Dynamically create the form class incorporating custom fields
     DynamicContactForm, dynamic_fields = create_dynamic_form_class(ContactForm, CustomFieldAppliesTo.CONTACT)
 
-    form = DynamicContactForm(request.form if request.method == 'POST' else None, obj=contact)
+    form = DynamicContactForm(request.form if request.method == 'POST' else None)
 
     # --- MODIFICATION for contact form Company/Account dropdown ---
     # This logic is now handled inside ContactForm.__init__
@@ -807,13 +807,13 @@ def edit_contact(contact_id):
 
             db.session.add(contact)
             save_custom_field_values(form, CustomFieldAppliesTo.CONTACT, contact, dynamic_fields)
-            db.session.commit()
+                db.session.commit()
 
             flash(f'Contact "{contact.full_name}" updated successfully!', 'success')
             return redirect(url_for('crm.view_contact', contact_id=contact.id))
-        except Exception as e:
-            db.session.rollback()
-            current_app.logger.error(f"Error updating contact {contact_id}: {e}")
+            except Exception as e:
+                db.session.rollback()
+                current_app.logger.error(f"Error updating contact {contact_id}: {e}")
             flash(f'Error updating contact: {str(e)}.', 'danger')
 
     # If POST and validation failed, WTForms retains submitted data in 'form'.
@@ -1087,7 +1087,7 @@ def accounts():
         ).order_by(CrmAccount.name)
     else:
         query = query.order_by(CrmAccount.name)
-    
+
     accounts_pagination = query.paginate(page=page, per_page=per_page, error_out=False)
     user_accounts = accounts_pagination.items
     
@@ -1233,7 +1233,7 @@ def create_account():
     # Dynamically create the form class
     DynamicAccountForm, dynamic_fields = create_dynamic_form_class(CrmAccountForm, CustomFieldAppliesTo.ACCOUNT)
 
-    form = DynamicAccountForm(request.form) if request.method == 'POST' else DynamicAccountForm()
+    form = DynamicAccountForm(request.form if request.method == 'POST' else None)
 
     if form.validate_on_submit(): # This covers the POST case
         # Remove old custom_data handling
@@ -1357,14 +1357,14 @@ def edit_account(account_id):
         try:
             original_sales_rep_id = account.sales_rep_id # Store original ID before any changes
 
-            account.name = form.name.data.strip()
-            account.website = form.website.data.strip() if form.website.data else None
-            account.industry = form.industry.data.strip() if form.industry.data else None
-            account.phone_number = form.phone_number.data.strip() if form.phone_number.data else None
+                account.name = form.name.data.strip()
+                account.website = form.website.data.strip() if form.website.data else None
+                account.industry = form.industry.data.strip() if form.industry.data else None
+                account.phone_number = form.phone_number.data.strip() if form.phone_number.data else None
             account.address = form.address.data.strip() if form.address.data else None
             
             selected_status = form.status.data if form.status.data and form.status.data != '-' else None
-            account.status = selected_status
+                account.status = selected_status
 
             sales_rep_changed_for_account = False
             new_account_sales_rep_obj = None # To store the SalesUser object if assigned
@@ -1403,13 +1403,13 @@ def edit_account(account_id):
                     flash(f"{len(contacts_to_update)} linked contacts were also reassigned to {rep_name_for_flash}.", "info")
 
             save_custom_field_values(form, CustomFieldAppliesTo.ACCOUNT, account, dynamic_fields)
-            db.session.commit()
+                db.session.commit()
 
-            flash(f'Account "{account.name}" updated successfully!', 'success')
-            return redirect(url_for('crm.view_account', account_id=account.id))
-        except Exception as e:
-            db.session.rollback()
-            current_app.logger.error(f"Error updating account {account_id}: {e}")
+                flash(f'Account "{account.name}" updated successfully!', 'success')
+                return redirect(url_for('crm.view_account', account_id=account.id))
+            except Exception as e:
+                db.session.rollback()
+                current_app.logger.error(f"Error updating account {account_id}: {e}")
             flash(f'Error updating account: {str(e)}.', 'danger')
             
     # If POST and validation failed, WTForms retains submitted data in 'form'.
