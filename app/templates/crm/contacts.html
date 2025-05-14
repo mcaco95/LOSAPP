@@ -12,8 +12,9 @@ Manage your CRM contacts here. You can view, edit, or delete contacts.
 
 {% block content %}
 {{ super() }}
+
 <div class="py-4">
-    {# Optional: Breadcrumbs or Header #}
+    {# Breadcrumbs and Header (Keep existing) #}
     <nav aria-label="breadcrumb" class="d-none d-md-inline-block">
         <ol class="breadcrumb breadcrumb-dark breadcrumb-transparent">
             <li class="breadcrumb-item">
@@ -35,8 +36,7 @@ Manage your CRM contacts here. You can view, edit, or delete contacts.
                 <svg class="icon icon-xs me-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
                 Add New Contact
             </a>
-            {# Optional: Add Import Button Link Here if desired #}
-             <a href="{{ url_for('crm.import_csv') }}" class="btn btn-secondary d-inline-flex align-items-center">
+            <a href="{{ url_for('crm.import_csv') }}" class="btn btn-secondary d-inline-flex align-items-center">
                 <i class="fas fa-file-csv me-2"></i>
                 Import Contacts
             </a>
@@ -44,72 +44,181 @@ Manage your CRM contacts here. You can view, edit, or delete contacts.
     </div>
 </div>
 
+{# Filters Form - This is a SEPARATE form #}
 <div class="card border-0 shadow mb-4">
+    <div class="card-header">
+        <h5 class="mb-0">Filters</h5>
+    </div>
     <div class="card-body">
+        <form method="GET" action="{{ url_for('crm.contacts') }}" id="filterContactsForm" class="row g-3 align-items-end">
+            {# Preserve existing page and per_page when submitting filter form #}
+            <input type="hidden" name="page" value="{{ request.args.get('page', '1') }}">
+            <input type="hidden" name="per_page" value="{{ current_per_page }}">
+            {% if is_manager %}
+            <div class="col-md-3">
+                <label for="sales_rep_id_filter" class="form-label">Sales Rep</label>
+                <select name="sales_rep_id_filter" id="sales_rep_id_filter" class="form-select form-select-sm">
+                    <option value="">All Sales Reps</option>
+                    <option value="unassigned" {% if current_filters.sales_rep_id == 'unassigned' %}selected{% endif %}>Unassigned Contacts</option>
+                    {% for sr in sales_reps_for_filter %}
+                        <option value="{{ sr.id }}" {% if current_filters.sales_rep_id == sr.id|string %}selected{% endif %}>
+                            {{ sr.user.name if sr.user else 'Unknown Rep' }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            {% endif %}
+            <div class="col-md-3">
+                <label for="crm_account_id_filter" class="form-label">Company/Account</label>
+                <select name="crm_account_id_filter" id="crm_account_id_filter" class="form-select form-select-sm">
+                    <option value="">All Companies</option>
+                    <option value="unassigned" {% if current_filters.crm_account_id == 'unassigned' %}selected{% endif %}>Unassigned Company</option>
+                    {% for acc in accounts_for_filter %}
+                        <option value="{{ acc.id }}" {% if current_filters.crm_account_id == acc.id|string %}selected{% endif %}>
+                            {{ acc.name }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label for="status_filter" class="form-label">Status</label>
+                <select name="status_filter" id="status_filter" class="form-select form-select-sm">
+                    <option value="">All Statuses</option>
+                    {% for status_item in contact_statuses %}
+                        <option value="{{ status_item }}" {% if current_filters.status == status_item %}selected{% endif %}>
+                            {{ status_item }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-auto">
+                <button type="submit" class="btn btn-primary btn-sm">Filter</button>
+                <a href="{{ url_for('crm.contacts') }}" class="btn btn-outline-secondary btn-sm">Clear</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+{# MODIFIED: Bulk action form now only wraps the bulk controls and the contact list table #}
+<form method="POST" action="" id="bulkActionForm">
+    {{ csrf_token() }}
+
+    {% if is_manager %}
+    <div class="card border-0 shadow mb-3">
+        <div class="card-body d-flex align-items-center flex-wrap">
+            <label for="bulk_action_select" class="form-label me-2 mb-2 mb-md-0">With selected:</label>
+            <select name="bulk_action" id="bulk_action_select" class="form-select form-select-sm me-2 mb-2 mb-md-0" style="width: auto;">
+                <option value="">-- Select Action --</option>
+                <option value="assign_sales_rep">Assign Sales Rep</option>
+            </select>
+            
+            <div id="assign_rep_controls_container" class="d-inline-block" style="display: none;"> 
+                <select name="bulk_assign_sales_rep_id" id="bulk_assign_sales_rep_id" class="form-select form-select-sm me-2 mb-2 mb-md-0" style="width: auto;">
+                    <option value="">-- Select Sales Rep --</option>
+                    <option value="_unassigned_">-- Unassign --</option>
+                    {% for sr in sales_reps_for_filter %}
+                        <option value="{{ sr.id }}">{{ sr.user.name if sr.user else 'Unknown Rep' }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <button type="submit" id="apply_bulk_action_button" class="btn btn-primary btn-sm" disabled>Apply</button>
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="card border-0 shadow mb-4">
+        <div class="card-header">
+            <div class="row align-items-center">
+                <div class="col">
+                    <h2 class="fs-5 fw-bold mb-0">Contact List</h2>
+                </div>
+                <div class="col text-end">
+                    {# Items per page form - this is a SEPARATE form #}
+                    <form method="GET" action="{{ url_for('crm.contacts') }}" id="perPageForm" class="d-inline-block ms-3">
+                        {% for key, value in current_filters.items() %}
+                            {% if value %}
+                                <input type="hidden" name="{{ key }}" value="{{ value }}">
+                            {% endif %}
+                        {% endfor %}
+                        <input type="hidden" name="page" value="1">
+                        <label for="per_page_select" class="form-label-sm me-2">Show:</label>
+                        <select name="per_page" id="per_page_select" class="form-select form-select-sm d-inline-block" style="width: auto;" onchange="document.getElementById('perPageForm').submit();">
+                            {% for option in per_page_options %}
+                                <option value="{{ option }}" {% if option == current_per_page %}selected{% endif %}>{{ option }}</option>
+                            {% endfor %}
+                        </select>
+                    </form>
+                </div>
+            </div>
+        </div>
         <div class="table-responsive">
-            <table class="table table-centered table-nowrap mb-0 rounded">
+            <table class="table table-hover align-items-center">
                 <thead class="thead-light">
                     <tr>
-                        <th class="border-0 rounded-start">Name</th>
-                        <th class="border-0">Email</th>
-                        <th class="border-0">Phone</th>
-                        <th class="border-0">Company</th>
-                        <th class="border-0">Job Title</th>
-                        <th class="border-0">Status</th>
-                        <th class="border-0">Owner</th>
-                        <th class="border-0 rounded-end">Actions</th>
+                        <th scope="col" class="border-bottom" style="width: 3em;">
+                            <input class="form-check-input" type="checkbox" id="masterCheckbox">
+                        </th>
+                        <th scope="col" class="border-bottom">Name</th>
+                        <th scope="col" class="border-bottom">Email</th>
+                        <th scope="col" class="border-bottom">Phone</th>
+                        <th scope="col" class="border-bottom">Company/Account</th>
+                        <th scope="col" class="border-bottom">Status</th>
+                        <th scope="col" class="border-bottom">Assigned Rep</th>
+                        <th scope="col" class="border-bottom">Actions</th>
                     </tr>
                 </thead>
                 <tbody>
-                    {% if contacts %}
-                        {% for contact in contacts %} {# Iterate over pagination.items #}
+                    {% for contact in contacts %}
                         <tr>
-                            <td><a href="{{ url_for('crm.view_contact', contact_id=contact.id) }}">{{ contact.full_name }}</a></td>
-                            <td>{{ contact.email or 'N/A' }}</td>
-                            <td>{{ contact.phone_number or 'N/A' }}</td>
+                            <td>
+                                <input class="form-check-input contact-checkbox" type="checkbox" name="selected_contact_ids" value="{{ contact.id }}">
+                            </td>
+                            <td class="fw-bold">
+                                <a href="{{ url_for('crm.view_contact', contact_id=contact.id) }}">{{ contact.full_name }}</a>
+                            </td>
+                            <td>{{ contact.email if contact.email else 'N/A' }}</td>
+                            <td>{{ contact.phone_number if contact.phone_number else 'N/A' }}</td>
                             <td>
                                 {% if contact.crm_account %}
                                     <a href="{{ url_for('crm.view_account', account_id=contact.crm_account.id) }}">{{ contact.crm_account.name }}</a>
                                 {% else %}
-                                    -
+                                    <span class="text-muted">Not Associated</span>
                                 {% endif %}
                             </td>
-                            <td>{{ contact.job_title or 'N/A' }}</td>
-                            <td><span class="badge bg-secondary">{{ contact.status }}</span></td>
-                            <td>{{ contact.sales_rep.user.name if contact.sales_rep else 'Unknown' }}</td>
                             <td>
-                                <a href="{{ url_for('crm.view_contact', contact_id=contact.id) }}" class="btn btn-sm btn-outline-gray-600" title="View">
-                                    <i class="fas fa-eye"></i>
-                                </a>
-                                <a href="{{ url_for('crm.edit_contact', contact_id=contact.id) }}" class="btn btn-sm btn-outline-info" title="Edit">
-                                     <i class="fas fa-edit"></i>
-                                </a>
-                                <button class="btn btn-sm btn-outline-danger" title="Delete" 
-                                        data-bs-toggle="modal" 
-                                        data-bs-target="#confirmDeleteModal" 
-                                        data-delete-url="{{ url_for('crm.delete_contact', contact_id=contact.id) }}"
-                                        data-item-name="{{ contact.full_name }}"
-                                        data-csrf-token="{{ generated_csrf_token }}">
-                                    <i class="fas fa-trash-alt"></i>
-                                </button>
+                                <span class="badge bg-primary">{{ contact.status if contact.status else 'N/A' }}</span>
+                            </td>
+                            <td>
+                                {% if contact.sales_rep and contact.sales_rep.user %}
+                                    {{ contact.sales_rep.user.name }}
+                                {% elif contact.sales_rep_id %}
+                                    <span class="text-warning">Rep ID: {{ contact.sales_rep_id }} (User not found)</span>
+                                {% else %}
+                                    <span class="text-muted">Unassigned</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <a href="{{ url_for('crm.edit_contact', contact_id=contact.id) }}" class="btn btn-sm btn-outline-gray-600">Edit</a>
                             </td>
                         </tr>
-                        {% endfor %}
                     {% else %}
                         <tr>
                             <td colspan="8" class="text-center">No contacts found.</td>
                         </tr>
-                    {% endif %}
+                    {% endfor %}
                 </tbody>
             </table>
+            
+            {% if pagination %}
+                {{ render_pagination(pagination, 'crm.contacts', per_page_arg_name='per_page') }}
+                <div class="text-center mt-2">
+                    <small>Showing {{ pagination.items|length }} of {{ pagination.total }} total contacts. Page {{ pagination.page }} of {{ pagination.pages }}.</small>
+                </div>
+            {% endif %}
+
         </div>
-        
-        {# Render pagination controls #}
-        {% if pagination %}
-            {{ render_pagination(pagination, 'crm.contacts') }}
-        {% endif %}
     </div>
-</div>
+</form> {# End of bulkActionForm #}
 
 {% include 'partials/_confirm_delete_modal.html' %}
 
@@ -117,9 +226,8 @@ Manage your CRM contacts here. You can view, edit, or delete contacts.
 
 {% block extra_js %}
 {{ super() }}
-{# Add any contacts-specific JS here if needed in the future #}
 <script>
-    // JavaScript for setting data in the delete confirmation modal
+    // JavaScript for setting data in the delete confirmation modal (Keep existing)
     const confirmDeleteModal = document.getElementById('confirmDeleteModal');
     if (confirmDeleteModal) {
         confirmDeleteModal.addEventListener('show.bs.modal', function (event) {
@@ -139,5 +247,95 @@ Manage your CRM contacts here. You can view, edit, or delete contacts.
             csrfInput.value = csrfToken;
         });
     }
+
+    // ADDED: JavaScript for bulk actions (Keep existing JS from previous step)
+    document.addEventListener('DOMContentLoaded', function() {
+        const masterCheckbox = document.getElementById('masterCheckbox');
+        const contactCheckboxes = document.querySelectorAll('.contact-checkbox');
+        const bulkActionSelect = document.getElementById('bulk_action_select');
+        const assignRepControlsContainer = document.getElementById('assign_rep_controls_container');
+        const applyBulkActionButton = document.getElementById('apply_bulk_action_button');
+        const bulkActionForm = document.getElementById('bulkActionForm');
+
+        if (masterCheckbox) {
+            masterCheckbox.addEventListener('change', function() {
+                contactCheckboxes.forEach(checkbox => {
+                    checkbox.checked = masterCheckbox.checked;
+                });
+                toggleApplyButtonState();
+            });
+        }
+
+        contactCheckboxes.forEach(checkbox => {
+            checkbox.addEventListener('change', function() {
+                if (!checkbox.checked) {
+                    masterCheckbox.checked = false;
+                }
+                toggleApplyButtonState();
+            });
+        });
+
+        if (bulkActionSelect && assignRepControlsContainer) {
+            bulkActionSelect.addEventListener('change', function() {
+                if (this.value === 'assign_sales_rep') {
+                    assignRepControlsContainer.style.display = 'inline-block';
+                } else {
+                    assignRepControlsContainer.style.display = 'none';
+                }
+                toggleApplyButtonState();
+            });
+        }
+
+        function toggleApplyButtonState() {
+            if (!applyBulkActionButton) return;
+            const anyCheckboxChecked = Array.from(contactCheckboxes).some(cb => cb.checked);
+            const actionSelected = bulkActionSelect && bulkActionSelect.value !== '';
+            const assignRepActionValid = bulkActionSelect && bulkActionSelect.value === 'assign_sales_rep' && document.getElementById('bulk_assign_sales_rep_id').value !== '';
+            const otherActionSelected = bulkActionSelect && bulkActionSelect.value !== '' && bulkActionSelect.value !== 'assign_sales_rep';
+
+            if (anyCheckboxChecked && ( (bulkActionSelect.value === 'assign_sales_rep' && assignRepActionValid) || otherActionSelected) ) {
+                applyBulkActionButton.disabled = false;
+            } else {
+                applyBulkActionButton.disabled = true;
+            }
+        }
+
+        const bulkAssignSalesRepIdSelect = document.getElementById('bulk_assign_sales_rep_id');
+        if (bulkAssignSalesRepIdSelect) {
+            bulkAssignSalesRepIdSelect.addEventListener('change', toggleApplyButtonState);
+        }
+
+        if (bulkActionForm && applyBulkActionButton) {
+            applyBulkActionButton.addEventListener('click', function(event) {
+                event.preventDefault(); 
+
+                const selectedAction = bulkActionSelect.value;
+                const selectedRep = document.getElementById('bulk_assign_sales_rep_id').value;
+                const anyCheckboxChecked = Array.from(contactCheckboxes).some(cb => cb.checked);
+
+                if (!anyCheckboxChecked) {
+                    alert('Please select at least one contact.');
+                    return;
+                }
+
+                if (selectedAction === 'assign_sales_rep') {
+                    if (selectedRep === '') { 
+                        alert('Please select a sales representative to assign (or choose Unassign).');
+                        return;
+                    }
+                    bulkActionForm.action = "{{ url_for('crm.bulk_assign_rep') }}";
+                    bulkActionForm.submit();
+                } else if (selectedAction === '') {
+                    alert('Please select a bulk action to perform.');
+                    return;
+                } else {
+                    alert('Selected bulk action is not yet implemented.');
+                    return;
+                }
+            });
+        }
+        
+        toggleApplyButtonState();
+    });
 </script>
 {% endblock %} 

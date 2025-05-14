@@ -1,5 +1,5 @@
 {% extends "crm/layout.html" %}
-{% from "_formhelpers.html" import render_field, render_submit_field %}
+{% from "_formhelpers.html" import render_field, render_submit_field, render_query_select_field %}
 
 {% block page_title %}{{ title or 'Account Form' }}{% endblock %}
 
@@ -11,8 +11,11 @@
                 <h2 class="h5 mb-0">{{ legend or 'Account Details' }}</h2>
             </div>
             <div class="card-body">
-                <form method="POST" action="">
+                <form method="POST" action="{{ form_action_url or '' }}">
                     {{ form.hidden_tag() }} {# CSRF token #}
+                    {% if form.sales_rep_id_hidden %}
+                        {{ form.sales_rep_id_hidden }}
+                    {% endif %}
                     
                     <div class="mb-3">
                         {{ render_field(form.name, html_class="form-control") }}
@@ -35,10 +38,15 @@
                         {{ render_field(form.industry, html_class="form-control") }}
                     </div>
                     
-                    <div class="row mb-4">
-                        <div class="col-lg-4 col-sm-6">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
                             {{ render_field(form.status, class='form-select') }}
                         </div>
+                        {% if form.sales_rep_id %}
+                            <div class="col-md-6">
+                                {{ render_query_select_field(form.sales_rep_id, html_class='form-select') }}
+                            </div>
+                        {% endif %}
                     </div>
 
                     {% if dynamic_fields %}
@@ -46,14 +54,14 @@
                         <h5 class="mt-4 mb-3">Additional Information</h5>
                         {% for field_name, definition in dynamic_fields %}
                             <div class="mb-3">
-                                {{ render_field(form[field_name], html_class=('form-control' if definition.field_type != 'boolean' else 'form-check-input')) }}
+                                {{ render_field(form[field_name], html_class=('form-control' if definition.field_type.name != 'BOOLEAN' else 'form-check-input')) }}
                             </div>
                         {% endfor %}
                     {% endif %}
                     
                     <div class="mt-4">
                         {{ render_submit_field(form.submit, button_class="btn btn-primary") }}
-                        <a href="{{ url_for('crm.accounts') }}" class="btn btn-light ms-2">Cancel</a>
+                        <a href="{{ url_for('crm.view_account', account_id=account.id) if editing else url_for('crm.accounts') }}" class="btn btn-light ms-2">Cancel</a>
                     </div>
                 </form>
             </div>

@@ -4,6 +4,9 @@ from wtforms import StringField, PasswordField, BooleanField, SubmitField, Hidde
 from wtforms.validators import DataRequired, Email, Length, EqualTo, Optional, NumberRange, URL
 from wtforms_sqlalchemy.fields import QuerySelectField
 from flask_login import current_user
+import sys # Temporary for debugging
+from sqlalchemy import or_, false # Added false
+from wtforms.utils import unset_value # Add this import
 
 # Import models for choices and QuerySelectField
 from .models.crm_account import CrmAccount, CRM_ACCOUNT_STATUSES # Assuming CrmAccount is in models
@@ -13,6 +16,8 @@ from .models.task import Task, TASK_STATUSES, TASK_PRIORITIES # Added Task model
 from .models.deal import Deal, DEAL_STAGES # Added Deal model and stages
 from .models.custom_field import CustomFieldType, CustomFieldAppliesTo
 from .models.call_log import CALL_OUTCOMES # Added for CallLogDetailForm
+from .models.user import User # Ensure User model is imported for SalesUser relationship
+from .models.sales_user import SalesUser # Import SalesUser for the new field
 
 class LoginForm(FlaskForm):
     email = StringField('Email', validators=[DataRequired(), Email()])
@@ -135,11 +140,17 @@ class ProfilePictureForm(FlaskForm):
 
 # +++ CRM FORMS START HERE +++
 
-def get_user_crm_accounts():
-    """Query factory for CrmAccount QuerySelectField, filters by current sales_rep."""
+# MODIFIED: Renamed and returns a query object, sales managers see all accounts
+def get_user_crm_accounts_query():
+    """Query factory for CrmAccount QuerySelectField. 
+    Sales reps see their accounts. Sales managers see all accounts.
+    Returns a query object."""
     if hasattr(current_user, 'sales_profile') and current_user.sales_profile:
-        return CrmAccount.query.filter_by(sales_rep_id=current_user.sales_profile.id).order_by(CrmAccount.name).all()
-    return []
+        if current_user.sales_profile.role == 'sales_manager':
+            return CrmAccount.query # Sales managers see all accounts
+        else: # sales_rep
+            return CrmAccount.query.filter(CrmAccount.sales_rep_id == current_user.sales_profile.id)
+    return CrmAccount.query.filter(false()) # No sales profile, or no specific logic, yields no results
 
 class ContactForm(FlaskForm):
     first_name = StringField('First Name', validators=[DataRequired(), Length(max=100)])
@@ -150,10 +161,9 @@ class ContactForm(FlaskForm):
     
     crm_account = QuerySelectField(
         'Company/Account',
-        query_factory=get_user_crm_accounts,
         get_label='name',
         allow_blank=True,
-        blank_text='-- Select Company (Optional)',
+        blank_text='-- Select Company (Optional) --',
         validators=[Optional()]
     )
     
@@ -169,6 +179,85 @@ class ContactForm(FlaskForm):
     )
     
     submit = SubmitField('Save Contact')
+
+    def __init__(self, formdata=None, obj=None, **kwargs):
+        super(ContactForm, self).__init__(formdata=formdata, obj=obj, **kwargs)
+
+        current_crm_account_query_base = get_user_crm_accounts_query()
+
+        if hasattr(current_user, 'sales_profile') and current_user.sales_profile and current_user.sales_profile.role == 'sales_manager':
+            # Managers see all accounts in the dropdown.
+            self.crm_account.query = current_crm_account_query_base.order_by(CrmAccount.name)
+        else:
+            # Non-managers: Dropdown should show their accounts + the contact's currently assigned account (if any).
+            users_accounts_filter_expression = current_crm_account_query_base.whereclause
+
+            if obj and obj.crm_account_id:
+                condition_current_obj_account = (CrmAccount.id == obj.crm_account_id)
+
+                if users_accounts_filter_expression is not None:
+                    # Combine user's default accounts filter with the current object's account
+                    # This works even if users_accounts_filter_expression is false() from get_user_crm_accounts_query
+                    final_filter = or_(users_accounts_filter_expression, condition_current_obj_account)
+                else:
+                    # Fallback if base query had no filter (shouldn't happen for non-manager via get_user_crm_accounts_query)
+                    final_filter = condition_current_obj_account
+                
+                self.crm_account.query = CrmAccount.query.filter(final_filter).order_by(CrmAccount.name)
+            else:
+                # No specific contact object or it's not linked to an account.
+                # Use the base query for the user (which is already filtered for non-managers by sales_rep_id or to false()).
+                self.crm_account.query = current_crm_account_query_base.order_by(CrmAccount.name)
+
+        self.crm_account.query_factory = None # Crucial: disable factory if .query is set
+
+        # For the logic below, use the 'formdata' and 'obj' parameters
+        # that were passed into this __init__ method, NOT self.formdata or self.obj.
+
+        field_name_srid = 'sales_rep_id'
+        field_name_srid_hidden = 'sales_rep_id_hidden'
+        processed_dynamic_srid_field = False
+
+        if hasattr(current_user, 'sales_profile') and current_user.sales_profile and current_user.sales_profile.role == 'sales_manager':
+            unbound_field = QuerySelectField(
+                'Assigned Sales Rep',
+                query_factory=lambda: SalesUser.query.join(User).order_by(User.name).all(),
+                get_label=lambda x: x.user.name if x.user else 'Unknown User',
+                allow_blank=True,
+                blank_text='-- Unassigned --',
+                validators=[Optional()]
+            )
+            bound_field = unbound_field.bind(form=self, name=field_name_srid, prefix=self._prefix, _meta=self.meta)
+            setattr(self, field_name_srid, bound_field)
+            self._fields[field_name_srid] = bound_field
+            
+            data_for_field = getattr(obj, 'sales_rep', unset_value) 
+            bound_field.process(formdata.getlist(field_name_srid) if formdata else None, data=data_for_field)
+            processed_dynamic_srid_field = True
+            
+            if not hasattr(bound_field, '_formdata'):
+                bound_field._formdata = None 
+
+        elif hasattr(current_user, 'sales_profile') and current_user.sales_profile: # This is a sales_rep
+            default_value_for_hidden = obj.sales_rep_id if obj and obj.sales_rep_id else current_user.sales_profile.id
+            unbound_hidden_field = HiddenField(default=default_value_for_hidden) 
+            
+            bound_hidden_field = unbound_hidden_field.bind(form=self, name=field_name_srid_hidden, prefix=self._prefix, _meta=self.meta)
+            setattr(self, field_name_srid_hidden, bound_hidden_field)
+            self._fields[field_name_srid_hidden] = bound_hidden_field
+            
+            bound_hidden_field.process(formdata.getlist(field_name_srid_hidden) if formdata else None, data=default_value_for_hidden)
+            processed_dynamic_srid_field = True
+
+            if not hasattr(bound_hidden_field, '_formdata'):
+                bound_hidden_field._formdata = None 
+        
+        # If no dynamic sales_rep_id field was processed (e.g. user has no sales_profile), ensure no lingering field
+        if not processed_dynamic_srid_field:
+            if field_name_srid in self._fields: del self._fields[field_name_srid]
+            if hasattr(self, field_name_srid): delattr(self, field_name_srid)
+            if field_name_srid_hidden in self._fields: del self._fields[field_name_srid_hidden]
+            if hasattr(self, field_name_srid_hidden): delattr(self, field_name_srid_hidden)
 
 # You might want to add a CrmAccountForm later as well
 # class CrmAccountForm(FlaskForm):
@@ -208,6 +297,53 @@ class CrmAccountForm(FlaskForm):
     status = SelectField('Status', choices=status_choices, validators=[Optional()])
     
     submit = SubmitField('Save Account')
+
+    def __init__(self, formdata=None, obj=None, **kwargs):
+        super(CrmAccountForm, self).__init__(formdata=formdata, obj=obj, **kwargs)
+        
+        # Handling for sales_rep_id (for managers) or sales_rep_id_hidden (for non-managers)
+        field_name_srid = 'sales_rep_id'
+        field_name_srid_hidden = 'sales_rep_id_hidden'
+
+        if hasattr(current_user, 'sales_profile') and current_user.sales_profile and current_user.sales_profile.role == 'sales_manager':
+            if not hasattr(self, field_name_srid):
+                unbound_field = QuerySelectField(
+                    'Assigned Sales Rep',
+                    query_factory=lambda: SalesUser.query.join(User).order_by(User.name).all(),
+                    get_label=lambda sr: sr.user.name if sr.user else 'Unknown Rep',
+                    allow_blank=True,
+                    blank_text='-- Unassigned --'
+                )
+                bound_field = unbound_field.bind(form=self, name=field_name_srid, prefix=self._prefix, _meta=self.meta)
+                self._fields[field_name_srid] = bound_field
+                setattr(self, field_name_srid, bound_field)
+            
+            if obj and obj.sales_rep and hasattr(self, field_name_srid):
+                getattr(self, field_name_srid).data = obj.sales_rep
+        
+        else: # Non-manager or no sales profile
+            if not hasattr(self, field_name_srid_hidden):
+                unbound_hidden_field = HiddenField()
+                bound_hidden_field = unbound_hidden_field.bind(form=self, name=field_name_srid_hidden, prefix=self._prefix, _meta=self.meta)
+                self._fields[field_name_srid_hidden] = bound_hidden_field
+                setattr(self, field_name_srid_hidden, bound_hidden_field)
+
+            hidden_field_value = None
+            if obj and obj.sales_rep_id:
+                hidden_field_value = obj.sales_rep_id
+            elif not obj and hasattr(current_user, 'sales_profile') and current_user.sales_profile:
+                hidden_field_value = current_user.sales_profile.id
+            
+            hidden_field_instance = getattr(self, field_name_srid_hidden)
+            # MODIFIED: Set .data directly
+            hidden_field_instance.data = str(hidden_field_value) if hidden_field_value is not None else ''
+
+        # Explicitly process dynamically added fields if formdata is present
+        if formdata is not None:
+            if hasattr(self, field_name_srid) and field_name_srid in self._fields:
+                getattr(self, field_name_srid).process(formdata)
+            if hasattr(self, field_name_srid_hidden) and field_name_srid_hidden in self._fields:
+                getattr(self, field_name_srid_hidden).process(formdata)
 
 # --- CSV Import Form --- #
 class ImportCsvForm(FlaskForm):
@@ -280,7 +416,7 @@ class DealForm(FlaskForm):
 class LinkContactToCompanyForm(FlaskForm):
     crm_account = QuerySelectField(
         'Company/Account',
-        query_factory=get_user_crm_accounts, # Reuse the existing query factory
+        query_factory=get_user_crm_accounts_query, # Reuse the existing query factory
         get_label='name',
         allow_blank=True, # Allow unlinking by selecting blank
         blank_text='-- Unlink/Select No Company --',

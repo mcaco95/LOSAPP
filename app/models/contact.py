@@ -6,7 +6,7 @@ class Contact(db.Model):
     __tablename__ = 'crm_contact'
 
     id = db.Column(db.Integer, primary_key=True)
-    sales_rep_id = db.Column(db.Integer, db.ForeignKey('sales_user.id'), nullable=False, index=True)
+    sales_rep_id = db.Column(db.Integer, db.ForeignKey('sales_user.id'), nullable=True, index=True)
     crm_account_id = db.Column(db.Integer, db.ForeignKey('crm_account.id'), nullable=True, index=True)
     
     first_name = db.Column(db.String(100), nullable=False)

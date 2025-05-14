@@ -12,13 +12,40 @@
     <form method="POST" action="{{ url_for('crm.process_mapped_import') }}">
         {{ form.csrf_token }} {# Use the csrf_token from the passed form object #}
 
-        <p>For each column header from your CSV file listed below, select the CRM field it corresponds to, or choose 'Ignore this column' if you don't want to import it.</p>
+        {# --- ADDED: Global Owner Assignment Dropdown --- #}
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <label for="import_owner_sales_rep_id" class="form-label">Assign Owner for New Records:</label>
+                <select name="import_owner_sales_rep_id" id="import_owner_sales_rep_id" class="form-select">
+                    <option value="_current_user_" selected>
+                        Current User ({{ current_user.sales_profile.user.username if current_user.sales_profile and current_user.sales_profile.user else 'You' }})
+                    </option>
+                    <option value="_unassigned_">Unassigned (No Owner)</option>
+                    {% if sales_users_list %}
+                        <optgroup label="Specific User">
+                        {% for s_user in sales_users_list %}
+                            {# Avoid listing the current user again if they are in sales_users_list #}
+                            {% if not (current_user.is_authenticated and current_user.sales_profile and current_user.sales_profile.id == s_user.id) %}
+                            <option value="{{ s_user.id }}">{{ s_user.user.username if s_user.user else 'User ID: ' + s_user.id|string }}</option>
+                            {% endif %}
+                        {% endfor %}
+                        </optgroup>
+                    {% endif %}
+                </select>
+                <small class="form-text text-muted">This owner will be assigned to all newly created records from this CSV, unless a column is specifically mapped to an owner field (future feature).</small>
+            </div>
+        </div>
+        <hr class="my-4">
+        {# --- END ADDED --- #}
+
+        <p>For each column header from your CSV file listed below, select the CRM field it corresponds to. You can also choose to create a new custom field from a column, or ignore it.</p>
 
         <table class="table table-striped table-bordered">
             <thead class="thead-light">
                 <tr>
                     <th>CSV Header</th>
                     <th>Map to CRM Field</th>
+                    <th style="width: 200px;">Field Type (if new)</th> {# New column for field type #}
                 </tr>
             </thead>
             <tbody>
@@ -26,21 +53,33 @@
                 <tr>
                     <td>{{ header }}</td>
                     <td>
-                        <select name="map_{{ loop.index0 }}" class="form-select form-select-sm">
-                            <option value="_ignore_">-- Ignore this column --</option>
-                            {% for field_key, field_label in target_fields.items() %}
-                                {# Attempt to pre-select if header matches (case-insensitive, space-insensitive) #}
-                                {% set simple_header = header.lower().replace(' ', '').replace('_', '') %}
-                                {% set simple_field_key = field_key.lower().replace(' ', '').replace('_', '') %}
-                                {% set simple_field_label = field_label.lower().replace(' ', '').replace('_', '') %}
-                                
-                                <option value="{{ field_key }}" 
-                                        {% if simple_header == simple_field_key or simple_header == simple_field_label %}
-                                            selected
-                                        {% endif %}>
-                                    {{ field_label }}
+                        {# Main Mapping Dropdown #}
+                        <select name="map_{{ loop.index0 }}" class="form-select form-select-sm csv-column-mapper" data-header-index="{{ loop.index0 }}">
+                            {# mapping_choices is now passed from the route #}
+                            {% for choice_value, choice_label in mapping_choices %}
+                                <option value="{{ choice_value }}"
+                                    {# Basic pre-selection attempt for existing fields - can be refined #}
+                                    {% if header.lower().replace(' ', '').replace('_', '') == choice_label.lower().replace(' ', '').replace('_', '').replace('custom:', '') %}
+                                        selected
+                                    {% endif %}>
+                                    {{ choice_label }}
                                 </option>
                             {% endfor %}
+                        </select>
+                        
+                        {# Hidden input to store the original CSV header name for this row #}
+                        {# This is used if a new custom field is created from this header #}
+                        <input type="hidden" name="new_custom_field_original_name_{{ loop.index0 }}" value="{{ header }}">
+                    </td>
+                    {# Container for the "Field Type" dropdown, initially hidden #}
+                    <td class="new-field-type-container" id="new-field-type-container-{{ loop.index0 }}" style="display: none;">
+                        <select name="new_custom_field_type_{{ loop.index0 }}" class="form-select form-select-sm">
+                            <option value="" disabled selected>Select Field Type</option>
+                            <option value="TEXT">Text</option>
+                            <option value="NUMBER">Number</option>
+                            <option value="DATE">Date</option>
+                            <option value="BOOLEAN">True/False (Yes/No)</option>
+                            {# Add other CustomFieldType enum values from your Python enum if needed, e.g., DROPDOWN (though creating dropdown options here is complex) #}
                         </select>
                     </td>
                 </tr>
@@ -55,13 +94,13 @@
                     {% if import_type == 'contacts' %}
                         <li>For <strong>Contacts</strong>, 'Last Name' or 'Email' is recommended for each contact.</li>
                         <li>If mapping to 'Account Name (for linking)', the system will try to link to an existing Account with that exact name (case-sensitive) belonging to you. If not found, the contact will be created without an account link.</li>
-                        <li>Existing contacts (matched by email, if provided) will be skipped to avoid duplicates.</li>
+                        <li>Existing contacts (matched by email, if provided) will be skipped to avoid duplicates unless you map to an existing contact ID.</li>
                     {% elif import_type == 'accounts' %}
                         <li>For <strong>Accounts</strong>, 'Account Name' is required for each account.</li>
-                        <li>Existing accounts (matched by name) will be skipped to avoid duplicates.</li>
+                        <li>Existing accounts (matched by name) will be skipped to avoid duplicates unless you map to an existing account ID.</li>
                     {% endif %}
                      <li>Ensure your CSV file is encoded in UTF-8 (UTF-8 with BOM is also supported).</li>
-                     <li>For fields like 'Custom Data', if you provide valid JSON text (e.g., `{"key": "value"}`), it will be stored as a JSON object. Otherwise, it will be stored as plain text. If multiple columns from your CSV are mapped to 'Custom Data', they will be grouped into a JSON object using their original CSV header names as keys.</li>
+                     <li>If you choose '+ Create a New Custom Field...', its name will be the CSV Header and you must select its type. If a custom field with that name already exists for this import type, data will be mapped to the existing field.</li>
                 </ul>
             </p>
         </div>
@@ -76,4 +115,44 @@
 </div>
 
 <p>DEBUG: BOTTOM OF APP_CONTENT BLOCK</p>
+
+{% block scripts %}
+{# {{ super() }} #} {# Removed super() as base.html might not have a scripts block #}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const mainMappers = document.querySelectorAll('.csv-column-mapper');
+
+    mainMappers.forEach(function(mapperSelect) {
+        // Function to update visibility based on selection
+        function updateFieldTypeVisibility(selectElement) {
+            const selectedValue = selectElement.value;
+            const headerIndex = selectElement.dataset.headerIndex; // Get the index from data-attribute
+            const fieldTypeContainer = document.getElementById('new-field-type-container-' + headerIndex);
+            const fieldTypeSelect = fieldTypeContainer ? fieldTypeContainer.querySelector('select[name^="new_custom_field_type_"]') : null;
+
+            if (selectedValue === '_create_new_custom_field_') {
+                if (fieldTypeContainer) fieldTypeContainer.style.display = 'table-cell'; // Or 'block' if not in a table layout
+                if (fieldTypeSelect) fieldTypeSelect.required = true; 
+            } else {
+                if (fieldTypeContainer) fieldTypeContainer.style.display = 'none';
+                if (fieldTypeSelect) {
+                     fieldTypeSelect.required = false;
+                     fieldTypeSelect.value = ""; // Reset selection
+                }
+            }
+        }
+
+        // Attach event listener
+        mapperSelect.addEventListener('change', function() {
+            updateFieldTypeVisibility(this);
+        });
+
+        // Initial check in case the form is re-rendered with previous selections
+        // (e.g., after a validation error on the server-side for a different field)
+        updateFieldTypeVisibility(mapperSelect);
+    });
+});
+</script>
+{% endblock scripts %}
+
 {% endblock content %} 

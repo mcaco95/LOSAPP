@@ -18,7 +18,7 @@ from ..models.contact import Contact, CONTACT_STATUSES, CONTACT_SOURCES  # Added
 from ..models.note import Note # Added Note model
 from ..models.task import Task, TASK_STATUSES, TASK_PRIORITIES # Import Task model and constants
 from ..models.deal import Deal, DEAL_STAGES # Import Deal model and constants
-from ..forms import ContactForm, NoteForm, CrmAccountForm, ImportCsvForm, TaskForm, DealForm, LinkContactToCompanyForm, CustomFieldDefinitionForm # Added LinkContactToCompanyForm and CustomFieldDefinitionForm
+from ..forms import ContactForm, NoteForm, CrmAccountForm, ImportCsvForm, TaskForm, DealForm, LinkContactToCompanyForm, CustomFieldDefinitionForm, get_user_crm_accounts_query # Added LinkContactToCompanyForm and CustomFieldDefinitionForm, and get_user_crm_accounts_query
 from ..forms import CallLogDetailForm # Added CallLogDetailForm
 from ..models.custom_field import CustomFieldDefinition, CustomFieldValue, CustomFieldType, CustomFieldAppliesTo # Import custom field models and enums
 from twilio.jwt.access_token import AccessToken
@@ -32,6 +32,7 @@ import os # For os.path and os.makedirs
 import uuid # For unique filenames
 from urllib.parse import urlencode
 import re
+from ..models.user import User # Ensure User model is imported
 
 # --- ADDED NEW HELPER FUNCTION for dynamic form class creation ---
 def create_dynamic_form_class(BaseFormClass, entity_type):
@@ -469,34 +470,91 @@ def dashboard_data():
 @login_required
 @sales_required
 def contacts():
-    """List contacts based on user role."""
+    """List contacts based on user role, now with pagination and filtering."""
     if not current_user.sales_profile:
         flash('Sales profile not found for this user.', 'error')
-        return redirect(url_for('main.dashboard')) 
+        return redirect(url_for('main.dashboard'))
 
     page = request.args.get('page', 1, type=int)
-    per_page = current_app.config.get('ITEMS_PER_PAGE', 15)
+    # MODIFIED: Allow user to select items per page
+    valid_per_page_options = [10, 20, 50, 100]
+    default_per_page = current_app.config.get('ITEMS_PER_PAGE', 15) # Keep a general default
+    if default_per_page not in valid_per_page_options:
+         # Ensure default_per_page is one of the options, or pick the smallest if not
+        default_per_page = valid_per_page_options[0] if not any(v > default_per_page for v in valid_per_page_options) else min(valid_per_page_options)
+
+    per_page = request.args.get('per_page', default_per_page, type=int)
+    if per_page not in valid_per_page_options:
+        per_page = default_per_page # Fallback to default if invalid value is passed
+    
+    # Filter parameters
+    sales_rep_id_filter = request.args.get('sales_rep_id_filter', '') # Empty string for 'Any' or 'All'
+    crm_account_id_filter = request.args.get('crm_account_id_filter', '') # Empty string for 'Any' or 'All'
+    status_filter = request.args.get('status_filter', '') # Empty string for 'Any' or 'All'
+
     page_title = "My Contacts"
     query = Contact.query
+    is_manager = hasattr(current_user, 'sales_profile') and current_user.sales_profile and current_user.sales_profile.role == 'sales_manager'
 
-    # Check ONLY for Sales Manager role for elevated access
-    if hasattr(current_user, 'sales_profile') and current_user.sales_profile and current_user.sales_profile.role == 'sales_manager':
-        query = query.order_by(Contact.last_name, Contact.first_name)
-        page_title = "All CRM Contacts"
+    if is_manager:
+        page_title = "All Contacts"
+        # Managers can see all contacts by default, or filter by a specific sales rep
+        if sales_rep_id_filter:
+            if sales_rep_id_filter == 'unassigned':
+                query = query.filter(Contact.sales_rep_id.is_(None))
+            else:
+                query = query.filter(Contact.sales_rep_id == sales_rep_id_filter)
     else:
-        # Sales Reps see only their own contacts (or if user has no role/is not manager)
-        query = query.filter(Contact.sales_rep_id == current_user.sales_profile.id)\
-                     .order_by(Contact.last_name, Contact.first_name)
+        # Non-managers see only their own contacts
+        query = query.filter(Contact.sales_rep_id == current_user.sales_profile.id)
+        # Non-managers cannot filter by sales_rep_id, so sales_rep_id_filter is ignored for them in query building
+
+    # Filter by CRM Account
+    if crm_account_id_filter:
+        if crm_account_id_filter == 'unassigned':
+            query = query.filter(Contact.crm_account_id.is_(None))
+        else:
+            query = query.filter(Contact.crm_account_id == crm_account_id_filter)
+
+    # Filter by Status
+    if status_filter:
+        query = query.filter(Contact.status == status_filter)
+
+    # Ordering
+    if is_manager:
+        query = query.order_by(Contact.last_name, Contact.first_name)
+    else:
+        query = query.order_by(Contact.last_name, Contact.first_name) # Or specific order for user's contacts
+
+    pagination = query.paginate(page=page, per_page=per_page, error_out=False)
+    contacts_on_page = pagination.items
+
+    # Data for filter dropdowns
+    sales_reps_for_filter = []
+    if is_manager:
+        sales_reps_for_filter = SalesUser.query.join(User).order_by(User.name).all()
     
-    # Use pagination
-    contacts_pagination = query.paginate(page=page, per_page=per_page, error_out=False)
-    user_contacts = contacts_pagination.items
-    
+    # For account filter, consider which accounts should be listable.
+    # For now, all accounts. Could be refined to accounts relevant to the manager's team or user's accounts.
+    accounts_for_filter = CrmAccount.query.order_by(CrmAccount.name).all()
+
     return render_template('crm/contacts.html', 
-                           contacts=user_contacts, 
-                           pagination=contacts_pagination, # Pass pagination object
-                           title=page_title,
-                           generated_csrf_token=generate_csrf())
+                           title=page_title, 
+                           contacts=contacts_on_page, 
+                           pagination=pagination,
+                           is_manager=is_manager,
+                           sales_reps_for_filter=sales_reps_for_filter,
+                           accounts_for_filter=accounts_for_filter,
+                           contact_statuses=CONTACT_STATUSES,
+                           current_filters={ # Pass current filters back to the template
+                               'sales_rep_id': sales_rep_id_filter,
+                               'crm_account_id': crm_account_id_filter,
+                               'status': status_filter
+                           },
+                           # ADDED: Pass per_page and options to template
+                           current_per_page=per_page,
+                           per_page_options=valid_per_page_options
+                           )
 
 @crm_bp.route('/contacts/new', methods=['GET', 'POST'])
 @login_required
@@ -511,12 +569,26 @@ def create_contact():
             flash('Specified company not found or access denied.', 'warning')
             # Decide: redirect or just don't preselect? For now, just don't preselect.
 
-    # Pass preselected_account to the form if it exists, otherwise ContactForm handles it
-    form = ContactForm(crm_account=preselected_account) if preselected_account else ContactForm()
-    
-    # Dynamically add custom fields to the form
-    # The helper returns a list of (field_name, definition_object) tuples
-    dynamic_fields = create_dynamic_form_class(ContactForm, CustomFieldAppliesTo.CONTACT)[1]
+    # Dynamically create the form class incorporating custom fields
+    DynamicContactForm, dynamic_fields = create_dynamic_form_class(ContactForm, CustomFieldAppliesTo.CONTACT)
+
+    form = DynamicContactForm(request.form if request.method == 'POST' else None, obj=contact)
+
+    # --- MODIFICATION for contact form Company/Account dropdown ---
+    # This logic is now handled inside ContactForm.__init__
+    # current_crm_account_query = get_user_crm_accounts_query() 
+    # if contact and contact.crm_account_id:
+    #     if hasattr(current_user, 'sales_profile') and current_user.sales_profile.role == 'sales_manager':
+    #         form.crm_account.query = current_crm_account_query.order_by(CrmAccount.name) # Manager sees all
+    #     else:
+    #         # Rep sees their own + current linked
+    #         filter_condition = (CrmAccount.sales_rep_id == current_user.sales_profile.id) if hasattr(current_user, 'sales_profile') and current_user.sales_profile else false()
+    #         filter_condition = or_((CrmAccount.id == contact.crm_account_id), filter_condition)
+    #         form.crm_account.query = CrmAccount.query.filter(filter_condition).order_by(CrmAccount.name)
+    # else:
+    #     form.crm_account.query = current_crm_account_query.order_by(CrmAccount.name)
+    # form.crm_account.query_factory = None # Disable factory
+    # --- END MODIFICATION ---
 
     if form.validate_on_submit():
         # Global email uniqueness check
@@ -634,91 +706,129 @@ def view_contact(contact_id):
 @login_required
 @sales_required
 def edit_contact(contact_id):
-    """Edit an existing contact, including dynamic custom fields."""
-    query = Contact.query.filter_by(id=contact_id)
-    if not current_user.sales_profile.role == 'sales_manager':
-        query = query.filter_by(sales_rep_id=get_current_sales_rep_id())
-    contact = query.first_or_404()
+    """Edit an existing contact, including dynamic custom fields and owner assignment for managers."""
+    contact_query = Contact.query.filter_by(id=contact_id)
+    is_manager = hasattr(current_user, 'sales_profile') and current_user.sales_profile and current_user.sales_profile.role == 'sales_manager'
 
-    # Dynamically create the form class with custom fields
+    if not is_manager:
+        contact_query = contact_query.filter_by(sales_rep_id=get_current_sales_rep_id())
+    
+    contact = contact_query.first_or_404()
+
     DynamicContactForm, dynamic_fields = create_dynamic_form_class(ContactForm, CustomFieldAppliesTo.CONTACT)
 
     if request.method == 'POST':
-        # --- POST Request Handling --- 
-        # Instantiate the dynamic form with POST data
-        form = DynamicContactForm(request.form)
+        form = DynamicContactForm(request.form) # MODIFIED: Populate from formdata on POST
+    else: # GET request
+        form = DynamicContactForm(obj=contact) # MODIFIED: Populate from object on GET
+        # Pre-populate custom fields for display on GET
+        for field_name, definition in dynamic_fields:
+            if hasattr(form, field_name):
+                value_obj = CustomFieldValue.query.filter_by(
+                    definition_id=definition.id, 
+                    contact_id=contact.id
+                ).first()
+                if value_obj:
+                    field = getattr(form, field_name)
+                    if definition.field_type == CustomFieldType.BOOLEAN:
+                        field.data = value_obj.value.lower() == 'true'
+                    elif definition.field_type == CustomFieldType.DATE and value_obj.value:
+                        try:
+                            field.data = datetime.strptime(value_obj.value, '%Y-%m-%d').date()
+                        except ValueError:
+                            current_app.logger.warning(f"Could not parse date for custom field {definition.name} for contact {contact.id}: {value_obj.value}")
+                            field.data = None
+                    else: # Text, Number, Dropdown
+                        field.data = value_obj.value
+        
+        # Pre-populate sales_rep_id for managers on GET
+        if is_manager and hasattr(form, 'sales_rep_id'):
+            if contact.sales_rep:
+                 form.sales_rep_id.data = contact.sales_rep
+            else:
+                 form.sales_rep_id.data = None # Ensure "Unassigned" is shown if not set
+        
+        # Pre-populate crm_account field on GET
+        if hasattr(form, 'crm_account'):
+            if is_manager:
+                form.crm_account.query = CrmAccount.query.order_by(CrmAccount.name).all()
+            else:
+                # For non-managers, the query is set up in ContactForm.__init__ based on get_user_crm_accounts_query()
+                # and potential existing linked account. We just need to set the data.
+                # The query logic inside ContactForm.__init__ should handle showing correct options.
+                # We ensure the current value is pre-selected.
+                pass # Query is handled by form init, data will be set by obj=contact
+            # Pre-select current account if linked (obj=contact should handle this, but explicit can be a fallback)
+            if contact.crm_account:
+                form.crm_account.data = contact.crm_account
 
-        if form.validate():
-            # Update standard fields (extracting from form.data)
+
+    if form.validate_on_submit(): # This is effectively for POST
+        try:
             contact.first_name = form.first_name.data.strip()
-            contact.last_name = form.last_name.data.strip()
+            contact.last_name = form.last_name.data.strip() if form.last_name.data else None
             contact.email = form.email.data.strip() if form.email.data else None
-            contact.phone_number = form.phone_number.data.strip() if form.phone_number.data else None
+            contact.phone_number = form.phone_number.data.strip()
             contact.job_title = form.job_title.data.strip() if form.job_title.data else None
             contact.status = form.status.data
-            contact.source = form.source.data
-            contact.crm_account_id = form.crm_account.data.id if form.crm_account.data else None
-            
-            db.session.add(contact) # Add contact to session before custom fields
-            # Process and save custom fields (using dynamic_fields list)
-            save_custom_field_values(form, CustomFieldAppliesTo.CONTACT, contact, dynamic_fields)
-            
-            try:
-                db.session.commit()
-                flash(f'{contact.full_name} updated successfully!', 'success')
-                return redirect(url_for('.view_contact', contact_id=contact.id))
-            except Exception as e:
-                db.session.rollback()
-                current_app.logger.error(f"Error updating contact {contact_id}: {e}")
-                flash('Error updating contact. Please check the data and try again.', 'danger')
-        else:
-            flash('Please correct the errors below.', 'warning')
-            # Re-render using the same dynamic form instance (form) which now contains errors
-            return render_template('crm/contact_form.html', form=form, title=f"Edit {contact.full_name}", legend="Edit Contact Details", contact_id=contact_id, dynamic_fields=dynamic_fields)
-            
-    else: # request.method == 'GET'
-        # --- GET Request Handling --- 
-        # Prepare initial data dictionary
-        form_data = {
-            # ... (standard fields from contact) ...
-            'first_name': contact.first_name,
-            'last_name': contact.last_name,
-            'email': contact.email,
-            'phone_number': contact.phone_number,
-            'job_title': contact.job_title,
-            'crm_account': contact.crm_account, # Pass the object for QuerySelectField
-            'status': contact.status,
-            'source': contact.source
-        }
-        # Fetch and add existing custom values (correctly typed) to form_data
-        # ... (logic to populate form_data[field_name] = typed_value) ...
-        from sqlalchemy.orm import joinedload
-        values_query = CustomFieldValue.query.filter(
-            CustomFieldValue.contact_id == contact.id
-        ).options(joinedload(CustomFieldValue.definition))
-        existing_values_list = values_query.all()
-        for val in existing_values_list:
-            field_name = f"custom_{val.definition_id}"
-            definition = val.definition
-            raw_value = val.value
-            try:
-                if definition.field_type == CustomFieldType.NUMBER:
-                    form_data[field_name] = int(raw_value) if raw_value else None
-                elif definition.field_type == CustomFieldType.DATE:
-                    form_data[field_name] = datetime.strptime(raw_value, '%Y-%m-%d').date() if raw_value else None
-                elif definition.field_type == CustomFieldType.BOOLEAN:
-                    form_data[field_name] = str(raw_value).lower() in ['true', '1', 'yes', 'on']
-                else: # TEXT, DROPDOWN
-                    form_data[field_name] = raw_value
-            except (ValueError, TypeError) as e:
-                current_app.logger.warning(f"Error parsing existing custom field value for {field_name} (Def ID: {definition.id}, Value: '{raw_value}'): {e}")
-                form_data[field_name] = None
+            contact.source = form.source.data if form.source.data else None
 
-        # Instantiate the dynamic form with the prepared data
-        form = DynamicContactForm(data=form_data)
-        
-        # Render template with the dynamic form instance and the list of fields
-        return render_template('crm/contact_form.html', form=form, title=f"Edit {contact.full_name}", legend="Edit Contact Details", contact_id=contact_id, dynamic_fields=dynamic_fields)
+            if hasattr(form, 'crm_account'):
+                selected_account = form.crm_account.data
+                contact.crm_account_id = selected_account.id if selected_account else None
+            
+            if is_manager and hasattr(form, 'sales_rep_id'):
+                selected_sales_rep_from_form_field = form.sales_rep_id.data # This is what WTForms processed
+                
+                if selected_sales_rep_from_form_field is None:
+                    raw_sales_rep_id = request.form.get('sales_rep_id')
+                    # Check if raw_sales_rep_id is not None and not the typical blank value string for QuerySelectField
+                    # The blank value can sometimes be an empty string or specific strings like '__None' depending on field setup.
+                    if raw_sales_rep_id and raw_sales_rep_id not in ['', '__None']:
+                        try:
+                            sales_rep_id_int = int(raw_sales_rep_id)
+                            fetched_sales_rep = SalesUser.query.get(sales_rep_id_int)
+                            if fetched_sales_rep:
+                                selected_sales_rep_from_form_field = fetched_sales_rep
+                                current_app.logger.info(f"Manager edit_contact: form.sales_rep_id.data was None, but successfully fetched SalesUser ID {sales_rep_id_int} from request.form.")
+                            else:
+                                current_app.logger.warning(f"Manager edit_contact: form.sales_rep_id.data was None, raw form ID {raw_sales_rep_id} did not match any SalesUser.")
+                        except ValueError:
+                            current_app.logger.warning(f"Manager edit_contact: form.sales_rep_id.data was None, raw form ID {raw_sales_rep_id} is not a valid integer.")
+                
+                if selected_sales_rep_from_form_field: 
+                    contact.sales_rep_id = selected_sales_rep_from_form_field.id
+                    contact.sales_rep = selected_sales_rep_from_form_field 
+                else: 
+                    contact.sales_rep_id = None
+                    contact.sales_rep = None 
+            elif not is_manager and hasattr(form, 'sales_rep_id_hidden'):
+                pass 
+
+            db.session.add(contact)
+            save_custom_field_values(form, CustomFieldAppliesTo.CONTACT, contact, dynamic_fields)
+            db.session.commit()
+
+            flash(f'Contact "{contact.full_name}" updated successfully!', 'success')
+            return redirect(url_for('crm.view_contact', contact_id=contact.id))
+        except Exception as e:
+            db.session.rollback()
+            current_app.logger.error(f"Error updating contact {contact_id}: {e}")
+            flash(f'Error updating contact: {str(e)}.', 'danger')
+
+    # If POST and validation failed, WTForms retains submitted data in 'form'.
+    # The GET pre-population logic above handles initial form display.
+    
+    page_title = f"Edit Contact: {contact.full_name}"
+    form_action_url = url_for('crm.edit_contact', contact_id=contact.id)
+
+    return render_template('crm/contact_form.html', 
+                           form=form, 
+                           title=page_title, 
+                           contact=contact,
+                           form_action_url=form_action_url,
+                           dynamic_fields=dynamic_fields,
+                           editing=True)
 
 @crm_bp.route('/contacts/<int:contact_id>/delete', methods=['POST'])
 @login_required
@@ -827,71 +937,293 @@ def add_note(contact_id):
 
     return redirect(url_for('crm.view_contact', contact_id=contact.id))
 
+@crm_bp.route('/contacts/bulk-assign-rep', methods=['POST'])
+@login_required
+@sales_required
+@csrf.exempt # ADDED: Exempt from global CSRF for this specific manual POST handling
+def bulk_assign_rep():
+    """Handle bulk assignment of sales representative to selected contacts."""
+    current_app.logger.debug(f"BULK ASSIGN REP - Request Form DATA: {request.form}") # DEBUG LINE
+
+    # We still expect a csrf_token in the form due to {{ csrf_token() }} in the template
+    # Manual check can be added here if desired, but exemption handles the 400 error.
+    # validate_csrf(request.form.get('csrf_token')) # Example manual validation
+
+    if not (hasattr(current_user, 'sales_profile') and current_user.sales_profile and current_user.sales_profile.role == 'sales_manager'):
+        flash('You do not have permission to perform this bulk action.', 'danger')
+        return redirect(url_for('crm.contacts'))
+
+    contact_ids = request.form.getlist('selected_contact_ids')
+    new_sales_rep_id_str = request.form.get('bulk_assign_sales_rep_id')
+    action = request.form.get('bulk_action')
+
+    if action != 'assign_sales_rep':
+        flash('Invalid bulk action specified.', 'warning')
+        return redirect(url_for('crm.contacts'))
+
+    if not contact_ids:
+        flash('No contacts were selected for bulk assignment.', 'warning')
+        return redirect(url_for('crm.contacts'))
+
+    if not new_sales_rep_id_str: # This means "-- Select Sales Rep --" was chosen, which shouldn't happen if JS enables button correctly
+        flash('No sales representative was selected for assignment.', 'warning')
+        return redirect(url_for('crm.contacts'))
+
+    target_sales_rep_id = None
+    target_sales_rep_obj = None
+
+    if new_sales_rep_id_str == '_unassigned_':
+        target_sales_rep_id = None
+        # target_sales_rep_obj remains None
+    else:
+        try:
+            target_sales_rep_id = int(new_sales_rep_id_str)
+            target_sales_rep_obj = SalesUser.query.get(target_sales_rep_id)
+            if not target_sales_rep_obj:
+                flash(f'Selected sales representative (ID: {target_sales_rep_id}) not found.', 'danger')
+                return redirect(url_for('crm.contacts'))
+        except ValueError:
+            flash(f'Invalid sales representative ID format: {new_sales_rep_id_str}.', 'danger')
+            return redirect(url_for('crm.contacts'))
+
+    updated_count = 0
+    error_count = 0
+    processed_contact_ids = []
+
+    for contact_id_str in contact_ids:
+        try:
+            contact_id = int(contact_id_str)
+            contact = Contact.query.get(contact_id)
+            if contact:
+                # Managers can assign any contact to any rep or unassign
+                contact.sales_rep_id = target_sales_rep_id
+                contact.sales_rep = target_sales_rep_obj # Assign the SalesUser object or None
+                db.session.add(contact)
+                updated_count += 1
+                processed_contact_ids.append(contact_id)
+            else:
+                current_app.logger.warning(f"Bulk assign: Contact ID {contact_id_str} not found.")
+                error_count += 1
+        except ValueError:
+            current_app.logger.warning(f"Bulk assign: Invalid Contact ID {contact_id_str} received.")
+            error_count += 1
+        except Exception as e:
+            current_app.logger.error(f"Bulk assign: Error processing contact ID {contact_id_str}: {e}")
+            error_count += 1
+            db.session.rollback() # Rollback for this specific contact error if needed, or rely on final commit/rollback
+            # For safety, break or ensure this error is handled if partial success is not desired.
+
+    if updated_count > 0:
+        try:
+            db.session.commit()
+            assigned_to_name = target_sales_rep_obj.user.name if target_sales_rep_obj and target_sales_rep_obj.user else "Unassigned"
+            flash(f'{updated_count} contacts successfully assigned to {assigned_to_name}.', 'success')
+        except Exception as e_commit:
+            db.session.rollback()
+            current_app.logger.error(f"Bulk assign: Error committing changes: {e_commit}")
+            flash('An error occurred while saving changes. Some assignments may not have been processed.', 'danger')
+            error_count += updated_count # Consider these as errors if commit failed
+            updated_count = 0
+    
+    if error_count > 0:
+        flash(f'Could not process assignments for {error_count} selected records. Please check logs.', 'warning')
+
+    # Preserve filters and pagination by redirecting with existing args
+    redirect_url = url_for('crm.contacts', **request.args)
+    return redirect(redirect_url)
+
 # --- CrmAccount Routes --- #
 @crm_bp.route('/accounts')
 @login_required
 @sales_required
 def accounts():
-    """List CRM accounts based on user role."""
+    """List CRM accounts based on user role, now with pagination and filtering."""
     if not current_user.sales_profile:
         flash('Sales profile not found for this user.', 'error')
         return redirect(url_for('main.dashboard'))
 
     page = request.args.get('page', 1, type=int)
-    per_page = current_app.config.get('ITEMS_PER_PAGE', 15)
+    
+    valid_per_page_options = [10, 20, 50, 100]
+    default_per_page = current_app.config.get('ITEMS_PER_PAGE_ACCOUNTS', 15) 
+    if default_per_page not in valid_per_page_options:
+        default_per_page = valid_per_page_options[0]
+
+    per_page = request.args.get('per_page', default_per_page, type=int)
+    if per_page not in valid_per_page_options:
+        per_page = default_per_page
+    
+    # Filter parameters
+    sales_rep_id_filter = request.args.get('sales_rep_id_filter', '') 
+    status_filter = request.args.get('status_filter', '')
+
     page_title = "My Companies/Accounts"
     query = CrmAccount.query
+    is_manager = hasattr(current_user, 'sales_profile') and current_user.sales_profile and current_user.sales_profile.role == 'sales_manager'
 
-    # Check ONLY for Sales Manager role for elevated access
-    if hasattr(current_user, 'sales_profile') and current_user.sales_profile and current_user.sales_profile.role == 'sales_manager':
-        # --- ADDED Optimization for Manager View ---
+    if is_manager:
+        page_title = "All CRM Companies/Accounts"
+        # Managers can see all accounts by default, or filter by a specific sales rep
+        if sales_rep_id_filter:
+            if sales_rep_id_filter == 'unassigned':
+                query = query.filter(CrmAccount.sales_rep_id.is_(None))
+            else:
+                query = query.filter(CrmAccount.sales_rep_id == sales_rep_id_filter)
+    else:
+        # Non-managers see only their own accounts
+        query = query.filter(CrmAccount.sales_rep_id == current_user.sales_profile.id)
+        # Non-managers cannot filter by sales_rep_id, so sales_rep_id_filter is ignored for them in query building
+
+    # Filter by Status
+    if status_filter:
+        query = query.filter(CrmAccount.status == status_filter)
+
+    # Ordering
+    if is_manager:
+        # Eager load sales_rep and user for managers to avoid N+1 queries in template
         from sqlalchemy.orm import joinedload
-        from ..models.sales_user import SalesUser # Import SalesUser if not already imported at top
         query = query.options(
             joinedload(CrmAccount.sales_rep).joinedload(SalesUser.user)
         ).order_by(CrmAccount.name)
-        # --- END ADDED --- 
-        # query = query.order_by(CrmAccount.name) # Original line replaced by optimized query
-        page_title = "All CRM Companies/Accounts"
     else:
-        # Sales Reps see only their own accounts (or if user has no role/is not manager)
-        query = query.filter(CrmAccount.sales_rep_id == current_user.sales_profile.id)\
-                     .order_by(CrmAccount.name)
-
-    # Use pagination
+        query = query.order_by(CrmAccount.name)
+    
     accounts_pagination = query.paginate(page=page, per_page=per_page, error_out=False)
     user_accounts = accounts_pagination.items
     
-    # --- ADDED: Fetch Custom Fields --- 
+    # Data for filter dropdowns
+    sales_reps_for_filter = []
+    if is_manager:
+        sales_reps_for_filter = SalesUser.query.join(User).order_by(User.name).all()
+    
+    current_filters = {
+        'sales_rep_id_filter': sales_rep_id_filter,
+        'status_filter': status_filter
+    }
+
+    # --- EXISTING: Fetch Custom Fields --- 
     custom_field_defs_query = CustomFieldDefinition.query.filter_by(applies_to=CustomFieldAppliesTo.ACCOUNT).order_by(CustomFieldDefinition.name).all()
-    # Convert definitions to dictionaries *before* passing to template
     custom_field_defs_dicts = [definition.to_dict() for definition in custom_field_defs_query]
     
     account_ids_on_page = [acc.id for acc in user_accounts]
     custom_field_values_for_page = {}
-    if account_ids_on_page and custom_field_defs_dicts: # Check the dicts list
-        # Fetch all values for the accounts on this page and for the relevant definitions in one go
+    if account_ids_on_page and custom_field_defs_dicts:
         values_query = CustomFieldValue.query.filter(
             CustomFieldValue.account_id.in_(account_ids_on_page),
-            CustomFieldValue.definition_id.in_([d['id'] for d in custom_field_defs_dicts]) # Use IDs from dicts
+            CustomFieldValue.definition_id.in_([d['id'] for d in custom_field_defs_dicts])
         ).all()
         
-        # Organize them for easy lookup: {account_id: {definition_id: value_str, ...}, ...}
         for cfv in values_query:
             if cfv.account_id not in custom_field_values_for_page:
                 custom_field_values_for_page[cfv.account_id] = {}
             custom_field_values_for_page[cfv.account_id][cfv.definition_id] = cfv.value
-    # --- END ADDED --- 
+    # --- END EXISTING --- 
     
     return render_template('crm/account_list.html', 
                            accounts=user_accounts, 
-                           pagination=accounts_pagination, # Pass pagination object
+                           pagination=accounts_pagination,
                            title=page_title, 
                            CRM_ACCOUNT_STATUSES=CRM_ACCOUNT_STATUSES, 
                            generated_csrf_token=generate_csrf(),
-                           custom_field_definitions=custom_field_defs_dicts, # <-- Pass the list of DICTS
-                           custom_field_values_data=custom_field_values_for_page
+                           custom_field_definitions=custom_field_defs_dicts,
+                           custom_field_values_data=custom_field_values_for_page,
+                           is_manager=is_manager,
+                           sales_reps_for_filter=sales_reps_for_filter,
+                           current_filters=current_filters,
+                           current_per_page=per_page,
+                           per_page_options=valid_per_page_options
                            )
+
+@crm_bp.route('/accounts/bulk-assign-rep', methods=['POST'])
+@login_required
+@sales_required
+@csrf.exempt 
+def bulk_assign_rep_accounts():
+    """Handles bulk assignment of sales reps to accounts and cascades to linked contacts."""
+    if not (hasattr(current_user, 'sales_profile') and current_user.sales_profile and current_user.sales_profile.role == 'sales_manager'):
+        flash('You are not authorized to perform this bulk action.', 'danger')
+        return redirect(url_for('crm.accounts'))
+
+    selected_ids = request.form.getlist('selected_account_ids')
+    action = request.form.get('bulk_action')
+    new_sales_rep_id_str = request.form.get('bulk_assign_sales_rep_id')
+
+    if not selected_ids:
+        flash('No accounts selected for bulk action.', 'warning')
+        return redirect(url_for('crm.accounts', **request.args))
+
+    if action == 'assign_sales_rep':
+        if not new_sales_rep_id_str:
+            flash('No sales representative selected for assignment.', 'warning')
+            return redirect(url_for('crm.accounts', **request.args))
+
+        target_sales_rep_id = None
+        target_sales_rep = None
+
+        if new_sales_rep_id_str == '_unassigned_':
+            target_sales_rep_id = None
+        else:
+            try:
+                target_sales_rep_id = int(new_sales_rep_id_str)
+                target_sales_rep = SalesUser.query.get(target_sales_rep_id)
+                if not target_sales_rep:
+                    flash(f"Invalid sales representative ID: {target_sales_rep_id}.", 'danger')
+                    return redirect(url_for('crm.accounts', **request.args))
+            except ValueError:
+                flash(f"Invalid sales representative ID format: {new_sales_rep_id_str}.", 'danger')
+                return redirect(url_for('crm.accounts', **request.args))
+
+        accounts_to_update = CrmAccount.query.filter(CrmAccount.id.in_([int(id_str) for id_str in selected_ids])).all()
+        
+        updated_accounts_count = 0
+        updated_contacts_count = 0 # Initialize counter for updated contacts
+
+        for account in accounts_to_update:
+            if account.sales_rep_id != target_sales_rep_id:
+                account.sales_rep_id = target_sales_rep_id
+                account.sales_rep = target_sales_rep 
+                db.session.add(account) # Add account to session for update
+                updated_accounts_count += 1
+
+                # --- ADDED: Cascade to linked contacts ---
+                contacts_linked_to_account = Contact.query.filter_by(crm_account_id=account.id).all()
+                if contacts_linked_to_account:
+                    current_app.logger.info(f"Bulk action: Account {account.id} sales rep changed to {target_sales_rep_id}. Updating {len(contacts_linked_to_account)} linked contacts.")
+                    for contact_to_update in contacts_linked_to_account:
+                        if contact_to_update.sales_rep_id != target_sales_rep_id:
+                            contact_to_update.sales_rep_id = target_sales_rep_id
+                            contact_to_update.sales_rep = target_sales_rep 
+                            db.session.add(contact_to_update)
+                            updated_contacts_count += 1
+                # --- END ADDED ---
+        
+        if updated_accounts_count > 0 or updated_contacts_count > 0:
+            try:
+                db.session.commit()
+                flash_messages = []
+                rep_name_for_flash = target_sales_rep.user.name if target_sales_rep and target_sales_rep.user else "Unassigned"
+                
+                if updated_accounts_count > 0:
+                    flash_messages.append(f'{updated_accounts_count} account(s) successfully assigned to {rep_name_for_flash}.')
+                if updated_contacts_count > 0:
+                    flash_messages.append(f'{updated_contacts_count} linked contact(s) were also reassigned to {rep_name_for_flash}.')
+                
+                if flash_messages:
+                    flash(" ".join(flash_messages), 'success')
+                elif updated_accounts_count == 0 and updated_contacts_count == 0: # Should be caught by the outer if, but as a safeguard
+                    flash('No accounts or contacts required an update for the selected sales representative.', 'info')
+
+            except Exception as e:
+                db.session.rollback()
+                current_app.logger.error(f"Error bulk assigning sales rep to accounts/contacts: {e}")
+                flash('An error occurred while bulk assigning. Please try again.', 'danger')
+        else: # No accounts needed an update in the first place
+            flash('No accounts required an update for the selected sales representative.', 'info')
+            
+    else:
+        flash(f'Unknown or unimplemented bulk action: {action}', 'warning')
+
+    return redirect(url_for('crm.accounts', **request.args))
 
 @crm_bp.route('/accounts/new', methods=['GET', 'POST'])
 @login_required
@@ -978,91 +1310,121 @@ def view_account(account_id):
 @login_required
 @sales_required
 def edit_account(account_id):
-    """Edit account, including dynamic custom fields."""
-    query = CrmAccount.query.filter_by(id=account_id)
-    if not current_user.sales_profile.role == 'sales_manager':
-        query = query.filter_by(sales_rep_id=get_current_sales_rep_id())
-    account = query.first_or_404()
+    """Edit account, including dynamic custom fields and owner assignment for managers."""
+    account_query = CrmAccount.query.filter_by(id=account_id)
+    is_manager = hasattr(current_user, 'sales_profile') and current_user.sales_profile and current_user.sales_profile.role == 'sales_manager'
+    
+    if not is_manager:
+        account_query = account_query.filter_by(sales_rep_id=get_current_sales_rep_id())
+    
+    account = account_query.first_or_404()
 
-    # Dynamically create the form class with custom fields
     DynamicAccountForm, dynamic_fields = create_dynamic_form_class(CrmAccountForm, CustomFieldAppliesTo.ACCOUNT)
 
     if request.method == 'POST':
-        # --- POST Request Handling --- 
-        form = DynamicAccountForm(request.form)
-
-        if form.validate():
-            # Remove old custom_data handling
-            # custom_data_to_save = None
-            # ... (old parsing logic) ...
-
-            selected_status = form.status.data if form.status.data and form.status.data != '-' else None
-
-            try:
-                account.name = form.name.data.strip()
-                account.website = form.website.data.strip() if form.website.data else None
-                account.industry = form.industry.data.strip() if form.industry.data else None
-                account.phone_number = form.phone_number.data.strip() if form.phone_number.data else None
-                # Address is likely a JSON field or separate fields, handle as needed
-                # Assuming address is simple text for now
-                account.address = form.address.data.strip() if form.address.data else None # Keep general address
-                account.status = selected_status
-                # account.custom_data = custom_data_to_save # <-- REMOVED old custom data
-
-                db.session.add(account) # Add account to session before custom fields
-                # Process and save custom fields
-                save_custom_field_values(form, CustomFieldAppliesTo.ACCOUNT, account, dynamic_fields)
-
-                db.session.commit()
-                flash(f'Account "{account.name}" updated successfully!', 'success')
-                return redirect(url_for('crm.view_account', account_id=account.id))
-            except Exception as e:
-                db.session.rollback()
-                current_app.logger.error(f"Error updating account {account_id}: {e}")
-                flash('Error updating account. Please check input and try again.', 'error')
-        else:
-            flash('Please correct the errors below.', 'warning')
-            return render_template('crm/account_form.html', form=form, title=f"Edit {account.name}", legend="Edit Account Details", account_id=account.id, dynamic_fields=dynamic_fields)
-
-    else: # request.method == 'GET'
-        # --- GET Request Handling --- 
-        # Prepare initial data dictionary
-        form_data = {
-            'name': account.name,
-            'website': account.website,
-            'industry': account.industry,
-            'phone_number': account.phone_number,
-            'address': account.address, # Keep general address
-            'status': account.status if account.status else '-' # Ensure status is populated
-        }
+        form = DynamicAccountForm(request.form) # MODIFIED: Populate from formdata on POST
+    else: # GET request
+        form = DynamicAccountForm(obj=account) # MODIFIED: Populate from object on GET
+        # Pre-populate custom fields for display on GET
+        for field_name, definition in dynamic_fields:
+            if hasattr(form, field_name):
+                value_obj = CustomFieldValue.query.filter_by(
+                    definition_id=definition.id, 
+                    account_id=account.id
+                ).first()
+                if value_obj:
+                    field = getattr(form, field_name)
+                    if definition.field_type == CustomFieldType.BOOLEAN:
+                        field.data = value_obj.value.lower() == 'true'
+                    elif definition.field_type == CustomFieldType.DATE and value_obj.value:
+                        try:
+                            field.data = datetime.strptime(value_obj.value, '%Y-%m-%d').date()
+                        except ValueError:
+                            current_app.logger.warning(f"Could not parse date for custom field {definition.name} for account {account.id}: {value_obj.value}")
+                            field.data = None 
+                    else: # Text, Number, Dropdown
+                        field.data = value_obj.value
         
-        # Fetch existing custom values for the account
-        from sqlalchemy.orm import joinedload
-        values_query = CustomFieldValue.query.filter(
-            CustomFieldValue.account_id == account.id
-        ).options(joinedload(CustomFieldValue.definition))
-        existing_values_list = values_query.all()
-        for val in existing_values_list:
-            field_name = f"custom_{val.definition_id}"
-            definition = val.definition
-            raw_value = val.value
-            try:
-                if definition.field_type == CustomFieldType.NUMBER:
-                    form_data[field_name] = int(raw_value) if raw_value else None
-                elif definition.field_type == CustomFieldType.DATE:
-                    form_data[field_name] = datetime.strptime(raw_value, '%Y-%m-%d').date() if raw_value else None
-                elif definition.field_type == CustomFieldType.BOOLEAN:
-                    form_data[field_name] = str(raw_value).lower() in ['true', '1', 'yes', 'on']
-                else: # TEXT, DROPDOWN
-                    form_data[field_name] = raw_value
-            except (ValueError, TypeError) as e:
-                current_app.logger.warning(f"Error parsing existing account custom field value for {field_name}: {e}")
-                form_data[field_name] = None
+        # Pre-populate sales_rep_id for managers on GET
+        if is_manager and hasattr(form, 'sales_rep_id'):
+            if account.sales_rep:
+                form.sales_rep_id.data = account.sales_rep
+            else:
+                form.sales_rep_id.data = None # Ensure "Unassigned" is shown if not set
 
-        # Instantiate the dynamic form with the prepared data
-        form = DynamicAccountForm(data=form_data)
 
-        return render_template('crm/account_form.html', form=form, title=f"Edit {account.name}", legend="Edit Account Details", account_id=account.id, dynamic_fields=dynamic_fields)
+    if form.validate_on_submit(): # This is effectively for POST
+        try:
+            original_sales_rep_id = account.sales_rep_id # Store original ID before any changes
+
+            account.name = form.name.data.strip()
+            account.website = form.website.data.strip() if form.website.data else None
+            account.industry = form.industry.data.strip() if form.industry.data else None
+            account.phone_number = form.phone_number.data.strip() if form.phone_number.data else None
+            account.address = form.address.data.strip() if form.address.data else None
+            
+            selected_status = form.status.data if form.status.data and form.status.data != '-' else None
+            account.status = selected_status
+
+            sales_rep_changed_for_account = False
+            new_account_sales_rep_obj = None # To store the SalesUser object if assigned
+
+            if is_manager and hasattr(form, 'sales_rep_id'):
+                selected_sales_rep_obj_from_form = form.sales_rep_id.data # This data is now from request.form (SalesUser object or None)
+                
+                new_sales_rep_id_for_account = None
+                if selected_sales_rep_obj_from_form:
+                    new_sales_rep_id_for_account = selected_sales_rep_obj_from_form.id
+                    new_account_sales_rep_obj = selected_sales_rep_obj_from_form
+
+                if account.sales_rep_id != new_sales_rep_id_for_account:
+                    account.sales_rep_id = new_sales_rep_id_for_account
+                    # Also update the relationship object for the account itself
+                    account.sales_rep = new_account_sales_rep_obj 
+                    sales_rep_changed_for_account = True
+            
+            elif not is_manager and hasattr(form, 'sales_rep_id_hidden'):
+                # Non-manager, ensure ownership is not accidentally changed.
+                pass 
+
+            db.session.add(account) # Add account changes to session first
+
+            # Cascade sales_rep_id change to linked contacts IF it changed for the account
+            if sales_rep_changed_for_account:
+                contacts_to_update = Contact.query.filter_by(crm_account_id=account.id).all()
+                if contacts_to_update:
+                    current_app.logger.info(f"Account {account.id} sales rep changed from {original_sales_rep_id} to {account.sales_rep_id}. Updating {len(contacts_to_update)} contacts.")
+                    for contact_to_update in contacts_to_update:
+                        contact_to_update.sales_rep_id = account.sales_rep_id
+                        contact_to_update.sales_rep = new_account_sales_rep_obj # Assign the same SalesUser object or None
+                        db.session.add(contact_to_update)
+                    
+                    rep_name_for_flash = new_account_sales_rep_obj.user.name if new_account_sales_rep_obj and new_account_sales_rep_obj.user else "Unassigned"
+                    flash(f"{len(contacts_to_update)} linked contacts were also reassigned to {rep_name_for_flash}.", "info")
+
+            save_custom_field_values(form, CustomFieldAppliesTo.ACCOUNT, account, dynamic_fields)
+            db.session.commit()
+
+            flash(f'Account "{account.name}" updated successfully!', 'success')
+            return redirect(url_for('crm.view_account', account_id=account.id))
+        except Exception as e:
+            db.session.rollback()
+            current_app.logger.error(f"Error updating account {account_id}: {e}")
+            flash(f'Error updating account: {str(e)}.', 'danger')
+            
+    # If POST and validation failed, WTForms retains submitted data in 'form'.
+    # The GET pre-population logic above handles initial form display.
+
+    page_title = f"Edit Account: {account.name}"
+    form_action_url = url_for('crm.edit_account', account_id=account.id)
+    
+    return render_template('crm/account_form.html', 
+                           form=form, 
+                           title=page_title, 
+                           account=account,
+                           form_action_url=form_action_url,
+                           dynamic_fields=dynamic_fields,
+                           editing=True)
 
 @crm_bp.route('/accounts/<int:account_id>/select-contact-to-link', methods=['GET'])
 @login_required
@@ -1281,19 +1643,16 @@ def import_csv():
         if csv_file and allowed_file(csv_file.filename):
             original_filename = secure_filename(csv_file.filename)
             # Ensure the upload folder exists
-            upload_dir = os.path.join(current_app.root_path, UPLOAD_FOLDER) # Navigate up from app to project root then to instance
+            upload_dir = os.path.join(current_app.root_path, UPLOAD_FOLDER)
             if not os.path.exists(upload_dir):
                 os.makedirs(upload_dir)
             
-            # Create a unique filename to avoid collisions
             unique_id = uuid.uuid4().hex
             temp_filename = f"{unique_id}_{original_filename}"
             temp_filepath = os.path.join(upload_dir, temp_filename)
             
             try:
                 csv_file.save(temp_filepath)
-
-                # Read only headers
                 headers = []
                 with open(temp_filepath, 'r', encoding='utf-8-sig') as f:
                     reader = csv.reader(f)
@@ -1301,38 +1660,51 @@ def import_csv():
                         headers = next(reader)
                     except StopIteration:
                         flash('Uploaded CSV file is empty or has no headers.', 'danger')
-                        os.remove(temp_filepath) # Clean up empty/invalid file
+                        os.remove(temp_filepath) 
                         return redirect(url_for('crm.import_csv'))
                 
                 if not headers:
                     flash('Could not read headers from CSV file.', 'danger')
-                    os.remove(temp_filepath) # Clean up
+                    os.remove(temp_filepath) 
                     return redirect(url_for('crm.import_csv'))
 
-                # Store info in session for the next step
                 session['csv_import_temp_path'] = temp_filepath
                 session['csv_import_original_filename'] = original_filename
                 session['csv_import_type'] = import_type
                 session['csv_headers'] = headers
 
-                target_fields = CONTACT_IMPORT_FIELDS if import_type == 'contacts' else ACCOUNT_IMPORT_FIELDS
+                target_fields_dict = CONTACT_IMPORT_FIELDS if import_type == 'contacts' else ACCOUNT_IMPORT_FIELDS
+                applies_to_enum = CustomFieldAppliesTo.CONTACT if import_type == 'contacts' else CustomFieldAppliesTo.ACCOUNT
+                custom_field_definitions = CustomFieldDefinition.query.filter_by(applies_to=applies_to_enum).order_by(CustomFieldDefinition.name).all()
                 
-                # DEBUGGING: Log variables being passed to the template
+                mapping_choices = [('_ignore_', '-- Ignore this column --')]
+                mapping_choices.extend([(key, label) for key, label in target_fields_dict.items()])
+                for cf_def in custom_field_definitions:
+                    mapping_choices.append(
+                        (f"custom_field_def_{cf_def.id}", f"Custom: {cf_def.name} ({cf_def.field_type.name.title()})")
+                    )
+                mapping_choices.append( ('_create_new_custom_field_', '+ Create a New Custom Field from this Column') )
+
+                # --- ADDED: Fetch sales users for owner dropdown ---
+                sales_users_list = db.session.query(SalesUser).join(User, SalesUser.user_id == User.id).filter(User.name != None).order_by(User.name).all()
+                # --- END ADDED ---
+
                 current_app.logger.info("---- Preparing to render confirm_csv_mapping.html ----")
                 current_app.logger.info(f"  Form object type: {type(form)}")
                 current_app.logger.info(f"  Original Filename: {original_filename}")
                 current_app.logger.info(f"  Import Type: {import_type}")
                 current_app.logger.info(f"  CSV Headers: {headers}")
-                current_app.logger.info(f"  Target Fields: {target_fields}")
+                current_app.logger.info(f"  Target Fields: {target_fields_dict}")
                 current_app.logger.info("---------------------------------------------------------")
+                current_app.logger.info(f"  Sales Users for dropdown: {[(su.id, su.user.username) for su in sales_users_list]}") # Log fetched users
 
-                # Render the new mapping confirmation page
                 return render_template('confirm_csv_mapping.html',
                                        form=form, 
                                        headers=headers, 
                                        import_type=import_type,
-                                       target_fields=target_fields,
-                                       original_filename=original_filename)
+                                       mapping_choices=mapping_choices, 
+                                       original_filename=original_filename,
+                                       sales_users_list=sales_users_list) # <-- PASS sales_users_list
 
             except Exception as e:
                 current_app.logger.error(f"Error during CSV upload/header reading: {e}")
@@ -1366,21 +1738,144 @@ def process_mapped_import():
     # Get mappings from the form (form fields will be like 'map_0', 'map_1', etc. for each header)
     # Example: header_mappings = {csv_headers_from_session[i]: request.form.get(f'map_{i}') for i in range(len(csv_headers_from_session))}
     header_mappings = {}
+    new_custom_fields_to_create_details = {} # To store info about CFs to be created: {csv_header_index: {name: 'X', type: 'Y'}}
+
     for i, header in enumerate(csv_headers_from_session):
         mapped_to = request.form.get(f'map_{i}')
-        if mapped_to and mapped_to != '_ignore_': # If not explicitly ignored
-            header_mappings[header] = mapped_to
+        if mapped_to == '_create_new_custom_field_':
+            # If user chose to create a new custom field for this CSV header
+            # The template should send back the original header name and the chosen field type
+            # We expect fields like: new_custom_field_original_name_{i} and new_custom_field_type_{i}
+            original_header_name = request.form.get(f'new_custom_field_original_name_{i}', header) # Fallback to header if not sent
+            chosen_field_type_str = request.form.get(f'new_custom_field_type_{i}')
+            
+            current_app.logger.info(f"DEBUG: For CSV header '{original_header_name}' (index {i}), received new_custom_field_type: '{chosen_field_type_str}'") # <-- ADDED DEBUG LOG
 
-    if not header_mappings:
+            if not chosen_field_type_str:
+                flash(f"Missing field type for new custom field based on CSV column '{original_header_name}'. This column will be ignored.", "warning")
+                header_mappings[header] = '_ignore_' # Treat as ignore if type is missing
+                continue
+            
+            try:
+                # Convert string type to Enum. Ensure CustomFieldType is imported.
+                field_type_enum = CustomFieldType(chosen_field_type_str.lower()) # Ensure lowercase for enum value matching
+            except ValueError:
+                flash(f"Invalid field type '{chosen_field_type_str}' for new custom field '{original_header_name}'. Defaulting to TEXT or ignoring.", "warning")
+                # Default to TEXT or handle as error. For now, let's default if invalid, or you could make it an error.
+                field_type_enum = CustomFieldType.TEXT 
+            
+            new_custom_fields_to_create_details[i] = {
+                'original_header': original_header_name, 
+                'field_type': field_type_enum, 
+                'definition_id': None # Will be filled after creation
+            }
+            header_mappings[header] = f'_placeholder_for_new_cf_{i}' # Temporary placeholder, will be replaced by def ID
+
+        elif mapped_to and mapped_to != '_ignore_': # If not explicitly ignored and not creating new
+            header_mappings[header] = mapped_to
+        # If mapped_to is '_ignore_' or None, it's implicitly ignored by not being in header_mappings
+
+    if not header_mappings and not new_custom_fields_to_create_details:
         flash('No column mappings were provided. Nothing to import.', 'info')
         os.remove(temp_filepath) # Clean up temp file
         return redirect(url_for('crm.import_csv'))
 
     current_app.logger.info(f"Processing CSV import for: {original_filename}, type: {import_type}")
     current_app.logger.info(f"Header mappings: {header_mappings}")
+    current_app.logger.info(f"New Custom Fields to create: {new_custom_fields_to_create_details}")
+
+    # --- Create New Custom Field Definitions First (if any) ---
+    created_custom_field_def_ids = {}
+    import_type_enum = CustomFieldAppliesTo.CONTACT if import_type == 'contacts' else CustomFieldAppliesTo.ACCOUNT
+
+    for csv_header_index, cf_details in new_custom_fields_to_create_details.items():
+        original_csv_header = cf_details['original_header']
+        field_type = cf_details['field_type']
+        
+        # Check for uniqueness before creating
+        existing_def = CustomFieldDefinition.query.filter(
+            func.lower(CustomFieldDefinition.name) == func.lower(original_csv_header),
+            CustomFieldDefinition.applies_to == import_type_enum
+        ).first()
+
+        if existing_def:
+            flash(f"A custom field named '{original_csv_header}' already exists for {import_type_enum.name.title()}. Data will be mapped to this existing field.", 'info')
+            created_custom_field_def_ids[csv_header_index] = existing_def.id
+            # Update the main header_mappings placeholder to use this existing definition ID
+            header_mappings[original_csv_header] = f"custom_field_def_{existing_def.id}"
+        else:
+            try:
+                new_definition = CustomFieldDefinition(
+                    name=original_csv_header, # Use the original CSV header as the name
+                    field_type=field_type,
+                    applies_to=import_type_enum,
+                    # options=None (add logic if creating dropdowns with options later)
+                )
+                db.session.add(new_definition)
+                db.session.flush() # To get the ID
+                created_custom_field_def_ids[csv_header_index] = new_definition.id
+                # Update the main header_mappings placeholder
+                header_mappings[original_csv_header] = f"custom_field_def_{new_definition.id}"
+                flash(f"Successfully created new custom field: '{new_definition.name}' ({new_definition.field_type.name.title()}) for {import_type_enum.name.title()}.")
+            except Exception as e_create_def:
+                db.session.rollback()
+                current_app.logger.error(f"Error creating new CustomFieldDefinition for '{original_csv_header}': {e_create_def}")
+                flash(f"Could not create new custom field '{original_csv_header}'. This column might be ignored or cause errors.", 'danger')
+                # Remove from header_mappings to ignore this column if creation failed
+                if original_csv_header in header_mappings:
+                    del header_mappings[original_csv_header]
+    
+    # Commit all newly created CustomFieldDefinitions if any success, or after loop if preferred
+    try:
+        db.session.commit() # Commit new definitions
+    except Exception as e_commit_defs:
+        db.session.rollback()
+        current_app.logger.error(f"Error committing newly created custom field definitions: {e_commit_defs}")
+        flash("Database error while saving new custom field definitions. Some might not have been created.", "danger")
+        # Potentially re-evaluate header_mappings if commit failed for some defs
 
     # --- Actual Import Logic (adapted from previous import_csv) ---
-    sales_rep_id = current_user.sales_profile.id
+    # sales_rep_id = current_user.sales_profile.id # Old way, will be replaced
+    
+    # --- Determine the Sales Rep ID for this import batch --- #
+    assigned_owner_choice = request.form.get('import_owner_sales_rep_id')
+    final_sales_rep_id_for_import = None # Default to None (unassigned)
+
+    if assigned_owner_choice == '_current_user_' or not assigned_owner_choice:
+        if hasattr(current_user, 'sales_profile') and current_user.sales_profile:
+            final_sales_rep_id_for_import = current_user.sales_profile.id
+        else:
+            # This case should ideally not happen if route is protected by @sales_required
+            # and user has a sales_profile. Log a warning if it does.
+            current_app.logger.warning("CSV Import: Current user selected as owner, but no sales_profile found. Records might be unassigned or error.")
+            # Decide a fallback: unassigned, or prevent import? For now, will likely be unassigned.
+            pass 
+    elif assigned_owner_choice == '_unassigned_':
+        final_sales_rep_id_for_import = None
+    else:
+        try:
+            potential_owner_id = int(assigned_owner_choice)
+            # Validate this ID corresponds to an actual SalesUser
+            owner_user = SalesUser.query.get(potential_owner_id)
+            if owner_user:
+                final_sales_rep_id_for_import = owner_user.id
+            else:
+                current_app.logger.warning(f"CSV Import: Specified owner ID '{potential_owner_id}' not found. Defaulting to current user or unassigned.")
+                # Fallback to current user if possible, else unassigned
+                if hasattr(current_user, 'sales_profile') and current_user.sales_profile:
+                    final_sales_rep_id_for_import = current_user.sales_profile.id
+                else:
+                    final_sales_rep_id_for_import = None # Fallback to unassigned
+        except ValueError:
+            current_app.logger.warning(f"CSV Import: Invalid owner ID format '{assigned_owner_choice}'. Defaulting to current user or unassigned.")
+            if hasattr(current_user, 'sales_profile') and current_user.sales_profile:
+                final_sales_rep_id_for_import = current_user.sales_profile.id
+            else:
+                final_sales_rep_id_for_import = None # Fallback to unassigned
+                
+    current_app.logger.info(f"CSV Import: Final sales_rep_id for new records: {final_sales_rep_id_for_import}")
+    # --- END Owner Determination --- #
+
     imported_count = 0
     skipped_count = 0
     error_count = 0
@@ -1399,28 +1894,29 @@ def process_mapped_import():
                 try:
                     # Construct data dict based on mappings
                     data_to_import = {}
-                    custom_data_parts = {}
+                    custom_data_parts = {} # For the old generic 'custom_data' field if still used
+                    custom_field_values_to_create = [] # For new structured custom fields
 
-                    for csv_col_name, model_field_key in header_mappings.items():
+                    for csv_col_name, model_field_key_or_custom_def_id in header_mappings.items():
                         if csv_col_name not in row_data:
-                            # This case should ideally not happen if DictReader is used correctly with original headers
-                            errors_details.append(f"Row {row_num+1}: CSV column '{csv_col_name}' (mapped to '{model_field_key}') not found in data row. Skipping row.")
-                            # error_count +=1 # This will be caught by the outer try/except for the row
+                            errors_details.append(f"Row {row_num+1}: CSV column '{csv_col_name}' (mapped to '{model_field_key_or_custom_def_id}') not found in data row. Skipping row.")
                             raise ValueError(f"Missing column '{csv_col_name}' in row")
                         
                         value = row_data[csv_col_name].strip() if row_data[csv_col_name] else None
 
-                        if model_field_key == 'custom_data':
-                            # If multiple columns are mapped to custom_data, we might need a strategy
-                            # For now, assume only one column is mapped to 'custom_data' directly
-                            # or we can accumulate them with the csv_col_name as key
-                            # Let's use the original CSV column name as the key within custom_data
+                        if model_field_key_or_custom_def_id.startswith('custom_field_def_'):
+                            if value is not None: # Only process if there's a value
+                                definition_id = int(model_field_key_or_custom_def_id.split('_')[-1])
+                                # We'll create CustomFieldValue objects after the main entity is saved and has an ID.
+                                # Store them temporarily.
+                                custom_field_values_to_create.append({'definition_id': definition_id, 'value': value})
+                        elif model_field_key_or_custom_def_id == 'custom_data': # Handle old generic custom_data
                             if value is not None:
                                 custom_data_parts[csv_col_name] = value
-                        elif value is not None: # Ensure empty strings are not processed as valid data for non-custom fields unless intended
-                            data_to_import[model_field_key] = value
+                        elif value is not None: # Standard field
+                            data_to_import[model_field_key_or_custom_def_id] = value
                    
-                    # If custom_data_parts has anything, try to json.dumps it, or store as string
+                    # If custom_data_parts has anything (for the old generic field)
                     if custom_data_parts:
                         if len(custom_data_parts) == 1 and header_mappings.get(list(custom_data_parts.keys())[0]) == 'custom_data':
                             # If only one column was mapped to custom_data, use its value directly
@@ -1440,40 +1936,127 @@ def process_mapped_import():
                     # ---- Object Creation/Update ----
                     if import_type == 'contacts':
                         # Required fields for contact (minimal)
-                        if not data_to_import.get('last_name') and not data_to_import.get('email'):
-                            errors_details.append(f"Row {row_num+1}: Contact must have at least a Last Name or Email. Skipping.")
+                        if not data_to_import.get('last_name') and not data_to_import.get('email') and not data_to_import.get('phone_number'): # Added phone_number as an option
+                            errors_details.append(f"Row {row_num+1}: Contact must have at least a Last Name, Email, or Phone Number. Skipping.")
                             error_count += 1
                             continue
 
                         # Link to CrmAccount if 'crm_account_name' is provided and mapped
                         account_id_to_link = None
-                        if 'crm_account_name' in data_to_import and data_to_import['crm_account_name']:
-                            acc_name = data_to_import.pop('crm_account_name') # Remove from direct contact fields
-                            account = CrmAccount.query.filter_by(name=acc_name, sales_rep_id=sales_rep_id).first()
+                        account_name_from_csv = data_to_import.pop('crm_account_name', None) # Remove from direct contact fields, get None if not present
+
+                        if account_name_from_csv:
+                            # Try to find existing account by name for the current sales rep
+                            # MODIFIED: When checking for existing company, it should ideally check globally or based on permissions, not just current rep if a specific owner is chosen for import.
+                            # For now, the auto-create will use the final_sales_rep_id_for_import.
+                            # The logic for *finding* an existing company to link to might need more thought if it should bypass the new owner setting.
+                            # Let's assume for now, finding is still scoped or global, but CREATION uses the new owner.
+                            account = CrmAccount.query.filter(
+                                func.lower(CrmAccount.name) == func.lower(account_name_from_csv)
+                                # Consider if this filter needs to change based on who the new owner is.
+                                # If importing for another user, should it only link to *their* existing companies?
+                                # Or any company they have access to see? For now, let's keep it simpler:
+                                # It tries to find globally or based on current user's team visibility (if implemented).
+                                # The sales_rep_id on the CrmAccount itself will be used to determine ownership.
+                            ).first() # This might need adjustment if a manager is importing for someone else.
+                            
                             if account:
                                 account_id_to_link = account.id
+                                current_app.logger.info(f"Row {row_num+1}: Found existing company '{account.name}' (ID: {account.id}) to link for contact.")
                             else:
-                                errors_details.append(f"Row {row_num+1}: Account '{acc_name}' not found for contact. Contact will be created without account linkage.")
+                                # --- Auto-create basic company if it doesn't exist --- 
+                                try:
+                                    current_app.logger.info(f"Row {row_num+1}: Company '{account_name_from_csv}' not found. Attempting to create new company with owner ID: {final_sales_rep_id_for_import}.")
+                                    new_company_for_contact = CrmAccount(
+                                        name=account_name_from_csv,
+                                        sales_rep_id=final_sales_rep_id_for_import, # Assign determined owner
+                                        status='New' 
+                                    )
+                                    db.session.add(new_company_for_contact)
+                                    db.session.flush() # To get the ID of the new company
+                                    account_id_to_link = new_company_for_contact.id
+                                    flash(f"Created new company '{new_company_for_contact.name}' from contact import row {row_num+1}.", 'success-auto-create') # Use a distinct category for styling if needed
+                                    current_app.logger.info(f"Row {row_num+1}: Successfully created new company '{new_company_for_contact.name}' (ID: {new_company_for_contact.id}).")
+                                except Exception as e_create_company:
+                                    db.session.rollback() # Rollback company creation part for this row
+                                    current_app.logger.error(f"Row {row_num+1}: Error auto-creating company '{account_name_from_csv}': {e_create_company}")
+                                    errors_details.append(f"Row {row_num+1}: Could not create company '{account_name_from_csv}'. Contact will be created without company link. Error: {str(e_create_company)[:100]}")
+                                    # Fall through, account_id_to_link will remain None
                         
                         # Check for existing contact (e.g., by email if provided)
                         existing_contact = None
                         if data_to_import.get('email'):
-                            existing_contact = Contact.query.filter_by(email=data_to_import['email'], sales_rep_id=sales_rep_id).first()
+                            # When checking for existing contact, should this also be global or owner-specific?
+                            # If we import and assign to User B, an email duplicate check should ideally be global.
+                            existing_contact = Contact.query.filter_by(email=data_to_import['email']).first() # Global check
                         
                         if existing_contact:
                             # Update existing contact (optional - for now, we skip if exists to avoid duplicates, or could update)
-                            # For simplicity in this pass, let's skip duplicates by email
-                            errors_details.append(f"Row {row_num+1}: Contact with email '{data_to_import['email']}' already exists. Skipped.")
+                            errors_details.append(f"Row {row_num+1}: Contact with email '{data_to_import['email']}' (ID: {existing_contact.id}, Owner: {existing_contact.sales_rep_id}) already exists. Skipped.")
                             skipped_count +=1
                             continue 
-                            # TODO: Add update logic if desired in future
 
                         contact = Contact(
-                            sales_rep_id=sales_rep_id,
+                            sales_rep_id=final_sales_rep_id_for_import, # Assign determined owner
                             crm_account_id=account_id_to_link,
-                            **data_to_import # Pass all other mapped fields
+                            **data_to_import 
                         )
                         db.session.add(contact)
+                        db.session.flush() # Flush to get contact.id before creating linked CustomFieldValue
+
+                        # Create CustomFieldValue entries
+                        for cf_data in custom_field_values_to_create:
+                            # Here, you might want to fetch the CustomFieldDefinition to check its type
+                            # and convert/validate cf_data['value'] accordingly before saving.
+                            # For simplicity now, saving as string.
+                            cf_def_check = CustomFieldDefinition.query.get(cf_data['definition_id'])
+                            if not cf_def_check:
+                                errors_details.append(f"Row {row_num+1}: Custom field definition ID {cf_data['definition_id']} not found. Skipping custom field.")
+                                continue
+
+                            # Basic type conversion/validation (can be expanded)
+                            processed_value_for_cf = str(cf_data['value']) # Default to string
+                            if cf_def_check.field_type == CustomFieldType.BOOLEAN:
+                                processed_value_for_cf = str(str(cf_data['value']).lower() in ['true', '1', 'yes', 'on'])
+                            elif cf_def_check.field_type == CustomFieldType.DATE:
+                                try:
+                                    # Attempt to parse if it looks like a date, store as ISO string
+                                    dt_obj = datetime.strptime(str(cf_data['value']), '%Y-%m-%d') # Example format
+                                    processed_value_for_cf = dt_obj.date().isoformat()
+                                except ValueError:
+                                    try: # Try another common format like MM/DD/YYYY
+                                        dt_obj = datetime.strptime(str(cf_data['value']), '%m/%d/%Y')
+                                        processed_value_for_cf = dt_obj.date().isoformat()
+                                    except ValueError:
+                                        errors_details.append(f"Row {row_num+1}: Date format for custom field '{cf_def_check.name}' ('{cf_data['value']}') not recognized. Stored as text or skipped if critical.")
+                                        # Decide: store as text, skip, or make this an error for the row?
+                                        # For now, let's store as text if parsing fails, or you could make it stricter.
+                                        processed_value_for_cf = str(cf_data['value']) 
+                            elif cf_def_check.field_type == CustomFieldType.NUMBER:
+                                try:
+                                    int(cf_data['value']) # Validate it's an int
+                                    processed_value_for_cf = str(cf_data['value']) # Store as string, consistent with CustomFieldValue.value
+                                except ValueError:
+                                     errors_details.append(f"Row {row_num+1}: Value for custom number field '{cf_def_check.name}' ('{cf_data['value']}') is not a valid number. Stored as text or skipped.")
+                                     processed_value_for_cf = str(cf_data['value']) # Or skip
+
+                            # Check against dropdown options if it's a dropdown
+                            if cf_def_check.field_type == CustomFieldType.DROPDOWN:
+                                if cf_def_check.options and 'options' in cf_def_check.options:
+                                    if str(cf_data['value']) not in cf_def_check.options['options']:
+                                        errors_details.append(f"Row {row_num+1}: Value '{cf_data['value']}' for dropdown custom field '{cf_def_check.name}' is not a valid option. Stored as provided or skipped.")
+                                        # Decide: store anyway, or skip, or error? For now, store as provided.
+                                        processed_value_for_cf = str(cf_data['value'])
+                                else: # Dropdown field without defined options (should ideally not happen)
+                                    processed_value_for_cf = str(cf_data['value'])
+
+                            new_val = CustomFieldValue(
+                                definition_id=cf_data['definition_id'],
+                                contact_id=contact.id,
+                                value=processed_value_for_cf
+                            )
+                            db.session.add(new_val)
+                        
                         imported_count += 1
 
                     elif import_type == 'accounts':
@@ -1490,10 +2073,56 @@ def process_mapped_import():
                             # TODO: Add update logic if desired in future
 
                         account = CrmAccount(
-                            sales_rep_id=sales_rep_id,
+                            sales_rep_id=final_sales_rep_id_for_import, # Assign determined owner
                             **data_to_import
                         )
                         db.session.add(account)
+                        db.session.flush() # Flush to get account.id
+
+                        # Create CustomFieldValue entries
+                        for cf_data in custom_field_values_to_create:
+                            cf_def_check = CustomFieldDefinition.query.get(cf_data['definition_id'])
+                            if not cf_def_check:
+                                errors_details.append(f"Row {row_num+1}: Custom field definition ID {cf_data['definition_id']} not found for account. Skipping custom field.")
+                                continue
+                            
+                            processed_value_for_cf = str(cf_data['value'])
+                            if cf_def_check.field_type == CustomFieldType.BOOLEAN:
+                                processed_value_for_cf = str(str(cf_data['value']).lower() in ['true', '1', 'yes', 'on'])
+                            elif cf_def_check.field_type == CustomFieldType.DATE:
+                                try:
+                                    dt_obj = datetime.strptime(str(cf_data['value']), '%Y-%m-%d')
+                                    processed_value_for_cf = dt_obj.date().isoformat()
+                                except ValueError:
+                                    try: 
+                                        dt_obj = datetime.strptime(str(cf_data['value']), '%m/%d/%Y')
+                                        processed_value_for_cf = dt_obj.date().isoformat()
+                                    except ValueError:
+                                        errors_details.append(f"Row {row_num+1}: Date format for custom field '{cf_def_check.name}' ('{cf_data['value']}') not recognized for account. Stored as text.")
+                                        processed_value_for_cf = str(cf_data['value'])
+                            elif cf_def_check.field_type == CustomFieldType.NUMBER:
+                                try:
+                                    int(cf_data['value'])
+                                    processed_value_for_cf = str(cf_data['value'])
+                                except ValueError:
+                                     errors_details.append(f"Row {row_num+1}: Value for custom number field '{cf_def_check.name}' ('{cf_data['value']}') not valid for account. Stored as text.")
+                                     processed_value_for_cf = str(cf_data['value'])
+                            
+                            if cf_def_check.field_type == CustomFieldType.DROPDOWN:
+                                if cf_def_check.options and 'options' in cf_def_check.options:
+                                    if str(cf_data['value']) not in cf_def_check.options['options']:
+                                        errors_details.append(f"Row {row_num+1}: Value '{cf_data['value']}' for dropdown custom field '{cf_def_check.name}' is not a valid option for account. Stored as provided.")
+                                        processed_value_for_cf = str(cf_data['value'])
+                                else:
+                                    processed_value_for_cf = str(cf_data['value'])
+
+                            new_val = CustomFieldValue(
+                                definition_id=cf_data['definition_id'],
+                                account_id=account.id,
+                                value=processed_value_for_cf
+                            )
+                            db.session.add(new_val)
+                            
                         imported_count += 1
                    
                     # Commit per row or in batches? For simplicity, per row with try-except.
@@ -2391,6 +3020,107 @@ def create_custom_field_definition():
                            form=form,
                            title="Create New Custom Field",
                            form_action_url=url_for('crm.create_custom_field_definition'))
+
+@crm_bp.route('/custom-fields/<int:definition_id>/edit', methods=['GET', 'POST'])
+@login_required
+@sales_required
+def edit_custom_field_definition(definition_id):
+    """Edit an existing custom field definition."""
+    definition = CustomFieldDefinition.query.get_or_404(definition_id)
+    form = CustomFieldDefinitionForm(obj=definition)
+
+    # When editing, the 'applies_to' and 'field_type' fields should be disabled
+    # as changing them could corrupt existing data.
+    # This is better handled in the template by greying them out or making them readonly.
+    # For now, we just ensure their values are correctly repopulated.
+
+    if request.method == 'GET':
+        # Pre-populate options text area if it's a dropdown
+        if definition.field_type == CustomFieldType.DROPDOWN and definition.options and 'options' in definition.options:
+            form.options.data = '\n'.join(definition.options['options'])
+        # Ensure enum values are correctly set for the form fields
+        form.field_type.data = definition.field_type.value
+        form.applies_to.data = definition.applies_to.value
+
+
+    if form.validate_on_submit():
+        try:
+            # Name can be updated.
+            # Type and Applies To should ideally not be changed if values exist.
+            # For simplicity, we'll allow name and options to be changed.
+            # More complex logic would be needed to handle type/applies_to changes with existing data.
+            
+            # Check if the name is being changed to one that already exists for the same 'applies_to'
+            if form.name.data != definition.name:
+                existing_def = CustomFieldDefinition.query.filter(
+                    CustomFieldDefinition.name == form.name.data,
+                    CustomFieldDefinition.applies_to == definition.applies_to, # Keep original applies_to
+                    CustomFieldDefinition.id != definition_id
+                ).first()
+                if existing_def:
+                    flash(f'A custom field named "{form.name.data}" already exists for {definition.applies_to.name.title()}. Please choose a different name.', 'warning')
+                    return render_template('crm/custom_field_definition_form.html',
+                                           form=form,
+                                           title=f"Edit Custom Field: {definition.name}",
+                                           form_action_url=url_for('crm.edit_custom_field_definition', definition_id=definition_id),
+                                           editing=True,
+                                           definition=definition)
+
+            definition.name = form.name.data
+            
+            # Process options for dropdown if the type is dropdown
+            # Note: We are not allowing change of field_type here for simplicity.
+            # If it was a dropdown, options can be updated.
+            if definition.field_type == CustomFieldType.DROPDOWN:
+                if form.options.data:
+                    options_list = [line.strip() for line in form.options.data.strip().split('\n') if line.strip()]
+                    definition.options = {"options": options_list}
+                else:
+                    definition.options = None # Clear options if textarea is empty
+            
+            db.session.commit()
+            flash(f'Custom field "{definition.name}" updated successfully!', 'success')
+            return redirect(url_for('crm.list_custom_field_definitions'))
+        except Exception as e:
+            db.session.rollback()
+            current_app.logger.error(f"Error updating custom field definition {definition_id}: {e}")
+            flash(f'Error updating custom field: {str(e)}. Please check input and try again.', 'error')
+
+    return render_template('crm/custom_field_definition_form.html',
+                           form=form,
+                           title=f"Edit Custom Field: {definition.name}",
+                           form_action_url=url_for('crm.edit_custom_field_definition', definition_id=definition_id),
+                           editing=True, # Pass a flag to the template
+                           definition=definition) # Pass definition for context
+
+
+@crm_bp.route('/custom-fields/<int:definition_id>/delete', methods=['POST'])
+@login_required
+@sales_required
+def delete_custom_field_definition(definition_id):
+    """Delete a custom field definition and its associated values."""
+    definition = CustomFieldDefinition.query.get_or_404(definition_id)
+    
+    # Before deleting the definition, we MUST delete all CustomFieldValue instances
+    # that refer to this definition to avoid foreign key constraint violations.
+    values_to_delete = CustomFieldValue.query.filter_by(definition_id=definition.id).all()
+    
+    try:
+        for val in values_to_delete:
+            db.session.delete(val)
+        
+        # After deleting associated values, delete the definition itself
+        db.session.delete(definition)
+        
+        db.session.commit()
+        flash(f'Custom field "{definition.name}" and all its associated data have been deleted.', 'success')
+    except Exception as e:
+        db.session.rollback()
+        current_app.logger.error(f"Error deleting custom field definition {definition_id}: {e}")
+        flash(f'Error deleting custom field: {str(e)}. It might be in use or another issue occurred.', 'danger')
+        
+    return redirect(url_for('crm.list_custom_field_definitions'))
+
 
 @crm_bp.route('/call-logs/<string:call_sid>/update-details', methods=['POST'])
 @login_required

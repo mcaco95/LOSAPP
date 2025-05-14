@@ -17,7 +17,11 @@
     <div class="d-flex justify-content-between w-100 flex-wrap">
         <div class="mb-3 mb-lg-0">
             <h1 class="h4">{{ title }}</h1>
+            {% if editing %}
+            <p class="mb-0">Update the details for the custom field "{{ definition.name }}".</p>
+            {% else %}
             <p class="mb-0">Define a new field to capture specific data points for Contacts or Accounts.</p>
+            {% endif %}
         </div>
         <div>
              <a href="{{ url_for('crm.list_custom_field_definitions') }}" class="btn btn-outline-gray-600 d-inline-flex align-items-center">
@@ -41,19 +45,38 @@
                     </div>
                      <div class="row mb-4">
                         <div class="col-lg-4 col-sm-6">
-                            {{ render_field(form.applies_to, class='form-select') }}
+                            {% if editing %}
+                                {{ render_field(form.applies_to, class='form-select', disabled=true) }}
+                                <small class="form-text text-muted">Cannot be changed after creation to maintain data integrity.</small>
+                            {% else %}
+                                {{ render_field(form.applies_to, class='form-select') }}
+                            {% endif %}
                         </div>
                          <div class="col-lg-4 col-sm-6">
-                            {{ render_field(form.field_type, class='form-select', id='field_type_select') }}
+                            {% if editing %}
+                                {{ render_field(form.field_type, class='form-select', id='field_type_select', disabled=true) }}
+                                 <small class="form-text text-muted">Cannot be changed after creation.</small>
+                            {% else %}
+                                {{ render_field(form.field_type, class='form-select', id='field_type_select') }}
+                            {% endif %}
                         </div>
                     </div>
-                    <div class="row mb-4" id="options_field_wrapper" style="display: none;">
+                    <div class="row mb-4" id="options_field_wrapper" {% if not (form.field_type.data == 'dropdown') %}style="display: none;"{% endif %}>
                         <div class="col-lg-8 col-sm-12">
-                            {{ render_field(form.options, class='form-control') }}
+                            {{ render_field(form.options, class='form-control', rows=5) }}
+                            {% if editing and definition.field_type == 'dropdown' %}
+                                <small class="form-text text-muted">Enter each choice on a new line. Existing data will use these new options if they match.</small>
+                            {% elif not editing %}
+                                <small class="form-text text-muted">If Field Type is Dropdown, enter each choice on a new line.</small>
+                            {% endif %}
                         </div>
                     </div>
                     <div class="mt-3">
-                        {{ form.submit(class='btn btn-gray-800') }}
+                        {% if editing %}
+                            {{ form.submit(value='Update Custom Field', class='btn btn-gray-800') }}
+                        {% else %}
+                            {{ form.submit(class='btn btn-gray-800') }}
+                        {% endif %}
                     </div>
                 </form>
             </div>
@@ -66,22 +89,25 @@
 {% block scripts %}
 {{ super() }}
 <script>
-    // Show/hide options textarea based on selected field type
-    const fieldTypeSelect = document.getElementById('field_type_select');
-    const optionsWrapper = document.getElementById('options_field_wrapper');
+    document.addEventListener('DOMContentLoaded', function() {
+        const fieldTypeSelect = document.getElementById('field_type_select');
+        const optionsWrapper = document.getElementById('options_field_wrapper');
 
-    function toggleOptionsField() {
-        if (fieldTypeSelect.value === 'dropdown') {
-            optionsWrapper.style.display = 'block';
-        } else {
-            optionsWrapper.style.display = 'none';
+        function toggleOptionsField() {
+            if (fieldTypeSelect.value === 'dropdown') {
+                optionsWrapper.style.display = 'block';
+            } else {
+                optionsWrapper.style.display = 'none';
+            }
         }
-    }
 
-    // Initial check on page load
-    toggleOptionsField();
+        // Initial check on page load
+        toggleOptionsField();
 
-    // Add event listener
-    fieldTypeSelect.addEventListener('change', toggleOptionsField);
+        // Add event listener only if the select is not disabled (i.e., on create page)
+        if (!fieldTypeSelect.disabled) {
+            fieldTypeSelect.addEventListener('change', toggleOptionsField);
+        }
+    });
 </script>
 {% endblock %} 

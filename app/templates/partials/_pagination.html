@@ -1,11 +1,12 @@
 {# Partial template for rendering pagination controls #}
-{% macro render_pagination(pagination, endpoint, fragment='') %}
+{% macro render_pagination(pagination, endpoint, fragment='', per_page_arg_name='per_page') %}
+  {# The 'kwargs' variable will be available here if keyword arguments are passed to the macro call #}
   {% if pagination.pages > 1 %}
     <nav aria-label="Page navigation">
       <ul class="pagination justify-content-center mt-4">
         {# Previous Page Link #}
         <li class="page-item {% if not pagination.has_prev %}disabled{% endif %}">
-          <a class="page-link" href="{{ url_for(endpoint, page=pagination.prev_num, **request.view_args) }}{{ fragment }}" tabindex="-1" aria-disabled="true">Previous</a>
+          <a class="page-link" href="{{ url_for(endpoint, **dict(kwargs, page=pagination.prev_num, **{per_page_arg_name: pagination.per_page})) }}{{ fragment }}" tabindex="-1" aria-disabled="true">Previous</a>
         </li>
 
         {# Page Number Links - Display logic for ellipsis #}
@@ -15,7 +16,7 @@
 
         {# First page link #}
         <li class="page-item {% if pagination.page == 1 %}active{% endif %}">
-          <a class="page-link" href="{{ url_for(endpoint, page=1, **request.view_args) }}{{ fragment }}">1</a>
+          <a class="page-link" href="{{ url_for(endpoint, **dict(kwargs, page=1, **{per_page_arg_name: pagination.per_page})) }}{{ fragment }}">1</a>
         </li>
 
         {# Start ellipsis #}
@@ -29,7 +30,7 @@
             {% if p != 1 and p != pagination.pages %} {# Avoid duplicating first/last page links #}
               {% if p >= pagination.page - window and p <= pagination.page + window %}
                 <li class="page-item {% if p == pagination.page %}active{% endif %}">
-                  <a class="page-link" href="{{ url_for(endpoint, page=p, **request.view_args) }}{{ fragment }}">{{ p }}</a>
+                  <a class="page-link" href="{{ url_for(endpoint, **dict(kwargs, page=p, **{per_page_arg_name: pagination.per_page})) }}{{ fragment }}">{{ p }}</a>
                 </li>
               {% endif %}
             {% endif %}
@@ -44,13 +45,13 @@
         {# Last page link (only if more than one page) #}
         {% if pagination.pages > 1 %}
           <li class="page-item {% if pagination.page == pagination.pages %}active{% endif %}">
-            <a class="page-link" href="{{ url_for(endpoint, page=pagination.pages, **request.view_args) }}{{ fragment }}">{{ pagination.pages }}</a>
+            <a class="page-link" href="{{ url_for(endpoint, **dict(kwargs, page=pagination.pages, **{per_page_arg_name: pagination.per_page})) }}{{ fragment }}">{{ pagination.pages }}</a>
           </li>
         {% endif %}
 
         {# Next Page Link #}
         <li class="page-item {% if not pagination.has_next %}disabled{% endif %}">
-          <a class="page-link" href="{{ url_for(endpoint, page=pagination.next_num, **request.view_args) }}{{ fragment }}">Next</a>
+          <a class="page-link" href="{{ url_for(endpoint, **dict(kwargs, page=pagination.next_num, **{per_page_arg_name: pagination.per_page})) }}{{ fragment }}">Next</a>
         </li>
       </ul>
     </nav>

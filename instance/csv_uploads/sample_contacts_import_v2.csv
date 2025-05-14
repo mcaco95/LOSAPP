@@ -1,0 +1,6 @@
+first_name,last_name,email,phone_number,job_title,status,source,company_name,Lead Source,Subscription Tier,Last Follow-up Date
+Olivia,Martinez,olivia.martinez@example.net,555-0106,Marketing Manager,Active,Referral,Innovate Solutions,Website Form,Premium,2024-04-28
+Benjamin,Rodriguez,ben.rodriguez@example.org,555-0107,Sales Director,New,Cold Call,Tech Systems Inc.,Cold Call,Pro,2024-05-03
+Sophia,Davis,sophia.davis@example.com,555-0108,Customer Success Lead,Active,Event,Global Corp,Trade Show,Basic,2024-04-15
+William,Garcia,will.garcia@example.net,555-0109,Product Owner,New,Social Media,Future Gadgets,LinkedIn,Pro,2024-05-10
+Isabella,Wilson,isabella.wilson@example.org,555-0110,Operations Analyst,Contacted,Other,Synergy Ltd.,Partner,Premium,2024-03-20 

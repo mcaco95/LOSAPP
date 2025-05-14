@@ -1,5 +1,6 @@
 {% extends "crm/layout.html" %}
 {% from "partials/_pagination.html" import render_pagination %}
+{% from "_formhelpers.html" import render_field %}
 
 {% block title %}{{ title }}{% endblock %}
 
@@ -46,6 +47,51 @@ Manage your CRM accounts/companies here. You can view, edit, or delete accounts.
     </div>
 </div>
 
+{# --- ADDED: Filters Form --- #}
+<div class="card border-0 shadow mb-4">
+    <div class="card-header">
+        <h5 class="mb-0">Filters</h5>
+    </div>
+    <div class="card-body">
+        <form method="GET" action="{{ url_for('crm.accounts') }}" id="filterAccountsForm" class="row g-3 align-items-end">
+            {# Preserve existing page and per_page when submitting filter form #}
+            <input type="hidden" name="page" value="{{ request.args.get('page', '1') }}">
+            <input type="hidden" name="per_page" value="{{ current_per_page }}">
+            
+            {% if is_manager %}
+            <div class="col-md-4">
+                <label for="sales_rep_id_filter" class="form-label">Sales Rep</label>
+                <select name="sales_rep_id_filter" id="sales_rep_id_filter" class="form-select form-select-sm">
+                    <option value="">All Sales Reps</option>
+                    <option value="unassigned" {% if current_filters.sales_rep_id_filter == 'unassigned' %}selected{% endif %}>Unassigned Accounts</option>
+                    {% for sr in sales_reps_for_filter %}
+                        <option value="{{ sr.id }}" {% if current_filters.sales_rep_id_filter == sr.id|string %}selected{% endif %}>
+                            {{ sr.user.name if sr.user else 'Unknown Rep' }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            {% endif %}
+            <div class="col-md-4">
+                <label for="status_filter" class="form-label">Status</label>
+                <select name="status_filter" id="status_filter" class="form-select form-select-sm">
+                    <option value="">All Statuses</option>
+                    {% for status_item in CRM_ACCOUNT_STATUSES %}
+                        <option value="{{ status_item }}" {% if current_filters.status_filter == status_item %}selected{% endif %}>
+                            {{ status_item }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-auto">
+                <button type="submit" class="btn btn-primary btn-sm">Filter</button>
+                <a href="{{ url_for('crm.accounts') }}" class="btn btn-outline-secondary btn-sm">Clear</a>
+            </div>
+        </form>
+    </div>
+</div>
+{# --- END ADDED: Filters Form --- #}
+
 {# --- ADDED Configure Columns Modal --- #}
 <div class="modal fade" id="configureColumnsModal" tabindex="-1" aria-labelledby="configureColumnsModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg">
@@ -74,12 +120,70 @@ Manage your CRM accounts/companies here. You can view, edit, or delete accounts.
 </div>
 {# --- END ADDED --- #}
 
-<div class="card border-0 shadow mb-4">
-    <div class="card-body">
+{# --- MODIFIED: Bulk action form now wraps bulk controls and account list table --- #}
+<form method="POST" action="" id="bulkActionForm">
+    {{ csrf_token() }} {# Use the generated_csrf_token passed from the route #}
+
+    {% if is_manager %}
+    <div class="card border-0 shadow mb-3">
+        <div class="card-body d-flex align-items-center flex-wrap">
+            <label for="bulk_action_select" class="form-label me-2 mb-2 mb-md-0">With selected:</label>
+            <select name="bulk_action" id="bulk_action_select" class="form-select form-select-sm me-2 mb-2 mb-md-0" style="width: auto;">
+                <option value="">-- Select Action --</option>
+                <option value="assign_sales_rep">Assign Sales Rep</option>
+                {# Add other bulk actions here if needed e.g. Bulk Change Status #}
+            </select>
+            
+            <div id="assign_rep_controls_container" class="d-inline-block" style="display: none;"> 
+                <select name="bulk_assign_sales_rep_id" id="bulk_assign_sales_rep_id" class="form-select form-select-sm me-2 mb-2 mb-md-0" style="width: auto;">
+                    <option value="">-- Select Sales Rep --</option>
+                    <option value="_unassigned_">-- Unassign --</option>
+                    {% for sr in sales_reps_for_filter %}
+                        <option value="{{ sr.id }}">{{ sr.user.name if sr.user else 'Unknown Rep' }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <button type="submit" id="apply_bulk_action_button" class="btn btn-primary btn-sm" disabled>Apply</button>
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="card border-0 shadow mb-4">
+        <div class="card-header">
+            <div class="row align-items-center">
+                <div class="col">
+                    <h2 class="fs-5 fw-bold mb-0">Account List</h2> {# Changed from Contact List #}
+                </div>
+                <div class="col text-end">
+                    {# --- ADDED: Items per page form --- #}
+                    <form method="GET" action="{{ url_for('crm.accounts') }}" id="perPageFormAccounts" class="d-inline-block ms-3">
+                        {# Preserve current filter arguments #}
+                        {% for key, value in current_filters.items() %}
+                            {% if value %}
+                                <input type="hidden" name="{{ key }}" value="{{ value }}">
+                            {% endif %}
+                        {% endfor %}
+                        <input type="hidden" name="page" value="1"> {# Reset to page 1 on per_page change #}
+                        <label for="per_page_select_accounts" class="form-label-sm me-2">Show:</label>
+                        <select name="per_page" id="per_page_select_accounts" class="form-select form-select-sm d-inline-block" style="width: auto;" onchange="document.getElementById('perPageFormAccounts').submit();">
+                            {% for option in per_page_options %}
+                                <option value="{{ option }}" {% if option == current_per_page %}selected{% endif %}>{{ option }}</option>
+                            {% endfor %}
+                        </select>
+                    </form>
+                </div>
+            </div>
+        </div>
         <div class="table-responsive">
-            <table class="table table-centered table-nowrap mb-0 rounded">
+            <table class="table table-centered table-nowrap table-hover mb-0 rounded"> {# Added table-hover #}
                 <thead class="thead-light">
                     <tr>
+                        {# --- ADDED: Master Checkbox for Bulk Actions --- #}
+                        {% if is_manager %}
+                        <th scope="col" class="border-bottom" style="width: 3em;">
+                            <input class="form-check-input" type="checkbox" id="masterCheckboxAccounts">
+                        </th>
+                        {% endif %}
                         <th class="border-bottom" data-column-id="name">Account Name</th>
                         <th class="border-bottom" data-column-id="status">Status</th>
                         <th class="border-bottom" data-column-id="phone_number">Phone</th>
@@ -101,6 +205,12 @@ Manage your CRM accounts/companies here. You can view, edit, or delete accounts.
                     {% if accounts %}
                         {% for account in accounts %} {# Iterate over pagination.items #}
                             <tr>
+                                {# --- ADDED: Checkbox for each row --- #}
+                                {% if is_manager %}
+                                <td>
+                                    <input class="form-check-input account-checkbox" type="checkbox" name="selected_account_ids" value="{{ account.id }}">
+                                </td>
+                                {% endif %}
                                 <td class="inline-edit-text-cell" data-field-name="name" data-column-id="name">
                                     <span class="current-value fw-bold" role="button" tabindex="0">
                                         <a href="{{ url_for('.view_account', account_id=account.id) }}" class="text-decoration-none inherit-color">{{ account.name }}</a>
@@ -197,10 +307,19 @@ Manage your CRM accounts/companies here. You can view, edit, or delete accounts.
         </div>
         {# Render pagination controls #}
         {% if pagination %}
-            {{ render_pagination(pagination, 'crm.accounts') }}
+            {# MODIFIED: Pass current_filters and per_page to pagination macro #}
+            {% set pagination_args = dict(request.args.to_dict(flat=True)) %}
+            {% do pagination_args.update(current_filters) %}
+            {% do pagination_args.update({'per_page': current_per_page}) %}
+            {{ render_pagination(pagination, 'crm.accounts', per_page_arg_name='per_page', **pagination_args) }}
+             <div class="text-center mt-2">
+                <small>Showing {{ pagination.items|length }} of {{ pagination.total }} total accounts. Page {{ pagination.page }} of {{ pagination.pages }}.</small>
+            </div>
         {% endif %}
     </div>
 </div>
+
+</form> {# End of bulkActionForm #}
 
 {% include 'partials/_confirm_delete_modal.html' %}
 
@@ -208,6 +327,31 @@ Manage your CRM accounts/companies here. You can view, edit, or delete accounts.
 
 {% block extra_js %}
 {{ super() }}
+{# --- JavaScript for delete confirmation modal (Existing) --- #}
+<script>
+    const confirmDeleteModal = document.getElementById('confirmDeleteModal');
+    if (confirmDeleteModal) {
+        confirmDeleteModal.addEventListener('show.bs.modal', function (event) {
+            const button = event.relatedTarget;
+            const deleteUrl = button.getAttribute('data-delete-url');
+            const itemName = button.getAttribute('data-item-name');
+            const csrfToken = button.getAttribute('data-csrf-token');
+
+            const modalTitle = confirmDeleteModal.querySelector('.modal-title');
+            const modalBody = confirmDeleteModal.querySelector('.modal-body');
+            const deleteForm = confirmDeleteModal.querySelector('#deleteForm');
+            const csrfInput = confirmDeleteModal.querySelector('#csrf_token');
+
+            modalTitle.textContent = `Delete ${itemName}`;
+            modalBody.textContent = `Are you sure you want to delete ${itemName}? This action cannot be undone.`;
+            deleteForm.action = deleteUrl;
+            if(csrfInput) csrfInput.value = csrfToken; // Check if csrfInput exists
+        });
+    }
+</script>
+{# --- END JavaScript for delete confirmation modal --- #}
+
+{# --- JavaScript for Inline Editing & Column Configuration (Existing - ASSUMED, keep as is) --- #}
 <script>
     // JavaScript for setting data in the delete confirmation modal
     const confirmDeleteModal = document.getElementById('confirmDeleteModal');
@@ -564,4 +708,123 @@ Manage your CRM accounts/companies here. You can view, edit, or delete accounts.
     // --- End Column Configuration Logic --- //
 
 </script>
+{# --- END JavaScript for Inline Editing & Column Configuration --- #}
+
+{# --- ADDED: JavaScript for Bulk Actions for Accounts --- #}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const masterCheckboxAccounts = document.getElementById('masterCheckboxAccounts');
+    const accountCheckboxes = document.querySelectorAll('.account-checkbox');
+    const bulkActionSelect = document.getElementById('bulk_action_select');
+    const assignRepControlsContainer = document.getElementById('assign_rep_controls_container');
+    const applyBulkActionButton = document.getElementById('apply_bulk_action_button');
+    const bulkActionForm = document.getElementById('bulkActionForm');
+    const bulkAssignSalesRepIdSelect = document.getElementById('bulk_assign_sales_rep_id');
+
+    function toggleApplyButtonStateAccounts() {
+        if (!applyBulkActionButton || !bulkActionSelect) return;
+        const anyCheckboxChecked = Array.from(accountCheckboxes).some(cb => cb.checked);
+        const actionSelected = bulkActionSelect.value !== '';
+        
+        let repSelectedWhenNeeded = true;
+        if (bulkActionSelect.value === 'assign_sales_rep') {
+            repSelectedWhenNeeded = bulkAssignSalesRepIdSelect && bulkAssignSalesRepIdSelect.value !== '';
+        }
+
+        if (anyCheckboxChecked && actionSelected && repSelectedWhenNeeded) {
+            applyBulkActionButton.disabled = false;
+        } else {
+            applyBulkActionButton.disabled = true;
+        }
+    }
+
+    if (masterCheckboxAccounts) {
+        masterCheckboxAccounts.addEventListener('change', function() {
+            accountCheckboxes.forEach(checkbox => {
+                checkbox.checked = masterCheckboxAccounts.checked;
+            });
+            toggleApplyButtonStateAccounts();
+        });
+    }
+
+    accountCheckboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+            if (!checkbox.checked && masterCheckboxAccounts) {
+                masterCheckboxAccounts.checked = false;
+            }
+            // Check if all are checked to update master
+            if (masterCheckboxAccounts && Array.from(accountCheckboxes).every(cb => cb.checked)){
+                masterCheckboxAccounts.checked = true;
+            }
+            toggleApplyButtonStateAccounts();
+        });
+    });
+
+    if (bulkActionSelect) {
+        bulkActionSelect.addEventListener('change', function() {
+            if (assignRepControlsContainer) {
+                if (this.value === 'assign_sales_rep') {
+                    assignRepControlsContainer.style.display = 'inline-block';
+                } else {
+                    assignRepControlsContainer.style.display = 'none';
+                }
+            }
+            toggleApplyButtonStateAccounts();
+        });
+    }
+
+    if (bulkAssignSalesRepIdSelect) {
+        bulkAssignSalesRepIdSelect.addEventListener('change', toggleApplyButtonStateAccounts);
+    }
+
+    if (bulkActionForm && applyBulkActionButton) {
+        applyBulkActionButton.addEventListener('click', function(event) {
+            event.preventDefault(); 
+
+            const selectedAction = bulkActionSelect.value;
+            const anyCheckboxChecked = Array.from(accountCheckboxes).some(cb => cb.checked);
+
+            if (!anyCheckboxChecked) {
+                alert('Please select at least one account.');
+                return;
+            }
+
+            if (selectedAction === 'assign_sales_rep') {
+                if (bulkAssignSalesRepIdSelect && bulkAssignSalesRepIdSelect.value === '') { 
+                    alert('Please select a sales representative to assign (or choose Unassign).');
+                    return;
+                }
+                bulkActionForm.action = "{{ url_for('crm.bulk_assign_rep_accounts') }}";
+                // Append filter parameters to the form action to retain them on redirect
+                const currentUrlParams = new URLSearchParams(window.location.search);
+                let actionUrl = new URL(bulkActionForm.action, window.location.origin);
+                currentUrlParams.forEach((value, key) => {
+                    if (key !== 'page') { // page will be reset or handled by redirect logic usually
+                        actionUrl.searchParams.append(key, value);
+                    }
+                });
+                bulkActionForm.action = actionUrl.toString();
+                bulkActionForm.submit();
+            } else if (selectedAction === '') {
+                alert('Please select a bulk action to perform.');
+                return;
+            } else {
+                alert('Selected bulk action (' + selectedAction + ') is not yet implemented.');
+                return;
+            }
+        });
+    }
+    
+    // Initial state
+    if (bulkActionSelect && assignRepControlsContainer) { // Ensure controls exist
+         if (bulkActionSelect.value === 'assign_sales_rep') {
+            assignRepControlsContainer.style.display = 'inline-block';
+        } else {
+            assignRepControlsContainer.style.display = 'none';
+        }
+    }
+    toggleApplyButtonStateAccounts(); 
+});
+</script>
+{# --- END ADDED: JavaScript for Bulk Actions --- #}
 {% endblock %} 
