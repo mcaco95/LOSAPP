@@ -1,6 +1,7 @@
 Flask==2.2.3
 Flask-WTF==1.1.1
 WTForms==3.0.1
+WTForms-SQLAlchemy
 qrcode==7.4.2
 Pillow==10.4.0
 Flask-SQLAlchemy==3.0.3
