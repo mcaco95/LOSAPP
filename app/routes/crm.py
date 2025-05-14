@@ -778,9 +778,9 @@ def edit_contact(contact_id):
                 contact.crm_account_id = selected_account.id if selected_account else None
             
             if is_manager and hasattr(form, 'sales_rep_id'):
-                selected_sales_rep_from_form_field = form.sales_rep_id.data # This is what WTForms processed
+                selected_sales_rep_from_form = form.sales_rep_id.data # This is what WTForms processed
                 
-                if selected_sales_rep_from_form_field is None:
+                if selected_sales_rep_from_form is None:
                     raw_sales_rep_id = request.form.get('sales_rep_id')
                     # Check if raw_sales_rep_id is not None and not the typical blank value string for QuerySelectField
                     # The blank value can sometimes be an empty string or specific strings like '__None' depending on field setup.
@@ -789,16 +789,16 @@ def edit_contact(contact_id):
                             sales_rep_id_int = int(raw_sales_rep_id)
                             fetched_sales_rep = SalesUser.query.get(sales_rep_id_int)
                             if fetched_sales_rep:
-                                selected_sales_rep_from_form_field = fetched_sales_rep
+                                selected_sales_rep_from_form = fetched_sales_rep
                                 current_app.logger.info(f"Manager edit_contact: form.sales_rep_id.data was None, but successfully fetched SalesUser ID {sales_rep_id_int} from request.form.")
                             else:
                                 current_app.logger.warning(f"Manager edit_contact: form.sales_rep_id.data was None, raw form ID {raw_sales_rep_id} did not match any SalesUser.")
                         except ValueError:
                             current_app.logger.warning(f"Manager edit_contact: form.sales_rep_id.data was None, raw form ID {raw_sales_rep_id} is not a valid integer.")
                 
-                if selected_sales_rep_from_form_field: 
-                    contact.sales_rep_id = selected_sales_rep_from_form_field.id
-                    contact.sales_rep = selected_sales_rep_from_form_field 
+                if selected_sales_rep_from_form: 
+                    contact.sales_rep_id = selected_sales_rep_from_form.id
+                    contact.sales_rep = selected_sales_rep_from_form 
                 else: 
                     contact.sales_rep_id = None
                     contact.sales_rep = None 
@@ -807,13 +807,13 @@ def edit_contact(contact_id):
 
             db.session.add(contact)
             save_custom_field_values(form, CustomFieldAppliesTo.CONTACT, contact, dynamic_fields)
-                db.session.commit()
+            db.session.commit()
 
             flash(f'Contact "{contact.full_name}" updated successfully!', 'success')
             return redirect(url_for('crm.view_contact', contact_id=contact.id))
-            except Exception as e:
-                db.session.rollback()
-                current_app.logger.error(f"Error updating contact {contact_id}: {e}")
+        except Exception as e:
+            db.session.rollback()
+            current_app.logger.error(f"Error updating contact {contact_id}: {e}")
             flash(f'Error updating contact: {str(e)}.', 'danger')
 
     # If POST and validation failed, WTForms retains submitted data in 'form'.
@@ -1357,14 +1357,14 @@ def edit_account(account_id):
         try:
             original_sales_rep_id = account.sales_rep_id # Store original ID before any changes
 
-                account.name = form.name.data.strip()
-                account.website = form.website.data.strip() if form.website.data else None
-                account.industry = form.industry.data.strip() if form.industry.data else None
-                account.phone_number = form.phone_number.data.strip() if form.phone_number.data else None
+            account.name = form.name.data.strip()
+            account.website = form.website.data.strip() if form.website.data else None
+            account.industry = form.industry.data.strip() if form.industry.data else None
+            account.phone_number = form.phone_number.data.strip() if form.phone_number.data else None
             account.address = form.address.data.strip() if form.address.data else None
             
             selected_status = form.status.data if form.status.data and form.status.data != '-' else None
-                account.status = selected_status
+            account.status = selected_status
 
             sales_rep_changed_for_account = False
             new_account_sales_rep_obj = None # To store the SalesUser object if assigned
@@ -1403,13 +1403,13 @@ def edit_account(account_id):
                     flash(f"{len(contacts_to_update)} linked contacts were also reassigned to {rep_name_for_flash}.", "info")
 
             save_custom_field_values(form, CustomFieldAppliesTo.ACCOUNT, account, dynamic_fields)
-                db.session.commit()
+            db.session.commit()
 
-                flash(f'Account "{account.name}" updated successfully!', 'success')
-                return redirect(url_for('crm.view_account', account_id=account.id))
-            except Exception as e:
-                db.session.rollback()
-                current_app.logger.error(f"Error updating account {account_id}: {e}")
+            flash(f'Account "{account.name}" updated successfully!', 'success')
+            return redirect(url_for('crm.view_account', account_id=account.id))
+        except Exception as e:
+            db.session.rollback()
+            current_app.logger.error(f"Error updating account {account_id}: {e}")
             flash(f'Error updating account: {str(e)}.', 'danger')
             
     # If POST and validation failed, WTForms retains submitted data in 'form'.
