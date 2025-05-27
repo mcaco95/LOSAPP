@@ -1,0 +1,602 @@
+{% extends "base.html" %}
+
+{% block head %}
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="h3 mb-0">Call Logs</h1>
+                <div class="d-flex align-items-center">
+                    <button id="refreshLogs" class="btn btn-primary me-2">
+                        <i class="fas fa-sync-alt me-1"></i> Refresh
+                    </button>
+                    <button onclick="openOperationsPhoneWindow()" class="btn btn-success">
+                        <i class="fas fa-phone me-1"></i> Make Call
+                    </button>
+                </div>
+            </div>
+
+            <!-- Call Statistics Cards -->
+            <div class="row g-3 mb-4">
+                <div class="col-md-3">
+                    <div class="card border-0 shadow">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center">
+                                <div class="icon-shape icon-shape-primary rounded me-3">
+                                    <i class="fas fa-phone"></i>
+                                </div>
+                                <div>
+                                    <h2 class="h6 text-gray-400 mb-0">Total Calls</h2>
+                                    <h3 class="fw-extrabold mb-0" id="totalCalls">0</h3>
+                                    <small class="text-muted" id="totalCallsToday">0 today</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-3">
+                    <div class="card border-0 shadow">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center">
+                                <div class="icon-shape icon-shape-success rounded me-3">
+                                    <i class="fas fa-check-circle"></i>
+                                </div>
+                                <div>
+                                    <h2 class="h6 text-gray-400 mb-0">Completed</h2>
+                                    <h3 class="fw-extrabold mb-0" id="completedCalls">0</h3>
+                                    <small class="text-muted" id="completionRate">0% completion rate</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-3">
+                    <div class="card border-0 shadow">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center">
+                                <div class="icon-shape icon-shape-info rounded me-3">
+                                    <i class="fas fa-clock"></i>
+                                </div>
+                                <div>
+                                    <h2 class="h6 text-gray-400 mb-0">Avg Duration</h2>
+                                    <h3 class="fw-extrabold mb-0" id="avgDuration">0m 0s</h3>
+                                    <small class="text-muted" id="totalDuration">0m total today</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-3">
+                    <div class="card border-0 shadow">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center">
+                                <div class="icon-shape icon-shape-warning rounded me-3">
+                                    <i class="fas fa-microphone"></i>
+                                </div>
+                                <div>
+                                    <h2 class="h6 text-gray-400 mb-0">Recorded</h2>
+                                    <h3 class="fw-extrabold mb-0" id="recordedCalls">0</h3>
+                                    <small class="text-muted" id="recordingRate">0% recording rate</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Filters and Search -->
+            <div class="card border-0 shadow mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Filter Call Logs</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-2">
+                            <label class="form-label">Direction</label>
+                            <select id="directionFilter" class="form-select">
+                                <option value="">All Directions</option>
+                                <option value="outbound">Outbound</option>
+                                <option value="incoming">Incoming</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label">Status</label>
+                            <select id="statusFilter" class="form-select">
+                                <option value="">All Statuses</option>
+                                <option value="completed">Completed</option>
+                                <option value="no-answer">No Answer</option>
+                                <option value="busy">Busy</option>
+                                <option value="failed">Failed</option>
+                                <option value="canceled">Canceled</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label">Date Range</label>
+                            <select id="dateFilter" class="form-select">
+                                <option value="">All Time</option>
+                                <option value="today">Today</option>
+                                <option value="yesterday">Yesterday</option>
+                                <option value="week">This Week</option>
+                                <option value="month">This Month</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label">Recordings</label>
+                            <select id="recordingFilter" class="form-select">
+                                <option value="">All Calls</option>
+                                <option value="recorded">With Recording</option>
+                                <option value="not_recorded">No Recording</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Search</label>
+                            <input type="text" id="searchFilter" class="form-control" placeholder="Search phone numbers, contacts...">
+                        </div>
+                        <div class="col-md-1">
+                            <label class="form-label">&nbsp;</label>
+                            <button id="clearFilters" class="btn btn-outline-secondary w-100">
+                                <i class="fas fa-times"></i> Clear
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Call Logs Table -->
+            <div class="card border-0 shadow">
+                <div class="card-header">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">Call History</h5>
+                        <div class="d-flex align-items-center">
+                            <select id="perPageSelect" class="form-select form-select-sm me-2" style="width: auto;">
+                                <option value="25">25 per page</option>
+                                <option value="50" selected>50 per page</option>
+                                <option value="100">100 per page</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    <!-- Pagination -->
+                    <div id="callLogsPagination" class="p-3 border-bottom">
+                        <!-- Pagination will be rendered here -->
+                    </div>
+                    
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0" id="callLogsTable">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>Direction</th>
+                                    <th>Contact/Number</th>
+                                    <th>Status</th>
+                                    <th>Duration</th>
+                                    <th>Recording</th>
+                                    <th>Date/Time</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="callLogsTableBody">
+                                <tr>
+                                    <td colspan="7" class="text-center py-4">
+                                        <div class="spinner-border text-primary" role="status">
+                                            <span class="visually-hidden">Loading...</span>
+                                        </div>
+                                        <div class="mt-2">Loading call logs...</div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Call Details Modal -->
+<div class="modal fade" id="callDetailsModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Call Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Call Information</h6>
+                        <table class="table table-sm">
+                            <tr><td><strong>Call ID:</strong></td><td id="modalCallSid"></td></tr>
+                            <tr><td><strong>Direction:</strong></td><td id="modalDirection"></td></tr>
+                            <tr><td><strong>Status:</strong></td><td id="modalStatus"></td></tr>
+                            <tr><td><strong>Duration:</strong></td><td id="modalDuration"></td></tr>
+                            <tr><td><strong>Start Time:</strong></td><td id="modalStartTime"></td></tr>
+                            <tr><td><strong>End Time:</strong></td><td id="modalEndTime"></td></tr>
+                        </table>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Contact Information</h6>
+                        <table class="table table-sm">
+                            <tr><td><strong>From:</strong></td><td id="modalFromNumber"></td></tr>
+                            <tr><td><strong>To:</strong></td><td id="modalToNumber"></td></tr>
+                            <tr><td><strong>Contact:</strong></td><td id="modalContactName"></td></tr>
+                            <tr><td><strong>Company:</strong></td><td id="modalContactCompany"></td></tr>
+                        </table>
+                    </div>
+                </div>
+                
+                <!-- Recording Section -->
+                <div id="recordingSection" class="mt-4" style="display: none;">
+                    <h6>Call Recording</h6>
+                    <div class="card">
+                        <div class="card-body">
+                            <audio id="recordingPlayer" controls class="w-100">
+                                Your browser does not support the audio element.
+                            </audio>
+                            <div class="mt-2">
+                                <a id="downloadRecording" href="#" class="btn btn-sm btn-outline-primary" download>
+                                    <i class="fas fa-download me-1"></i> Download Recording
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .icon-shape {
+        width: 48px;
+        height: 48px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 12px;
+    }
+    
+    .icon-shape-primary { background-color: rgba(13, 110, 253, 0.1); color: #0d6efd; }
+    .icon-shape-success { background-color: rgba(25, 135, 84, 0.1); color: #198754; }
+    .icon-shape-info { background-color: rgba(13, 202, 240, 0.1); color: #0dcaf0; }
+    .icon-shape-warning { background-color: rgba(255, 193, 7, 0.1); color: #ffc107; }
+    
+    .table-responsive {
+        max-height: 70vh;
+        overflow-y: auto;
+    }
+    
+    .call-direction-badge {
+        font-size: 0.75rem;
+        padding: 0.25rem 0.5rem;
+    }
+    
+    .recording-controls {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .phone-number {
+        font-family: monospace;
+        font-size: 0.9rem;
+    }
+</style>
+
+<script>
+// Global variables
+let currentPage = 1;
+let totalPages = 1;
+let callLogsModal = null;
+
+// Initialize page
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize modal
+    const modalElement = document.getElementById('callDetailsModal');
+    if (modalElement) {
+        callLogsModal = new bootstrap.Modal(modalElement);
+    }
+    
+    // Set up event listeners
+    setupEventListeners();
+    
+    // Load initial data
+    loadCallLogs();
+    loadCallStats();
+    
+    // Auto-refresh every 30 seconds
+    setInterval(() => {
+        loadCallLogs();
+        loadCallStats();
+    }, 30000);
+});
+
+// Set up event listeners
+function setupEventListeners() {
+    document.getElementById('refreshLogs').addEventListener('click', () => {
+        loadCallLogs();
+        loadCallStats();
+    });
+    
+    document.getElementById('clearFilters').addEventListener('click', clearAllFilters);
+    
+    // Filter change listeners
+    ['directionFilter', 'statusFilter', 'dateFilter', 'recordingFilter'].forEach(id => {
+        document.getElementById(id).addEventListener('change', () => {
+            currentPage = 1;
+            loadCallLogs();
+        });
+    });
+    
+    document.getElementById('searchFilter').addEventListener('input', debounce(() => {
+        currentPage = 1;
+        loadCallLogs();
+    }, 300));
+    
+    document.getElementById('perPageSelect').addEventListener('change', () => {
+        currentPage = 1;
+        loadCallLogs();
+    });
+}
+
+// Debounce function
+function debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+        const later = () => {
+            clearTimeout(timeout);
+            func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+    };
+}
+
+// Load call logs
+async function loadCallLogs() {
+    try {
+        const params = new URLSearchParams({
+            page: currentPage,
+            per_page: document.getElementById('perPageSelect').value,
+            direction: document.getElementById('directionFilter').value,
+            status: document.getElementById('statusFilter').value,
+            date_range: document.getElementById('dateFilter').value,
+            recording: document.getElementById('recordingFilter').value,
+            search: document.getElementById('searchFilter').value
+        });
+        
+        // Remove empty parameters
+        for (let [key, value] of [...params.entries()]) {
+            if (!value) params.delete(key);
+        }
+        
+        const response = await fetch(`/operations/api/call-logs?${params}`);
+        const data = await response.json();
+        
+        if (data.success) {
+            renderCallLogs(data.calls);
+            updatePagination(data.current_page, data.total_pages, data.total_calls);
+        } else {
+            showError('Failed to load call logs');
+        }
+    } catch (error) {
+        console.error('Error loading call logs:', error);
+        showError('Failed to load call logs');
+    }
+}
+
+// Load call statistics
+async function loadCallStats() {
+    try {
+        const response = await fetch('/operations/api/call-stats');
+        const data = await response.json();
+        
+        if (data.success) {
+            updateCallStats(data.stats);
+        }
+    } catch (error) {
+        console.error('Error loading call stats:', error);
+    }
+}
+
+// Render call logs in table
+function renderCallLogs(calls) {
+    const tbody = document.getElementById('callLogsTableBody');
+    tbody.innerHTML = '';
+    
+    if (calls.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="7" class="text-center py-4">
+                    <i class="fas fa-phone-slash text-muted mb-2" style="font-size: 2rem;"></i>
+                    <div>No call logs found</div>
+                </td>
+            </tr>
+        `;
+        return;
+    }
+    
+    calls.forEach(call => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td>
+                <span class="badge bg-${call.direction === 'outbound' ? 'primary' : 'info'} call-direction-badge">
+                    <i class="fas fa-${call.direction === 'outbound' ? 'arrow-up' : 'arrow-down'} me-1"></i>
+                    ${call.direction}
+                </span>
+            </td>
+            <td>
+                <div>
+                    <div class="phone-number">${call.display_number}</div>
+                    ${call.contact_name ? `<small class="text-muted">${call.contact_name}</small>` : ''}
+                </div>
+            </td>
+            <td>
+                <span class="badge bg-${getStatusBadgeClass(call.status)}">${call.status}</span>
+            </td>
+            <td>${formatDuration(call.duration)}</td>
+            <td>
+                ${call.recording_url ? 
+                    `<button class="btn btn-sm btn-outline-success" onclick="playRecording('${call.recording_url}')">
+                        <i class="fas fa-play me-1"></i> Play
+                    </button>` : 
+                    '<span class="text-muted">No recording</span>'
+                }
+            </td>
+            <td>
+                <div>${formatDateTime(call.created_at)}</div>
+                ${call.duration ? `<small class="text-muted">Duration: ${formatDuration(call.duration)}</small>` : ''}
+            </td>
+            <td>
+                <button class="btn btn-sm btn-outline-primary" onclick="showCallDetails(${call.id})">
+                    <i class="fas fa-eye"></i> Details
+                </button>
+                ${call.direction === 'incoming' && call.from_number ? 
+                    `<button class="btn btn-sm btn-outline-success ms-1" onclick="callBack('${call.from_number}')">
+                        <i class="fas fa-phone"></i> Call Back
+                    </button>` : ''
+                }
+            </td>
+        `;
+        tbody.appendChild(row);
+    });
+}
+
+// Update call statistics
+function updateCallStats(stats) {
+    document.getElementById('totalCalls').textContent = stats.total_calls;
+    document.getElementById('totalCallsToday').textContent = `${stats.calls_today} today`;
+    
+    document.getElementById('completedCalls').textContent = stats.completed_calls;
+    document.getElementById('completionRate').textContent = `${stats.completion_rate}% completion rate`;
+    
+    document.getElementById('avgDuration').textContent = formatDuration(stats.avg_duration);
+    document.getElementById('totalDuration').textContent = `${formatDuration(stats.total_duration_today)} total today`;
+    
+    document.getElementById('recordedCalls').textContent = stats.recorded_calls;
+    document.getElementById('recordingRate').textContent = `${stats.recording_rate}% recording rate`;
+}
+
+// Helper functions
+function getStatusBadgeClass(status) {
+    const classes = {
+        'completed': 'success',
+        'in-progress': 'primary',
+        'no-answer': 'warning',
+        'failed': 'danger',
+        'busy': 'warning',
+        'canceled': 'secondary'
+    };
+    return classes[status] || 'secondary';
+}
+
+function formatDuration(seconds) {
+    if (!seconds || seconds === 0) return '0s';
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = seconds % 60;
+    if (minutes > 0) {
+        return `${minutes}m ${remainingSeconds}s`;
+    }
+    return `${remainingSeconds}s`;
+}
+
+function formatDateTime(dateString) {
+    if (!dateString) return 'N/A';
+    const date = new Date(dateString);
+    return date.toLocaleString();
+}
+
+function clearAllFilters() {
+    document.getElementById('directionFilter').value = '';
+    document.getElementById('statusFilter').value = '';
+    document.getElementById('dateFilter').value = '';
+    document.getElementById('recordingFilter').value = '';
+    document.getElementById('searchFilter').value = '';
+    currentPage = 1;
+    loadCallLogs();
+}
+
+function updatePagination(current, total, totalItems) {
+    currentPage = current;
+    totalPages = total;
+    
+    const container = document.getElementById('callLogsPagination');
+    let html = '<ul class="pagination justify-content-center mb-0">';
+    
+    // Previous button
+    html += `
+        <li class="page-item ${current === 1 ? 'disabled' : ''}">
+            <a class="page-link" href="#" onclick="changePage(${current - 1}); return false;">Previous</a>
+        </li>
+    `;
+    
+    // Page numbers
+    for (let i = 1; i <= total; i++) {
+        if (i === 1 || i === total || (i >= current - 2 && i <= current + 2)) {
+            html += `
+                <li class="page-item ${current === i ? 'active' : ''}">
+                    <a class="page-link" href="#" onclick="changePage(${i}); return false;">${i}</a>
+                </li>
+            `;
+        } else if (i === current - 3 || i === current + 3) {
+            html += '<li class="page-item disabled"><span class="page-link">...</span></li>';
+        }
+    }
+    
+    // Next button
+    html += `
+        <li class="page-item ${current === total ? 'disabled' : ''}">
+            <a class="page-link" href="#" onclick="changePage(${current + 1}); return false;">Next</a>
+        </li>
+    `;
+    
+    html += '</ul>';
+    html += `<div class="text-center mt-2 text-muted">Showing ${totalItems} total calls</div>`;
+    
+    container.innerHTML = html;
+}
+
+function changePage(page) {
+    if (page >= 1 && page <= totalPages) {
+        currentPage = page;
+        loadCallLogs();
+    }
+}
+
+// Placeholder functions (to be implemented)
+function showCallDetails(callId) {
+    // TODO: Implement call details modal
+    console.log('Show call details for:', callId);
+}
+
+function playRecording(recordingUrl) {
+    // TODO: Implement recording playback
+    console.log('Play recording:', recordingUrl);
+}
+
+function callBack(phoneNumber) {
+    openOperationsPhoneWindow(phoneNumber);
+}
+
+function openOperationsPhoneWindow(phoneNumber = '') {
+    const phoneWindow = window.open(
+        `/operations/phone${phoneNumber ? '?number=' + encodeURIComponent(phoneNumber) : ''}`,
+        "LOS_Operations_Phone_Window",
+        "width=320,height=600,resizable=yes,top=100,left=100,menubar=no,toolbar=no,location=no,status=no,titlebar=yes"
+    );
+    if (phoneWindow) phoneWindow.focus();
+}
+
+function showError(message) {
+    // TODO: Implement proper toast notification
+    alert(message);
+}
+</script>
+{% endblock %} 

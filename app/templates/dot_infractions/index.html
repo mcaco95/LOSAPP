@@ -1,0 +1,555 @@
+{% extends "base.html" %}
+
+{% block head %}
+<style>
+    .infraction-form {
+        background: #f8f9fa;
+        border: 1px solid #dee2e6;
+        border-radius: 8px;
+        padding: 20px;
+        margin-bottom: 20px;
+    }
+    
+    .form-section {
+        background: white;
+        border: 1px solid #dee2e6;
+        border-radius: 6px;
+        padding: 15px;
+        margin-bottom: 15px;
+    }
+    
+    .form-section h6 {
+        color: #495057;
+        font-weight: 600;
+        margin-bottom: 15px;
+        padding-bottom: 8px;
+        border-bottom: 2px solid #007bff;
+    }
+    
+    .violation-item {
+        background: #f8f9fa;
+        border: 1px solid #dee2e6;
+        border-radius: 4px;
+        padding: 10px;
+        margin-bottom: 10px;
+    }
+    
+    .severity-badge {
+        font-size: 0.75rem;
+        padding: 0.25rem 0.5rem;
+    }
+    
+    .linked-alert {
+        background: #e3f2fd;
+        border-left: 4px solid #2196f3;
+        padding: 8px 12px;
+        margin-bottom: 8px;
+        border-radius: 0 4px 4px 0;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="h3 mb-0">DOT Infractions Management</h1>
+                <button class="btn btn-primary" onclick="showCreateForm()">
+                    <i class="fas fa-plus me-2"></i>Add New Infraction
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create/Edit Infraction Form -->
+    <div id="infractionFormContainer" class="row" style="display: none;">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-file-alt me-2"></i>
+                        <span id="formTitle">Add New DOT Infraction</span>
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form id="infractionForm" class="infraction-form">
+                        <!-- Company Selection Section -->
+                        <div class="form-section">
+                            <h6><i class="fas fa-building me-2"></i>Company Selection</h6>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="companySelect" class="form-label">Select Company <span class="text-danger">*</span></label>
+                                        <select class="form-select" id="companySelect" name="company_id" required onchange="loadCompanyData()">
+                                            <option value="">Choose a company...</option>
+                                        </select>
+                                        <div class="form-text">This will determine available drivers and vehicles</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="mb-3">
+                                        <label class="form-label">Available Drivers</label>
+                                        <div class="badge bg-info" id="driverCount">-</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="mb-3">
+                                        <label class="form-label">Available Vehicles</label>
+                                        <div class="badge bg-info" id="vehicleCount">-</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Carrier Information Section -->
+                        <div class="form-section">
+                            <h6><i class="fas fa-building me-2"></i>Carrier Information</h6>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="carrierName" class="form-label">Name</label>
+                                        <input type="text" class="form-control" id="carrierName" name="carrier_name">
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="mb-3">
+                                        <label for="usDot" class="form-label">US DOT#</label>
+                                        <input type="text" class="form-control" id="usDot" name="us_dot">
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="mb-3">
+                                        <label for="mcNumber" class="form-label">MC#</label>
+                                        <input type="text" class="form-control" id="mcNumber" name="mc_number">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-9">
+                                    <div class="mb-3">
+                                        <label for="carrierAddress" class="form-label">Address</label>
+                                        <textarea class="form-control" id="carrierAddress" name="carrier_address" rows="2"></textarea>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="mb-3">
+                                        <label for="stateId" class="form-label">State ID</label>
+                                        <input type="text" class="form-control" id="stateId" name="state_id">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Report Information Section -->
+                        <div class="form-section">
+                            <h6><i class="fas fa-clipboard-list me-2"></i>Inspection Information</h6>
+                            <div class="row">
+                                <div class="col-md-3">
+                                    <div class="mb-3">
+                                        <label for="reportNumber" class="form-label">Report # <span class="text-danger">*</span></label>
+                                        <input type="text" class="form-control" id="reportNumber" name="report_number" required>
+                                    </div>
+                                </div>
+                                <div class="col-md-2">
+                                    <div class="mb-3">
+                                        <label for="reportState" class="form-label">Report State</label>
+                                        <input type="text" class="form-control" id="reportState" name="report_state" maxlength="2">
+                                    </div>
+                                </div>
+                                <div class="col-md-2">
+                                    <div class="mb-3">
+                                        <label for="inspectionState" class="form-label">Inspection State</label>
+                                        <input type="text" class="form-control" id="inspectionState" name="inspection_state" maxlength="2">
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="mb-3">
+                                        <label for="inspectionDate" class="form-label">Inspection Date <span class="text-danger">*</span></label>
+                                        <input type="date" class="form-control" id="inspectionDate" name="inspection_date" required>
+                                    </div>
+                                </div>
+                                <div class="col-md-2">
+                                    <div class="mb-3">
+                                        <label for="startEndTime" class="form-label">Start-End Time</label>
+                                        <input type="text" class="form-control" id="startEndTime" name="start_end_time" placeholder="09:45-09:25">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        <label for="inspectionLevel" class="form-label">Inspection Level</label>
+                                        <select class="form-select" id="inspectionLevel" name="inspection_level">
+                                            <option value="">Select Level</option>
+                                            <option value="1 - Walk Around">1 - Walk Around</option>
+                                            <option value="2 - Walk Around">2 - Walk Around</option>
+                                            <option value="3 - Walk Around">3 - Walk Around</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        <label for="inspectionFacility" class="form-label">Inspection Facility</label>
+                                        <input type="text" class="form-control" id="inspectionFacility" name="inspection_facility">
+                                    </div>
+                                </div>
+                                <div class="col-md-2">
+                                    <div class="mb-3">
+                                        <label for="postCrash" class="form-label">Post Crash</label>
+                                        <select class="form-select" id="postCrash" name="post_crash">
+                                            <option value="">Select</option>
+                                            <option value="Yes">Yes</option>
+                                            <option value="No">No</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-2">
+                                    <div class="mb-3">
+                                        <label for="hazmatPlacard" class="form-label">Hazmat Placard Required</label>
+                                        <select class="form-select" id="hazmatPlacard" name="hazmat_placard_required">
+                                            <option value="">Select</option>
+                                            <option value="Yes">Yes</option>
+                                            <option value="No">No</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-8">
+                                    <div class="mb-3">
+                                        <label for="inspectionLocation" class="form-label">Inspection Location</label>
+                                        <input type="text" class="form-control" id="inspectionLocation" name="inspection_location">
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        <label for="inspectionCounty" class="form-label">Inspection County</label>
+                                        <input type="text" class="form-control" id="inspectionCounty" name="inspection_county">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Driver Information Section -->
+                        <div class="form-section">
+                            <h6><i class="fas fa-user me-2"></i>Driver Information</h6>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="primaryDriverSelect" class="form-label">Primary Driver</label>
+                                        <select class="form-select" id="primaryDriverSelect" name="primary_driver_id" onchange="handleDriverSelection()">
+                                            <option value="">Select from existing drivers...</option>
+                                        </select>
+                                        <div class="form-text">Choose from company drivers or enter manually below</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-check mt-4">
+                                        <input class="form-check-input" type="checkbox" id="manualDriverEntry" onchange="toggleManualDriverEntry()">
+                                        <label class="form-check-label" for="manualDriverEntry">
+                                            Enter driver information manually
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Manual Driver Entry (hidden by default) -->
+                            <div id="manualDriverFields" style="display: none;">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="driverName" class="form-label">Driver Name</label>
+                                            <input type="text" class="form-control" id="driverName" name="driver_name">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="mb-3">
+                                            <label for="driverAge" class="form-label">Age</label>
+                                            <input type="number" class="form-control" id="driverAge" name="driver_age" min="18" max="99">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="mb-3">
+                                            <label for="driverLicenseState" class="form-label">License State</label>
+                                            <input type="text" class="form-control" id="driverLicenseState" name="driver_license_state" maxlength="2">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Vehicle Information Section -->
+                        <div class="form-section">
+                            <h6><i class="fas fa-truck me-2"></i>Vehicle Information</h6>
+                            
+                            <!-- Linked Vehicles Section -->
+                            <div class="mb-3">
+                                <label class="form-label">Select Company Vehicles</label>
+                                <div id="linkedVehiclesContainer">
+                                    <div class="alert alert-info">
+                                        <i class="fas fa-info-circle me-2"></i>
+                                        Select a company first to see available vehicles
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Manual Vehicle Entry -->
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <label class="form-label mb-0">Manual Vehicle Entry</label>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="enableManualVehicles" onchange="toggleManualVehicles()">
+                                    <label class="form-check-label" for="enableManualVehicles">
+                                        Add vehicles not in system
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            <div id="manualVehiclesSection" style="display: none;">
+                                <div id="vehiclesContainer">
+                                    <div class="vehicle-entry">
+                                        <div class="row">
+                                            <div class="col-md-1">
+                                                <div class="mb-3">
+                                                    <label class="form-label">Unit</label>
+                                                    <input type="text" class="form-control" name="vehicle_unit[]" placeholder="1">
+                                                </div>
+                                            </div>
+                                            <div class="col-md-2">
+                                                <div class="mb-3">
+                                                    <label class="form-label">Type</label>
+                                                    <select class="form-select" name="vehicle_type[]">
+                                                        <option value="">Select</option>
+                                                        <option value="TRUCK TRACTOR">TRUCK TRACTOR</option>
+                                                        <option value="SEMI TRAILER">SEMI TRAILER</option>
+                                                        <option value="STRAIGHT TRUCK">STRAIGHT TRUCK</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-2">
+                                                <div class="mb-3">
+                                                    <label class="form-label">Year</label>
+                                                    <input type="text" class="form-control" name="vehicle_year[]">
+                                                </div>
+                                            </div>
+                                            <div class="col-md-2">
+                                                <div class="mb-3">
+                                                    <label class="form-label">Make</label>
+                                                    <input type="text" class="form-control" name="vehicle_make[]">
+                                                </div>
+                                            </div>
+                                            <div class="col-md-2">
+                                                <div class="mb-3">
+                                                    <label class="form-label">State</label>
+                                                    <input type="text" class="form-control" name="vehicle_state[]" maxlength="2">
+                                                </div>
+                                            </div>
+                                            <div class="col-md-2">
+                                                <div class="mb-3">
+                                                    <label class="form-label">License #</label>
+                                                    <input type="text" class="form-control" name="vehicle_license[]">
+                                                </div>
+                                            </div>
+                                            <div class="col-md-1">
+                                                <div class="mb-3">
+                                                    <label class="form-label">&nbsp;</label>
+                                                    <button type="button" class="btn btn-outline-danger btn-sm w-100" onclick="removeVehicle(this)">
+                                                        <i class="fas fa-trash"></i>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <button type="button" class="btn btn-outline-primary btn-sm" onclick="addVehicle()">
+                                    <i class="fas fa-plus me-1"></i>Add Manual Vehicle
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Violations Section -->
+                        <div class="form-section">
+                            <h6><i class="fas fa-exclamation-triangle me-2"></i>Violations</h6>
+                            <div id="violationsContainer">
+                                <div class="violation-entry">
+                                    <div class="row">
+                                        <div class="col-md-1">
+                                            <div class="mb-3">
+                                                <label class="form-label">Unit</label>
+                                                <select class="form-select" name="violation_unit_type[]">
+                                                    <option value="">-</option>
+                                                    <option value="D">D</option>
+                                                    <option value="N">N</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-1">
+                                            <div class="mb-3">
+                                                <label class="form-label">OOS</label>
+                                                <select class="form-select" name="violation_oos[]">
+                                                    <option value="">-</option>
+                                                    <option value="Y">Y</option>
+                                                    <option value="N">N</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-2">
+                                            <div class="mb-3">
+                                                <label class="form-label">Section Code <span class="text-danger">*</span></label>
+                                                <input type="text" class="form-control" name="violation_section_code[]" placeholder="393.55(f)" required>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="mb-3">
+                                                <label class="form-label">Violation Description <span class="text-danger">*</span></label>
+                                                <textarea class="form-control" name="violation_description[]" rows="2" required></textarea>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-2">
+                                            <div class="mb-3">
+                                                <label class="form-label">Category</label>
+                                                <select class="form-select" name="violation_category[]">
+                                                    <option value="">Select</option>
+                                                    <option value="BASIC">BASIC</option>
+                                                    <option value="Weight">Weight</option>
+                                                    <option value="Citation">Citation</option>
+                                                    <option value="Emergency Equipment">Emergency Equipment</option>
+                                                    <option value="Speeding">Speeding</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-1">
+                                            <div class="mb-3">
+                                                <label class="form-label">Citation</label>
+                                                <input type="text" class="form-control" name="violation_citation[]">
+                                            </div>
+                                        </div>
+                                        <div class="col-md-1">
+                                            <div class="mb-3">
+                                                <label class="form-label">&nbsp;</label>
+                                                <button type="button" class="btn btn-outline-danger btn-sm w-100" onclick="removeViolation(this)">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <button type="button" class="btn btn-outline-primary btn-sm" onclick="addViolation()">
+                                <i class="fas fa-plus me-1"></i>Add Violation
+                            </button>
+                        </div>
+
+                        <!-- Form Actions -->
+                        <div class="d-flex justify-content-end gap-2">
+                            <button type="button" class="btn btn-secondary" onclick="hideCreateForm()">Cancel</button>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-2"></i>Save Infraction
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Infractions List -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">DOT Infractions</h5>
+                        <div class="d-flex gap-2">
+                            <input type="text" id="searchInfractions" class="form-control form-control-sm" placeholder="Search infractions..." style="width: 250px;">
+                            <input type="date" id="dateFrom" class="form-control form-control-sm">
+                            <input type="date" id="dateTo" class="form-control form-control-sm">
+                            <button class="btn btn-outline-primary btn-sm" onclick="loadInfractions()">
+                                <i class="fas fa-search"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    <!-- Pagination -->
+                    <div id="infractionsPagination" class="mt-2 mb-3 px-3">
+                        <!-- Pagination will be rendered here -->
+                    </div>
+                    
+                    <!-- Infractions Table -->
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover" id="infractionsTable">
+                            <thead class="table-dark sticky-top">
+                                <tr>
+                                    <th>Actions</th>
+                                    <th>Report #</th>
+                                    <th>Inspection Date</th>
+                                    <th>Carrier Name</th>
+                                    <th>US DOT</th>
+                                    <th>Driver</th>
+                                    <th>Location</th>
+                                    <th>Violations</th>
+                                    <th>Linked Alerts</th>
+                                    <th>Created By</th>
+                                </tr>
+                            </thead>
+                            <tbody id="infractionsTableBody">
+                                <!-- Infractions will be loaded here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Infraction Details Modal -->
+<div class="modal fade" id="infractionDetailsModal" tabindex="-1">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Infraction Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <!-- Left Column - Infraction Information -->
+                    <div class="col-md-8">
+                        <div id="infractionDetailsContent">
+                            <!-- Details will be loaded here -->
+                        </div>
+                    </div>
+                    
+                    <!-- Right Column - Linked Alerts -->
+                    <div class="col-md-4">
+                        <h6>Linked Alerts</h6>
+                        <div id="linkedAlertsContainer">
+                            <!-- Linked alerts will be shown here -->
+                        </div>
+                        
+                        <!-- Link Alert Form -->
+                        <div class="mt-3">
+                            <h6>Link New Alert</h6>
+                            <div class="mb-2">
+                                <input type="text" id="alertSearch" class="form-control form-control-sm" placeholder="Search alerts...">
+                            </div>
+                            <div id="alertSearchResults" class="mb-2" style="max-height: 200px; overflow-y: auto;">
+                                <!-- Search results will appear here -->
+                            </div>
+                            <div class="mb-2">
+                                <textarea id="linkReason" class="form-control form-control-sm" rows="2" placeholder="Reason for linking..."></textarea>
+                            </div>
+                            <button class="btn btn-sm btn-primary" onclick="linkSelectedAlert()">
+                                <i class="fas fa-link me-1"></i>Link Alert
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="{{ url_for('static', filename='js/dot-infractions.js') }}"></script>
+{% endblock %} 

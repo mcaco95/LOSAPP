@@ -1,0 +1,1967 @@
+{
+  "timestamp": "2025-05-24T00:05:38.551217",
+  "event_type": "AlertIncident",
+  "event_id": "87ef2db3-3a3a-44d8-8e22-e60bc1b8184e",
+  "org_id": 7000073,
+  "vehicle_info": {
+    "id": null,
+    "name": null
+  },
+  "trailer_info": {
+    "id": null,
+    "name": null
+  },
+  "conditions": [
+    {
+      "triggerId": 1031,
+      "description": "Asset stops moving",
+      "details": {
+        "deviceMovementStopped": {
+          "vehicle": {
+            "id": "281474988991531",
+            "externalIds": {
+              "samsara.serial": "G2G6FATV95",
+              "samsara.vin": "3AKJHLFG5RSUX9818"
+            },
+            "name": "DMT 418",
+            "serial": "G2G6FATV95"
+          },
+          "driver": {
+            "id": "51209393",
+            "name": "Robert Lopez"
+          }
+        }
+      }
+    }
+  ],
+  "processing_details": {
+    "message": "Alert processed successfully"
+  },
+  "raw_data": {
+    "eventId": "87ef2db3-3a3a-44d8-8e22-e60bc1b8184e",
+    "eventTime": "2025-05-24T06:43:49.061Z",
+    "eventType": "AlertIncident",
+    "orgId": 7000073,
+    "webhookId": "3404485596517689",
+    "data": {
+      "configurationId": "f1c317c7-55d9-48da-ace1-46f49851deb2",
+      "updatedAtTime": "2025-05-24T07:05:37Z",
+      "resolvedAtTime": "2025-05-24T07:05:17Z",
+      "happenedAtTime": "2025-05-24T06:43:49Z",
+      "isResolved": true,
+      "incidentUrl": "https://cloud.samsara.com/o/7000073/fleet/workflows/incidents/f1c317c7-55d9-48da-ace1-46f49851deb2/1/281474988991531/1748069029061",
+      "conditions": [
+        {
+          "triggerId": 1031,
+          "description": "Asset stops moving",
+          "details": {
+            "deviceMovementStopped": {
+              "vehicle": {
+                "id": "281474988991531",
+                "externalIds": {
+                  "samsara.serial": "G2G6FATV95",
+                  "samsara.vin": "3AKJHLFG5RSUX9818"
+                },
+                "name": "DMT 418",
+                "serial": "G2G6FATV95"
+              },
+              "driver": {
+                "id": "51209393",
+                "name": "Robert Lopez"
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}
+
+{
+  "timestamp": "2025-05-24T00:06:04.057323",
+  "event_type": "AlertIncident",
+  "event_id": "05f69c51-48bd-4da2-a5fe-96c42c7cfd01",
+  "org_id": 7000073,
+  "vehicle_info": {
+    "id": null,
+    "name": null
+  },
+  "trailer_info": {
+    "id": null,
+    "name": null
+  },
+  "conditions": [
+    {
+      "triggerId": 1031,
+      "description": "Asset stops moving",
+      "details": {
+        "deviceMovementStopped": {
+          "vehicle": {
+            "id": "281474988998012",
+            "externalIds": {
+              "samsara.serial": "G2ADBWANZ5",
+              "samsara.vin": "3AKJHLFG7RSUX9819"
+            },
+            "name": "DMT 419",
+            "serial": "G2ADBWANZ5"
+          },
+          "driver": {
+            "id": "52876085",
+            "name": "Robert Jr. Tarazon"
+          }
+        }
+      }
+    }
+  ],
+  "processing_details": {
+    "message": "Alert processed successfully"
+  },
+  "raw_data": {
+    "eventId": "05f69c51-48bd-4da2-a5fe-96c42c7cfd01",
+    "eventTime": "2025-05-24T06:45:32.998Z",
+    "eventType": "AlertIncident",
+    "orgId": 7000073,
+    "webhookId": "3404485596517689",
+    "data": {
+      "configurationId": "f1c317c7-55d9-48da-ace1-46f49851deb2",
+      "updatedAtTime": "2025-05-24T07:06:03Z",
+      "happenedAtTime": "2025-05-24T06:45:32Z",
+      "isResolved": false,
+      "incidentUrl": "https://cloud.samsara.com/o/7000073/fleet/workflows/incidents/f1c317c7-55d9-48da-ace1-46f49851deb2/1/281474988998012/1748069132998",
+      "conditions": [
+        {
+          "triggerId": 1031,
+          "description": "Asset stops moving",
+          "details": {
+            "deviceMovementStopped": {
+              "vehicle": {
+                "id": "281474988998012",
+                "externalIds": {
+                  "samsara.serial": "G2ADBWANZ5",
+                  "samsara.vin": "3AKJHLFG7RSUX9819"
+                },
+                "name": "DMT 419",
+                "serial": "G2ADBWANZ5"
+              },
+              "driver": {
+                "id": "52876085",
+                "name": "Robert Jr. Tarazon"
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}
+
+{
+  "timestamp": "2025-05-24T00:06:46.880919",
+  "event_type": "SevereSpeedingStarted",
+  "event_id": "2b7854d7-f61a-466b-9eb3-0c774d5ba0da",
+  "org_id": 7000073,
+  "vehicle_info": {
+    "id": null,
+    "name": null
+  },
+  "trailer_info": {
+    "id": null,
+    "name": null
+  },
+  "conditions": [],
+  "processing_details": {
+    "message": "Speeding event processed successfully"
+  },
+  "raw_data": {
+    "eventId": "2b7854d7-f61a-466b-9eb3-0c774d5ba0da",
+    "eventTime": "2025-05-24T07:05:20.002Z",
+    "eventType": "SevereSpeedingStarted",
+    "orgId": 7000073,
+    "webhookId": "3404485596517689",
+    "data": {
+      "data": {
+        "tripStartTime": "2025-05-24T06:32:08.017Z",
+        "startTime": "2025-05-24T07:05:20.002Z",
+        "vehicle": {
+          "id": "281474989077346"
+        }
+      }
+    }
+  }
+}
+
+{
+  "timestamp": "2025-05-24T00:06:47.631497",
+  "event_type": "AlertIncident",
+  "event_id": "68f064d5-3e12-4206-b1a1-2a1a9a85e723",
+  "org_id": 7000073,
+  "vehicle_info": {
+    "id": null,
+    "name": null
+  },
+  "trailer_info": {
+    "id": null,
+    "name": null
+  },
+  "conditions": [
+    {
+      "triggerId": 5022,
+      "description": "If vehicle is severely speeding (as defined by your organization)",
+      "details": {
+        "severeSpeeding": {
+          "data": {
+            "tripStartTime": "2025-05-24T06:32:08Z",
+            "startTime": "2025-05-24T07:05:20Z",
+            "vehicle": {
+              "id": "281474989077346"
+            }
+          }
+        }
+      }
+    }
+  ],
+  "processing_details": {
+    "message": "Alert processed successfully"
+  },
+  "raw_data": {
+    "eventId": "68f064d5-3e12-4206-b1a1-2a1a9a85e723",
+    "eventTime": "2025-05-24T07:05:20.002Z",
+    "eventType": "AlertIncident",
+    "orgId": 7000073,
+    "webhookId": "3404485596517689",
+    "data": {
+      "configurationId": "e5a1781b-31fb-40a8-87b0-343bc0866b11",
+      "updatedAtTime": "2025-05-24T07:06:47Z",
+      "happenedAtTime": "2025-05-24T07:05:20Z",
+      "isResolved": false,
+      "incidentUrl": "https://cloud.samsara.com/o/7000073/fleet/workflows/incidents/e5a1781b-31fb-40a8-87b0-343bc0866b11/1/281474989077346/1748070320002",
+      "conditions": [
+        {
+          "triggerId": 5022,
+          "description": "If vehicle is severely speeding (as defined by your organization)",
+          "details": {
+            "severeSpeeding": {
+              "data": {
+                "tripStartTime": "2025-05-24T06:32:08Z",
+                "startTime": "2025-05-24T07:05:20Z",
+                "vehicle": {
+                  "id": "281474989077346"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}
+
+{
+  "timestamp": "2025-05-24T00:07:15.725067",
+  "event_type": "AlertIncident",
+  "event_id": "ca9f65a1-550c-45af-8cce-f63721dd1196",
+  "org_id": 7000073,
+  "vehicle_info": {
+    "id": null,
+    "name": null
+  },
+  "trailer_info": {
+    "id": null,
+    "name": null
+  },
+  "conditions": [
+    {
+      "triggerId": 5017,
+      "description": "Geofence Exit",
+      "details": {
+        "geofenceExit": {
+          "address": {
+            "id": "141055135",
+            "name": "D & I Holsteins (716)",
+            "formattedAddress": "3345 N Fuqua Rd, Stanfield, AZ 85172, USA",
+            "geofence": {
+              "polygon": {
+                "vertices": [
+                  {
+                    "latitude": 32.91296515687766,
+                    "longitude": -111.97275800368828
+                  },
+                  {
+                    "latitude": 32.912947143225935,
+                    "longitude": -111.97274727485222
+                  },
+                  {
+                    "latitude": 32.912947143225935,
+                    "longitude": -111.97345001361413
+                  },
+                  {
+                    "latitude": 32.9129111159115,
+                    "longitude": -111.97421712539239
+                  },
+                  {
+                    "latitude": 32.91289310224878,
+                    "longitude": -111.97544021270318
+                  },
+                  {
+                    "latitude": 32.91181227577745,
+                    "longitude": -111.97545094153924
+                  },
+                  {
+                    "latitude": 32.91141596943155,
+                    "longitude": -111.97547239921136
+                  },
+                  {
+                    "latitude": 32.91139795546462,
+                    "longitude": -111.97441024444146
+                  },
+                  {
+                    "latitude": 32.91139795546462,
+                    "longitude": -111.97379870078606
+                  },
+                  {
+                    "latitude": 32.91142497641372,
+                    "longitude": -111.9733910050158
+                  },
+                  {
+                    "latitude": 32.91137093450728,
+                    "longitude": -111.97271508834405
+                  },
+                  {
+                    "latitude": 32.9129381363987,
+                    "longitude": -111.97274727485222
+                  }
+                ]
+              }
+            }
+          },
+          "vehicle": {
+            "id": "281474988991531",
+            "name": "DMT 418",
+            "externalIds": {
+              "samsara.serial": "G2G6FATV95",
+              "samsara.vin": "3AKJHLFG5RSUX9818"
+            },
+            "vin": "3AKJHLFG5RSUX9818",
+            "gateway": {
+              "serial": "G2G6-FAT-V95",
+              "model": "VG54NAH"
+            }
+          }
+        }
+      }
+    }
+  ],
+  "processing_details": {
+    "message": "Alert processed successfully"
+  },
+  "raw_data": {
+    "eventId": "ca9f65a1-550c-45af-8cce-f63721dd1196",
+    "eventTime": "2025-05-24T07:06:10.023Z",
+    "eventType": "AlertIncident",
+    "orgId": 7000073,
+    "webhookId": "3404485596517689",
+    "data": {
+      "configurationId": "311b6282-762e-4a68-bbdc-5cf5fb51b2b0",
+      "updatedAtTime": "2025-05-24T07:07:15Z",
+      "resolvedAtTime": "2025-05-24T07:06:10Z",
+      "happenedAtTime": "2025-05-24T07:06:10Z",
+      "isResolved": true,
+      "incidentUrl": "https://cloud.samsara.com/o/7000073/fleet/workflows/incidents/311b6282-762e-4a68-bbdc-5cf5fb51b2b0/1/281474988991531/1748070370023",
+      "conditions": [
+        {
+          "triggerId": 5017,
+          "description": "Geofence Exit",
+          "details": {
+            "geofenceExit": {
+              "address": {
+                "id": "141055135",
+                "name": "D & I Holsteins (716)",
+                "formattedAddress": "3345 N Fuqua Rd, Stanfield, AZ 85172, USA",
+                "geofence": {
+                  "polygon": {
+                    "vertices": [
+                      {
+                        "latitude": 32.91296515687766,
+                        "longitude": -111.97275800368828
+                      },
+                      {
+                        "latitude": 32.912947143225935,
+                        "longitude": -111.97274727485222
+                      },
+                      {
+                        "latitude": 32.912947143225935,
+                        "longitude": -111.97345001361413
+                      },
+                      {
+                        "latitude": 32.9129111159115,
+                        "longitude": -111.97421712539239
+                      },
+                      {
+                        "latitude": 32.91289310224878,
+                        "longitude": -111.97544021270318
+                      },
+                      {
+                        "latitude": 32.91181227577745,
+                        "longitude": -111.97545094153924
+                      },
+                      {
+                        "latitude": 32.91141596943155,
+                        "longitude": -111.97547239921136
+                      },
+                      {
+                        "latitude": 32.91139795546462,
+                        "longitude": -111.97441024444146
+                      },
+                      {
+                        "latitude": 32.91139795546462,
+                        "longitude": -111.97379870078606
+                      },
+                      {
+                        "latitude": 32.91142497641372,
+                        "longitude": -111.9733910050158
+                      },
+                      {
+                        "latitude": 32.91137093450728,
+                        "longitude": -111.97271508834405
+                      },
+                      {
+                        "latitude": 32.9129381363987,
+                        "longitude": -111.97274727485222
+                      }
+                    ]
+                  }
+                }
+              },
+              "vehicle": {
+                "id": "281474988991531",
+                "name": "DMT 418",
+                "externalIds": {
+                  "samsara.serial": "G2G6FATV95",
+                  "samsara.vin": "3AKJHLFG5RSUX9818"
+                },
+                "vin": "3AKJHLFG5RSUX9818",
+                "gateway": {
+                  "serial": "G2G6-FAT-V95",
+                  "model": "VG54NAH"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}
+
+{
+  "timestamp": "2025-05-24T00:07:47.199382",
+  "event_type": "SevereSpeedingEnded",
+  "event_id": "71ee7b92-fb18-49a9-8d31-f255bf706455",
+  "org_id": 7000073,
+  "vehicle_info": {
+    "id": null,
+    "name": null
+  },
+  "trailer_info": {
+    "id": null,
+    "name": null
+  },
+  "conditions": [],
+  "processing_details": {
+    "message": "Speeding event processed successfully"
+  },
+  "raw_data": {
+    "eventId": "71ee7b92-fb18-49a9-8d31-f255bf706455",
+    "eventTime": "2025-05-24T07:06:50.025Z",
+    "eventType": "SevereSpeedingEnded",
+    "orgId": 7000073,
+    "webhookId": "3404485596517689",
+    "data": {
+      "data": {
+        "tripStartTime": "2025-05-24T06:32:08.017Z",
+        "startTime": "2025-05-24T07:05:20.002Z",
+        "endTime": "2025-05-24T07:06:50.025Z",
+        "vehicle": {
+          "id": "281474989077346"
+        }
+      }
+    }
+  }
+}
+
+{
+  "timestamp": "2025-05-24T00:09:03.350045",
+  "event_type": "AlertIncident",
+  "event_id": "fd448a4e-229b-4b2d-b67e-843face72dc0",
+  "org_id": 7000073,
+  "vehicle_info": {
+    "id": null,
+    "name": null
+  },
+  "trailer_info": {
+    "id": null,
+    "name": null
+  },
+  "conditions": [
+    {
+      "triggerId": 5016,
+      "description": "Geofence Entry",
+      "details": {
+        "geofenceEntry": {
+          "address": {
+            "id": "120848694",
+            "name": "Belmont (701)",
+            "formattedAddress": "7220 North 387th Avenue, Tonopah",
+            "geofence": {
+              "polygon": {
+                "vertices": [
+                  {
+                    "latitude": 33.5373975924574,
+                    "longitude": -112.89074996549833
+                  },
+                  {
+                    "latitude": 33.541965451745995,
+                    "longitude": -112.89083043176878
+                  },
+                  {
+                    "latitude": 33.54198780745477,
+                    "longitude": -112.88520501310578
+                  },
+                  {
+                    "latitude": 33.53746377862779,
+                    "longitude": -112.88521842415085
+                  },
+                  {
+                    "latitude": 33.53741994934758,
+                    "longitude": -112.88646565134277
+                  }
+                ]
+              }
+            }
+          },
+          "vehicle": {
+            "id": "281474989077346",
+            "name": "DMT 422",
+            "externalIds": {
+              "samsara.serial": "G2C94NZ34F",
+              "samsara.vin": "4V4WC9EH5RN653254"
+            },
+            "vin": "4V4WC9EH5RN653254",
+            "gateway": {
+              "serial": "G2C9-4NZ-34F",
+              "model": "VG54NAH"
+            }
+          }
+        }
+      }
+    }
+  ],
+  "processing_details": {
+    "message": "Alert processed successfully"
+  },
+  "raw_data": {
+    "eventId": "fd448a4e-229b-4b2d-b67e-843face72dc0",
+    "eventTime": "2025-05-24T07:07:51.034Z",
+    "eventType": "AlertIncident",
+    "orgId": 7000073,
+    "webhookId": "3404485596517689",
+    "data": {
+      "configurationId": "d7a521a3-1ab2-4785-84f4-0f00de7d3a92",
+      "updatedAtTime": "2025-05-24T07:09:02Z",
+      "resolvedAtTime": "2025-05-24T07:07:51Z",
+      "happenedAtTime": "2025-05-24T07:07:51Z",
+      "isResolved": true,
+      "incidentUrl": "https://cloud.samsara.com/o/7000073/fleet/workflows/incidents/d7a521a3-1ab2-4785-84f4-0f00de7d3a92/1/281474989077346/1748070471034",
+      "conditions": [
+        {
+          "triggerId": 5016,
+          "description": "Geofence Entry",
+          "details": {
+            "geofenceEntry": {
+              "address": {
+                "id": "120848694",
+                "name": "Belmont (701)",
+                "formattedAddress": "7220 North 387th Avenue, Tonopah",
+                "geofence": {
+                  "polygon": {
+                    "vertices": [
+                      {
+                        "latitude": 33.5373975924574,
+                        "longitude": -112.89074996549833
+                      },
+                      {
+                        "latitude": 33.541965451745995,
+                        "longitude": -112.89083043176878
+                      },
+                      {
+                        "latitude": 33.54198780745477,
+                        "longitude": -112.88520501310578
+                      },
+                      {
+                        "latitude": 33.53746377862779,
+                        "longitude": -112.88521842415085
+                      },
+                      {
+                        "latitude": 33.53741994934758,
+                        "longitude": -112.88646565134277
+                      }
+                    ]
+                  }
+                }
+              },
+              "vehicle": {
+                "id": "281474989077346",
+                "name": "DMT 422",
+                "externalIds": {
+                  "samsara.serial": "G2C94NZ34F",
+                  "samsara.vin": "4V4WC9EH5RN653254"
+                },
+                "vin": "4V4WC9EH5RN653254",
+                "gateway": {
+                  "serial": "G2C9-4NZ-34F",
+                  "model": "VG54NAH"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}
+
+{
+  "timestamp": "2025-05-24T00:11:10.027245",
+  "event_type": "AlertIncident",
+  "event_id": "6a9355c6-4df8-4feb-94fe-ee052b8219d3",
+  "org_id": 7000073,
+  "vehicle_info": {
+    "id": null,
+    "name": null
+  },
+  "trailer_info": {
+    "id": null,
+    "name": null
+  },
+  "conditions": [
+    {
+      "triggerId": 5017,
+      "description": "Geofence Exit",
+      "details": {
+        "geofenceExit": {
+          "address": {
+            "id": "120851515",
+            "name": "Shamrock Farms",
+            "formattedAddress": "2228 North Black Canyon Highway, Phoenix",
+            "geofence": {
+              "polygon": {
+                "vertices": [
+                  {
+                    "latitude": 33.4731972829827,
+                    "longitude": -112.11697728459197
+                  },
+                  {
+                    "latitude": 33.471843042571386,
+                    "longitude": -112.11692364041167
+                  },
+                  {
+                    "latitude": 33.47187468394392,
+                    "longitude": -112.11311490361052
+                  },
+                  {
+                    "latitude": 33.47331119008971,
+                    "longitude": -112.11331338707762
+                  }
+                ]
+              }
+            }
+          },
+          "vehicle": {
+            "id": "281474987550260",
+            "name": "DMT 412",
+            "externalIds": {
+              "samsara.serial": "G4BWKWXM47",
+              "samsara.vin": "4V4WC9EH6RN652873"
+            },
+            "vin": "4V4WC9EH6RN652873",
+            "licensePlate": "R692426",
+            "gateway": {
+              "serial": "G4BW-KWX-M47",
+              "model": "VG54NAH"
+            }
+          }
+        }
+      }
+    }
+  ],
+  "processing_details": {
+    "message": "Alert processed successfully"
+  },
+  "raw_data": {
+    "eventId": "6a9355c6-4df8-4feb-94fe-ee052b8219d3",
+    "eventTime": "2025-05-24T07:10:19.014Z",
+    "eventType": "AlertIncident",
+    "orgId": 7000073,
+    "webhookId": "3404485596517689",
+    "data": {
+      "configurationId": "763e0501-834d-4149-a1e1-b61a11e37e83",
+      "updatedAtTime": "2025-05-24T07:11:09Z",
+      "resolvedAtTime": "2025-05-24T07:10:19Z",
+      "happenedAtTime": "2025-05-24T07:10:19Z",
+      "isResolved": true,
+      "incidentUrl": "https://cloud.samsara.com/o/7000073/fleet/workflows/incidents/763e0501-834d-4149-a1e1-b61a11e37e83/1/281474987550260/1748070619014",
+      "conditions": [
+        {
+          "triggerId": 5017,
+          "description": "Geofence Exit",
+          "details": {
+            "geofenceExit": {
+              "address": {
+                "id": "120851515",
+                "name": "Shamrock Farms",
+                "formattedAddress": "2228 North Black Canyon Highway, Phoenix",
+                "geofence": {
+                  "polygon": {
+                    "vertices": [
+                      {
+                        "latitude": 33.4731972829827,
+                        "longitude": -112.11697728459197
+                      },
+                      {
+                        "latitude": 33.471843042571386,
+                        "longitude": -112.11692364041167
+                      },
+                      {
+                        "latitude": 33.47187468394392,
+                        "longitude": -112.11311490361052
+                      },
+                      {
+                        "latitude": 33.47331119008971,
+                        "longitude": -112.11331338707762
+                      }
+                    ]
+                  }
+                }
+              },
+              "vehicle": {
+                "id": "281474987550260",
+                "name": "DMT 412",
+                "externalIds": {
+                  "samsara.serial": "G4BWKWXM47",
+                  "samsara.vin": "4V4WC9EH6RN652873"
+                },
+                "vin": "4V4WC9EH6RN652873",
+                "licensePlate": "R692426",
+                "gateway": {
+                  "serial": "G4BW-KWX-M47",
+                  "model": "VG54NAH"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}
+
+{
+  "timestamp": "2025-05-24T00:12:11.790154",
+  "event_type": "AlertIncident",
+  "event_id": "942fcf89-40ae-46ef-98b3-b185f7685efd",
+  "org_id": 3000388,
+  "vehicle_info": {
+    "id": null,
+    "name": null
+  },
+  "trailer_info": {
+    "id": null,
+    "name": null
+  },
+  "conditions": [
+    {
+      "triggerId": 1031,
+      "description": "Asset stops moving",
+      "details": {
+        "deviceMovementStopped": {
+          "vehicle": {
+            "id": "281474991660172",
+            "externalIds": {
+              "samsara.serial": "GHMA36SPG5",
+              "samsara.vin": "3AKJHPDV4SSVW7578"
+            },
+            "name": "2142",
+            "tags": [
+              {
+                "id": "3155610",
+                "name": "Sleeper",
+                "parentTagId": "3265240"
+              },
+              {
+                "id": "4674563",
+                "name": "IFTA Reporting"
+              }
+            ],
+            "serial": "GHMA36SPG5"
+          },
+          "driver": {
+            "id": "51882145",
+            "name": "Julie Bonilla",
+            "tags": [
+              {
+                "id": "4689167",
+                "name": "Per Mile"
+              }
+            ]
+          }
+        }
+      }
+    }
+  ],
+  "processing_details": {
+    "message": "Alert processed successfully"
+  },
+  "raw_data": {
+    "eventId": "942fcf89-40ae-46ef-98b3-b185f7685efd",
+    "eventTime": "2025-05-24T06:11:23.041Z",
+    "eventType": "AlertIncident",
+    "orgId": 3000388,
+    "webhookId": "7308935500489801",
+    "data": {
+      "configurationId": "73256f19-aa50-4a9e-8248-5064ce256ebd",
+      "updatedAtTime": "2025-05-24T07:12:11Z",
+      "happenedAtTime": "2025-05-24T06:11:23Z",
+      "isResolved": false,
+      "incidentUrl": "https://cloud.samsara.com/o/3000388/fleet/workflows/incidents/73256f19-aa50-4a9e-8248-5064ce256ebd/1/281474991660172/1748067083041",
+      "conditions": [
+        {
+          "triggerId": 1031,
+          "description": "Asset stops moving",
+          "details": {
+            "deviceMovementStopped": {
+              "vehicle": {
+                "id": "281474991660172",
+                "externalIds": {
+                  "samsara.serial": "GHMA36SPG5",
+                  "samsara.vin": "3AKJHPDV4SSVW7578"
+                },
+                "name": "2142",
+                "tags": [
+                  {
+                    "id": "3155610",
+                    "name": "Sleeper",
+                    "parentTagId": "3265240"
+                  },
+                  {
+                    "id": "4674563",
+                    "name": "IFTA Reporting"
+                  }
+                ],
+                "serial": "GHMA36SPG5"
+              },
+              "driver": {
+                "id": "51882145",
+                "name": "Julie Bonilla",
+                "tags": [
+                  {
+                    "id": "4689167",
+                    "name": "Per Mile"
+                  }
+                ]
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}
+
+{
+  "timestamp": "2025-05-24T00:15:28.778029",
+  "event_type": "AlertIncident",
+  "event_id": "1a907237-88b2-466c-b691-7a2ea08ce2fb",
+  "org_id": 7000073,
+  "vehicle_info": {
+    "id": null,
+    "name": null
+  },
+  "trailer_info": {
+    "id": null,
+    "name": null
+  },
+  "conditions": [
+    {
+      "triggerId": 5017,
+      "description": "Geofence Exit",
+      "details": {
+        "geofenceExit": {
+          "address": {
+            "id": "120851267",
+            "name": "UDA ",
+            "formattedAddress": "2008 S Hardy Dr, Tempe, AZ 85282, USA",
+            "geofence": {
+              "polygon": {
+                "vertices": [
+                  {
+                    "latitude": 33.40720617580402,
+                    "longitude": -111.95378129651262
+                  },
+                  {
+                    "latitude": 33.407224088208125,
+                    "longitude": -111.95244019200517
+                  },
+                  {
+                    "latitude": 33.40539700396343,
+                    "longitude": -111.95240800549699
+                  },
+                  {
+                    "latitude": 33.40531639642055,
+                    "longitude": -111.95388858487321
+                  }
+                ]
+              }
+            }
+          },
+          "vehicle": {
+            "id": "281474987760548",
+            "name": "DMT 401",
+            "externalIds": {
+              "samsara.serial": "GDPDCUTR8R",
+              "samsara.vin": "1M1PN4GY0KM004256"
+            },
+            "vin": "1M1PN4GY0KM004256",
+            "gateway": {
+              "serial": "GDPD-CUT-R8R",
+              "model": "VG54NAH"
+            }
+          }
+        }
+      }
+    }
+  ],
+  "processing_details": {
+    "message": "Alert processed successfully"
+  },
+  "raw_data": {
+    "eventId": "1a907237-88b2-466c-b691-7a2ea08ce2fb",
+    "eventTime": "2025-05-24T07:13:33.109Z",
+    "eventType": "AlertIncident",
+    "orgId": 7000073,
+    "webhookId": "3404485596517689",
+    "data": {
+      "configurationId": "763e0501-834d-4149-a1e1-b61a11e37e83",
+      "updatedAtTime": "2025-05-24T07:15:28Z",
+      "resolvedAtTime": "2025-05-24T07:13:33Z",
+      "happenedAtTime": "2025-05-24T07:13:33Z",
+      "isResolved": true,
+      "incidentUrl": "https://cloud.samsara.com/o/7000073/fleet/workflows/incidents/763e0501-834d-4149-a1e1-b61a11e37e83/1/281474987760548/1748070813109",
+      "conditions": [
+        {
+          "triggerId": 5017,
+          "description": "Geofence Exit",
+          "details": {
+            "geofenceExit": {
+              "address": {
+                "id": "120851267",
+                "name": "UDA ",
+                "formattedAddress": "2008 S Hardy Dr, Tempe, AZ 85282, USA",
+                "geofence": {
+                  "polygon": {
+                    "vertices": [
+                      {
+                        "latitude": 33.40720617580402,
+                        "longitude": -111.95378129651262
+                      },
+                      {
+                        "latitude": 33.407224088208125,
+                        "longitude": -111.95244019200517
+                      },
+                      {
+                        "latitude": 33.40539700396343,
+                        "longitude": -111.95240800549699
+                      },
+                      {
+                        "latitude": 33.40531639642055,
+                        "longitude": -111.95388858487321
+                      }
+                    ]
+                  }
+                }
+              },
+              "vehicle": {
+                "id": "281474987760548",
+                "name": "DMT 401",
+                "externalIds": {
+                  "samsara.serial": "GDPDCUTR8R",
+                  "samsara.vin": "1M1PN4GY0KM004256"
+                },
+                "vin": "1M1PN4GY0KM004256",
+                "gateway": {
+                  "serial": "GDPD-CUT-R8R",
+                  "model": "VG54NAH"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}
+
+{
+  "timestamp": "2025-05-24T00:15:28.794042",
+  "event_type": "AlertIncident",
+  "event_id": "3ffd62fc-305f-4244-80a9-62aa8f024f4a",
+  "org_id": 7000073,
+  "vehicle_info": {
+    "id": null,
+    "name": null
+  },
+  "trailer_info": {
+    "id": null,
+    "name": null
+  },
+  "conditions": [
+    {
+      "triggerId": 5016,
+      "description": "Geofence Entry",
+      "details": {
+        "geofenceEntry": {
+          "address": {
+            "id": "120851267",
+            "name": "UDA ",
+            "formattedAddress": "2008 S Hardy Dr, Tempe, AZ 85282, USA",
+            "geofence": {
+              "polygon": {
+                "vertices": [
+                  {
+                    "latitude": 33.40720617580402,
+                    "longitude": -111.95378129651262
+                  },
+                  {
+                    "latitude": 33.407224088208125,
+                    "longitude": -111.95244019200517
+                  },
+                  {
+                    "latitude": 33.40539700396343,
+                    "longitude": -111.95240800549699
+                  },
+                  {
+                    "latitude": 33.40531639642055,
+                    "longitude": -111.95388858487321
+                  }
+                ]
+              }
+            }
+          },
+          "vehicle": {
+            "id": "281474988996193",
+            "name": "DMT 420",
+            "externalIds": {
+              "samsara.serial": "G9FKVF5DV9",
+              "samsara.vin": "3AKJHLFG7RSUX9822"
+            },
+            "vin": "3AKJHLFG7RSUX9822",
+            "gateway": {
+              "serial": "G9FK-VF5-DV9",
+              "model": "VG54NAH"
+            }
+          }
+        }
+      }
+    }
+  ],
+  "processing_details": {
+    "message": "Alert processed successfully"
+  },
+  "raw_data": {
+    "eventId": "3ffd62fc-305f-4244-80a9-62aa8f024f4a",
+    "eventTime": "2025-05-24T07:14:01.036Z",
+    "eventType": "AlertIncident",
+    "orgId": 7000073,
+    "webhookId": "3404485596517689",
+    "data": {
+      "configurationId": "f1ee7b93-8726-48ae-84cd-ac582867d71d",
+      "updatedAtTime": "2025-05-24T07:15:28Z",
+      "resolvedAtTime": "2025-05-24T07:14:01Z",
+      "happenedAtTime": "2025-05-24T07:14:01Z",
+      "isResolved": true,
+      "incidentUrl": "https://cloud.samsara.com/o/7000073/fleet/workflows/incidents/f1ee7b93-8726-48ae-84cd-ac582867d71d/1/281474988996193/1748070841036",
+      "conditions": [
+        {
+          "triggerId": 5016,
+          "description": "Geofence Entry",
+          "details": {
+            "geofenceEntry": {
+              "address": {
+                "id": "120851267",
+                "name": "UDA ",
+                "formattedAddress": "2008 S Hardy Dr, Tempe, AZ 85282, USA",
+                "geofence": {
+                  "polygon": {
+                    "vertices": [
+                      {
+                        "latitude": 33.40720617580402,
+                        "longitude": -111.95378129651262
+                      },
+                      {
+                        "latitude": 33.407224088208125,
+                        "longitude": -111.95244019200517
+                      },
+                      {
+                        "latitude": 33.40539700396343,
+                        "longitude": -111.95240800549699
+                      },
+                      {
+                        "latitude": 33.40531639642055,
+                        "longitude": -111.95388858487321
+                      }
+                    ]
+                  }
+                }
+              },
+              "vehicle": {
+                "id": "281474988996193",
+                "name": "DMT 420",
+                "externalIds": {
+                  "samsara.serial": "G9FKVF5DV9",
+                  "samsara.vin": "3AKJHLFG7RSUX9822"
+                },
+                "vin": "3AKJHLFG7RSUX9822",
+                "gateway": {
+                  "serial": "G9FK-VF5-DV9",
+                  "model": "VG54NAH"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}
+
+{
+  "timestamp": "2025-05-24T00:20:04.141233",
+  "event_type": "AlertIncident",
+  "event_id": "cf64fd85-95ef-4212-8b9b-efa18ab9d43c",
+  "org_id": 7000073,
+  "vehicle_info": {
+    "id": null,
+    "name": null
+  },
+  "trailer_info": {
+    "id": null,
+    "name": null
+  },
+  "conditions": [
+    {
+      "triggerId": 5017,
+      "description": "Geofence Exit",
+      "details": {
+        "geofenceExit": {
+          "address": {
+            "id": "120851267",
+            "name": "UDA ",
+            "formattedAddress": "2008 S Hardy Dr, Tempe, AZ 85282, USA",
+            "geofence": {
+              "polygon": {
+                "vertices": [
+                  {
+                    "latitude": 33.40720617580402,
+                    "longitude": -111.95378129651262
+                  },
+                  {
+                    "latitude": 33.407224088208125,
+                    "longitude": -111.95244019200517
+                  },
+                  {
+                    "latitude": 33.40539700396343,
+                    "longitude": -111.95240800549699
+                  },
+                  {
+                    "latitude": 33.40531639642055,
+                    "longitude": -111.95388858487321
+                  }
+                ]
+              }
+            }
+          },
+          "vehicle": {
+            "id": "281474988996193",
+            "name": "DMT 420",
+            "externalIds": {
+              "samsara.serial": "G9FKVF5DV9",
+              "samsara.vin": "3AKJHLFG7RSUX9822"
+            },
+            "vin": "3AKJHLFG7RSUX9822",
+            "gateway": {
+              "serial": "G9FK-VF5-DV9",
+              "model": "VG54NAH"
+            }
+          }
+        }
+      }
+    }
+  ],
+  "processing_details": {
+    "message": "Alert processed successfully"
+  },
+  "raw_data": {
+    "eventId": "cf64fd85-95ef-4212-8b9b-efa18ab9d43c",
+    "eventTime": "2025-05-24T07:18:17.029Z",
+    "eventType": "AlertIncident",
+    "orgId": 7000073,
+    "webhookId": "3404485596517689",
+    "data": {
+      "configurationId": "763e0501-834d-4149-a1e1-b61a11e37e83",
+      "updatedAtTime": "2025-05-24T07:20:03Z",
+      "resolvedAtTime": "2025-05-24T07:18:17Z",
+      "happenedAtTime": "2025-05-24T07:18:17Z",
+      "isResolved": true,
+      "incidentUrl": "https://cloud.samsara.com/o/7000073/fleet/workflows/incidents/763e0501-834d-4149-a1e1-b61a11e37e83/1/281474988996193/1748071097029",
+      "conditions": [
+        {
+          "triggerId": 5017,
+          "description": "Geofence Exit",
+          "details": {
+            "geofenceExit": {
+              "address": {
+                "id": "120851267",
+                "name": "UDA ",
+                "formattedAddress": "2008 S Hardy Dr, Tempe, AZ 85282, USA",
+                "geofence": {
+                  "polygon": {
+                    "vertices": [
+                      {
+                        "latitude": 33.40720617580402,
+                        "longitude": -111.95378129651262
+                      },
+                      {
+                        "latitude": 33.407224088208125,
+                        "longitude": -111.95244019200517
+                      },
+                      {
+                        "latitude": 33.40539700396343,
+                        "longitude": -111.95240800549699
+                      },
+                      {
+                        "latitude": 33.40531639642055,
+                        "longitude": -111.95388858487321
+                      }
+                    ]
+                  }
+                }
+              },
+              "vehicle": {
+                "id": "281474988996193",
+                "name": "DMT 420",
+                "externalIds": {
+                  "samsara.serial": "G9FKVF5DV9",
+                  "samsara.vin": "3AKJHLFG7RSUX9822"
+                },
+                "vin": "3AKJHLFG7RSUX9822",
+                "gateway": {
+                  "serial": "G9FK-VF5-DV9",
+                  "model": "VG54NAH"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}
+
+{
+  "timestamp": "2025-05-24T00:20:59.769177",
+  "event_type": "AlertIncident",
+  "event_id": "ec1d359b-8af5-4f54-ac4e-d5d36ca73680",
+  "org_id": 7000073,
+  "vehicle_info": {
+    "id": null,
+    "name": null
+  },
+  "trailer_info": {
+    "id": null,
+    "name": null
+  },
+  "conditions": [
+    {
+      "triggerId": 5016,
+      "description": "Geofence Entry",
+      "details": {
+        "geofenceEntry": {
+          "address": {
+            "id": "120851267",
+            "name": "UDA ",
+            "formattedAddress": "2008 S Hardy Dr, Tempe, AZ 85282, USA",
+            "geofence": {
+              "polygon": {
+                "vertices": [
+                  {
+                    "latitude": 33.40720617580402,
+                    "longitude": -111.95378129651262
+                  },
+                  {
+                    "latitude": 33.407224088208125,
+                    "longitude": -111.95244019200517
+                  },
+                  {
+                    "latitude": 33.40539700396343,
+                    "longitude": -111.95240800549699
+                  },
+                  {
+                    "latitude": 33.40531639642055,
+                    "longitude": -111.95388858487321
+                  }
+                ]
+              }
+            }
+          },
+          "vehicle": {
+            "id": "281474988996193",
+            "name": "DMT 420",
+            "externalIds": {
+              "samsara.serial": "G9FKVF5DV9",
+              "samsara.vin": "3AKJHLFG7RSUX9822"
+            },
+            "vin": "3AKJHLFG7RSUX9822",
+            "gateway": {
+              "serial": "G9FK-VF5-DV9",
+              "model": "VG54NAH"
+            }
+          }
+        }
+      }
+    }
+  ],
+  "processing_details": {
+    "message": "Alert processed successfully"
+  },
+  "raw_data": {
+    "eventId": "ec1d359b-8af5-4f54-ac4e-d5d36ca73680",
+    "eventTime": "2025-05-24T07:19:36.116Z",
+    "eventType": "AlertIncident",
+    "orgId": 7000073,
+    "webhookId": "3404485596517689",
+    "data": {
+      "configurationId": "f1ee7b93-8726-48ae-84cd-ac582867d71d",
+      "updatedAtTime": "2025-05-24T07:20:59Z",
+      "resolvedAtTime": "2025-05-24T07:19:36Z",
+      "happenedAtTime": "2025-05-24T07:19:36Z",
+      "isResolved": true,
+      "incidentUrl": "https://cloud.samsara.com/o/7000073/fleet/workflows/incidents/f1ee7b93-8726-48ae-84cd-ac582867d71d/1/281474988996193/1748071176116",
+      "conditions": [
+        {
+          "triggerId": 5016,
+          "description": "Geofence Entry",
+          "details": {
+            "geofenceEntry": {
+              "address": {
+                "id": "120851267",
+                "name": "UDA ",
+                "formattedAddress": "2008 S Hardy Dr, Tempe, AZ 85282, USA",
+                "geofence": {
+                  "polygon": {
+                    "vertices": [
+                      {
+                        "latitude": 33.40720617580402,
+                        "longitude": -111.95378129651262
+                      },
+                      {
+                        "latitude": 33.407224088208125,
+                        "longitude": -111.95244019200517
+                      },
+                      {
+                        "latitude": 33.40539700396343,
+                        "longitude": -111.95240800549699
+                      },
+                      {
+                        "latitude": 33.40531639642055,
+                        "longitude": -111.95388858487321
+                      }
+                    ]
+                  }
+                }
+              },
+              "vehicle": {
+                "id": "281474988996193",
+                "name": "DMT 420",
+                "externalIds": {
+                  "samsara.serial": "G9FKVF5DV9",
+                  "samsara.vin": "3AKJHLFG7RSUX9822"
+                },
+                "vin": "3AKJHLFG7RSUX9822",
+                "gateway": {
+                  "serial": "G9FK-VF5-DV9",
+                  "model": "VG54NAH"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}
+
+{
+  "timestamp": "2025-05-24T00:22:18.142930",
+  "event_type": "AlertIncident",
+  "event_id": "99c25585-6e99-456a-bfc5-370095d0cca3",
+  "org_id": 7000073,
+  "vehicle_info": {
+    "id": null,
+    "name": null
+  },
+  "trailer_info": {
+    "id": null,
+    "name": null
+  },
+  "conditions": [
+    {
+      "triggerId": 5016,
+      "description": "Geofence Entry",
+      "details": {
+        "geofenceEntry": {
+          "address": {
+            "id": "120851267",
+            "name": "UDA ",
+            "formattedAddress": "2008 S Hardy Dr, Tempe, AZ 85282, USA",
+            "geofence": {
+              "polygon": {
+                "vertices": [
+                  {
+                    "latitude": 33.40720617580402,
+                    "longitude": -111.95378129651262
+                  },
+                  {
+                    "latitude": 33.407224088208125,
+                    "longitude": -111.95244019200517
+                  },
+                  {
+                    "latitude": 33.40539700396343,
+                    "longitude": -111.95240800549699
+                  },
+                  {
+                    "latitude": 33.40531639642055,
+                    "longitude": -111.95388858487321
+                  }
+                ]
+              }
+            }
+          },
+          "vehicle": {
+            "id": "281474988996193",
+            "name": "DMT 420",
+            "externalIds": {
+              "samsara.serial": "G9FKVF5DV9",
+              "samsara.vin": "3AKJHLFG7RSUX9822"
+            },
+            "vin": "3AKJHLFG7RSUX9822",
+            "gateway": {
+              "serial": "G9FK-VF5-DV9",
+              "model": "VG54NAH"
+            }
+          }
+        }
+      }
+    }
+  ],
+  "processing_details": {
+    "message": "Alert processed successfully"
+  },
+  "raw_data": {
+    "eventId": "99c25585-6e99-456a-bfc5-370095d0cca3",
+    "eventTime": "2025-05-24T07:21:32.025Z",
+    "eventType": "AlertIncident",
+    "orgId": 7000073,
+    "webhookId": "3404485596517689",
+    "data": {
+      "configurationId": "f1ee7b93-8726-48ae-84cd-ac582867d71d",
+      "updatedAtTime": "2025-05-24T07:22:17Z",
+      "resolvedAtTime": "2025-05-24T07:21:32Z",
+      "happenedAtTime": "2025-05-24T07:21:32Z",
+      "isResolved": true,
+      "incidentUrl": "https://cloud.samsara.com/o/7000073/fleet/workflows/incidents/f1ee7b93-8726-48ae-84cd-ac582867d71d/1/281474988996193/1748071292025",
+      "conditions": [
+        {
+          "triggerId": 5016,
+          "description": "Geofence Entry",
+          "details": {
+            "geofenceEntry": {
+              "address": {
+                "id": "120851267",
+                "name": "UDA ",
+                "formattedAddress": "2008 S Hardy Dr, Tempe, AZ 85282, USA",
+                "geofence": {
+                  "polygon": {
+                    "vertices": [
+                      {
+                        "latitude": 33.40720617580402,
+                        "longitude": -111.95378129651262
+                      },
+                      {
+                        "latitude": 33.407224088208125,
+                        "longitude": -111.95244019200517
+                      },
+                      {
+                        "latitude": 33.40539700396343,
+                        "longitude": -111.95240800549699
+                      },
+                      {
+                        "latitude": 33.40531639642055,
+                        "longitude": -111.95388858487321
+                      }
+                    ]
+                  }
+                }
+              },
+              "vehicle": {
+                "id": "281474988996193",
+                "name": "DMT 420",
+                "externalIds": {
+                  "samsara.serial": "G9FKVF5DV9",
+                  "samsara.vin": "3AKJHLFG7RSUX9822"
+                },
+                "vin": "3AKJHLFG7RSUX9822",
+                "gateway": {
+                  "serial": "G9FK-VF5-DV9",
+                  "model": "VG54NAH"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}
+
+{
+  "timestamp": "2025-05-24T00:24:18.140787",
+  "event_type": "AlertIncident",
+  "event_id": "ced126f9-af13-43fc-9cb8-28d1e1ba5ab7",
+  "org_id": 7000073,
+  "vehicle_info": {
+    "id": null,
+    "name": null
+  },
+  "trailer_info": {
+    "id": null,
+    "name": null
+  },
+  "conditions": [
+    {
+      "triggerId": 5017,
+      "description": "Geofence Exit",
+      "details": {
+        "geofenceExit": {
+          "address": {
+            "id": "120848574",
+            "name": "Triple G (494) - Barn 1 (Main Barn)",
+            "formattedAddress": "C82C+W7 Alder Farms, Buckeye, AZ, USA",
+            "geofence": {
+              "polygon": {
+                "vertices": [
+                  {
+                    "latitude": 33.40193562824636,
+                    "longitude": -112.67939973680454
+                  },
+                  {
+                    "latitude": 33.40137135139522,
+                    "longitude": -112.67884183732944
+                  },
+                  {
+                    "latitude": 33.40138030819928,
+                    "longitude": -112.6777904113956
+                  },
+                  {
+                    "latitude": 33.40280890662504,
+                    "longitude": -112.67775822488743
+                  },
+                  {
+                    "latitude": 33.40279547163956,
+                    "longitude": -112.67874527780491
+                  },
+                  {
+                    "latitude": 33.402302854069895,
+                    "longitude": -112.67933536378818
+                  },
+                  {
+                    "latitude": 33.40219537350171,
+                    "longitude": -112.67942119447666
+                  }
+                ]
+              }
+            }
+          },
+          "vehicle": {
+            "id": "281474988998012",
+            "name": "DMT 419",
+            "externalIds": {
+              "samsara.serial": "G2ADBWANZ5",
+              "samsara.vin": "3AKJHLFG7RSUX9819"
+            },
+            "vin": "3AKJHLFG7RSUX9819",
+            "gateway": {
+              "serial": "G2AD-BWA-NZ5",
+              "model": "VG54NAH"
+            }
+          }
+        }
+      }
+    }
+  ],
+  "processing_details": {
+    "message": "Alert processed successfully"
+  },
+  "raw_data": {
+    "eventId": "ced126f9-af13-43fc-9cb8-28d1e1ba5ab7",
+    "eventTime": "2025-05-24T07:23:03.059Z",
+    "eventType": "AlertIncident",
+    "orgId": 7000073,
+    "webhookId": "3404485596517689",
+    "data": {
+      "configurationId": "311b6282-762e-4a68-bbdc-5cf5fb51b2b0",
+      "updatedAtTime": "2025-05-24T07:24:17Z",
+      "resolvedAtTime": "2025-05-24T07:23:03Z",
+      "happenedAtTime": "2025-05-24T07:23:03Z",
+      "isResolved": true,
+      "incidentUrl": "https://cloud.samsara.com/o/7000073/fleet/workflows/incidents/311b6282-762e-4a68-bbdc-5cf5fb51b2b0/1/281474988998012/1748071383059",
+      "conditions": [
+        {
+          "triggerId": 5017,
+          "description": "Geofence Exit",
+          "details": {
+            "geofenceExit": {
+              "address": {
+                "id": "120848574",
+                "name": "Triple G (494) - Barn 1 (Main Barn)",
+                "formattedAddress": "C82C+W7 Alder Farms, Buckeye, AZ, USA",
+                "geofence": {
+                  "polygon": {
+                    "vertices": [
+                      {
+                        "latitude": 33.40193562824636,
+                        "longitude": -112.67939973680454
+                      },
+                      {
+                        "latitude": 33.40137135139522,
+                        "longitude": -112.67884183732944
+                      },
+                      {
+                        "latitude": 33.40138030819928,
+                        "longitude": -112.6777904113956
+                      },
+                      {
+                        "latitude": 33.40280890662504,
+                        "longitude": -112.67775822488743
+                      },
+                      {
+                        "latitude": 33.40279547163956,
+                        "longitude": -112.67874527780491
+                      },
+                      {
+                        "latitude": 33.402302854069895,
+                        "longitude": -112.67933536378818
+                      },
+                      {
+                        "latitude": 33.40219537350171,
+                        "longitude": -112.67942119447666
+                      }
+                    ]
+                  }
+                }
+              },
+              "vehicle": {
+                "id": "281474988998012",
+                "name": "DMT 419",
+                "externalIds": {
+                  "samsara.serial": "G2ADBWANZ5",
+                  "samsara.vin": "3AKJHLFG7RSUX9819"
+                },
+                "vin": "3AKJHLFG7RSUX9819",
+                "gateway": {
+                  "serial": "G2AD-BWA-NZ5",
+                  "model": "VG54NAH"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}
+
+{
+  "timestamp": "2025-05-24T00:24:18.933431",
+  "event_type": "AlertIncident",
+  "event_id": "10253eb1-d117-461c-be8a-10c4d60a8d5d",
+  "org_id": 7000073,
+  "vehicle_info": {
+    "id": null,
+    "name": null
+  },
+  "trailer_info": {
+    "id": null,
+    "name": null
+  },
+  "conditions": [
+    {
+      "triggerId": 5016,
+      "description": "Geofence Entry",
+      "details": {
+        "geofenceEntry": {
+          "address": {
+            "id": "120851267",
+            "name": "UDA ",
+            "formattedAddress": "2008 S Hardy Dr, Tempe, AZ 85282, USA",
+            "geofence": {
+              "polygon": {
+                "vertices": [
+                  {
+                    "latitude": 33.40720617580402,
+                    "longitude": -111.95378129651262
+                  },
+                  {
+                    "latitude": 33.407224088208125,
+                    "longitude": -111.95244019200517
+                  },
+                  {
+                    "latitude": 33.40539700396343,
+                    "longitude": -111.95240800549699
+                  },
+                  {
+                    "latitude": 33.40531639642055,
+                    "longitude": -111.95388858487321
+                  }
+                ]
+              }
+            }
+          },
+          "vehicle": {
+            "id": "281474988996193",
+            "name": "DMT 420",
+            "externalIds": {
+              "samsara.serial": "G9FKVF5DV9",
+              "samsara.vin": "3AKJHLFG7RSUX9822"
+            },
+            "vin": "3AKJHLFG7RSUX9822",
+            "gateway": {
+              "serial": "G9FK-VF5-DV9",
+              "model": "VG54NAH"
+            }
+          }
+        }
+      }
+    }
+  ],
+  "processing_details": {
+    "message": "Alert processed successfully"
+  },
+  "raw_data": {
+    "eventId": "10253eb1-d117-461c-be8a-10c4d60a8d5d",
+    "eventTime": "2025-05-24T07:22:32.019Z",
+    "eventType": "AlertIncident",
+    "orgId": 7000073,
+    "webhookId": "3404485596517689",
+    "data": {
+      "configurationId": "f1ee7b93-8726-48ae-84cd-ac582867d71d",
+      "updatedAtTime": "2025-05-24T07:24:18Z",
+      "resolvedAtTime": "2025-05-24T07:22:32Z",
+      "happenedAtTime": "2025-05-24T07:22:32Z",
+      "isResolved": true,
+      "incidentUrl": "https://cloud.samsara.com/o/7000073/fleet/workflows/incidents/f1ee7b93-8726-48ae-84cd-ac582867d71d/1/281474988996193/1748071352019",
+      "conditions": [
+        {
+          "triggerId": 5016,
+          "description": "Geofence Entry",
+          "details": {
+            "geofenceEntry": {
+              "address": {
+                "id": "120851267",
+                "name": "UDA ",
+                "formattedAddress": "2008 S Hardy Dr, Tempe, AZ 85282, USA",
+                "geofence": {
+                  "polygon": {
+                    "vertices": [
+                      {
+                        "latitude": 33.40720617580402,
+                        "longitude": -111.95378129651262
+                      },
+                      {
+                        "latitude": 33.407224088208125,
+                        "longitude": -111.95244019200517
+                      },
+                      {
+                        "latitude": 33.40539700396343,
+                        "longitude": -111.95240800549699
+                      },
+                      {
+                        "latitude": 33.40531639642055,
+                        "longitude": -111.95388858487321
+                      }
+                    ]
+                  }
+                }
+              },
+              "vehicle": {
+                "id": "281474988996193",
+                "name": "DMT 420",
+                "externalIds": {
+                  "samsara.serial": "G9FKVF5DV9",
+                  "samsara.vin": "3AKJHLFG7RSUX9822"
+                },
+                "vin": "3AKJHLFG7RSUX9822",
+                "gateway": {
+                  "serial": "G9FK-VF5-DV9",
+                  "model": "VG54NAH"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}
+
+{
+  "timestamp": "2025-05-24T00:25:01.528322",
+  "event_type": "AlertIncident",
+  "event_id": "55d0098e-a911-451f-815a-12676eff4b63",
+  "org_id": 7000073,
+  "vehicle_info": {
+    "id": null,
+    "name": null
+  },
+  "trailer_info": {
+    "id": null,
+    "name": null
+  },
+  "conditions": [
+    {
+      "triggerId": 5017,
+      "description": "Geofence Exit",
+      "details": {
+        "geofenceExit": {
+          "address": {
+            "id": "120851267",
+            "name": "UDA ",
+            "formattedAddress": "2008 S Hardy Dr, Tempe, AZ 85282, USA",
+            "geofence": {
+              "polygon": {
+                "vertices": [
+                  {
+                    "latitude": 33.40720617580402,
+                    "longitude": -111.95378129651262
+                  },
+                  {
+                    "latitude": 33.407224088208125,
+                    "longitude": -111.95244019200517
+                  },
+                  {
+                    "latitude": 33.40539700396343,
+                    "longitude": -111.95240800549699
+                  },
+                  {
+                    "latitude": 33.40531639642055,
+                    "longitude": -111.95388858487321
+                  }
+                ]
+              }
+            }
+          },
+          "vehicle": {
+            "id": "281474989469774",
+            "name": "DMT 427",
+            "externalIds": {
+              "samsara.serial": "GKF62KEZGN",
+              "samsara.vin": "4V4WC9EH9SN660472"
+            },
+            "vin": "4V4WC9EH9SN660472",
+            "gateway": {
+              "serial": "GKF6-2KE-ZGN",
+              "model": "VG34"
+            }
+          }
+        }
+      }
+    }
+  ],
+  "processing_details": {
+    "message": "Alert processed successfully"
+  },
+  "raw_data": {
+    "eventId": "55d0098e-a911-451f-815a-12676eff4b63",
+    "eventTime": "2025-05-24T07:23:49.023Z",
+    "eventType": "AlertIncident",
+    "orgId": 7000073,
+    "webhookId": "3404485596517689",
+    "data": {
+      "configurationId": "763e0501-834d-4149-a1e1-b61a11e37e83",
+      "updatedAtTime": "2025-05-24T07:25:01Z",
+      "resolvedAtTime": "2025-05-24T07:23:49Z",
+      "happenedAtTime": "2025-05-24T07:23:49Z",
+      "isResolved": true,
+      "incidentUrl": "https://cloud.samsara.com/o/7000073/fleet/workflows/incidents/763e0501-834d-4149-a1e1-b61a11e37e83/1/281474989469774/1748071429023",
+      "conditions": [
+        {
+          "triggerId": 5017,
+          "description": "Geofence Exit",
+          "details": {
+            "geofenceExit": {
+              "address": {
+                "id": "120851267",
+                "name": "UDA ",
+                "formattedAddress": "2008 S Hardy Dr, Tempe, AZ 85282, USA",
+                "geofence": {
+                  "polygon": {
+                    "vertices": [
+                      {
+                        "latitude": 33.40720617580402,
+                        "longitude": -111.95378129651262
+                      },
+                      {
+                        "latitude": 33.407224088208125,
+                        "longitude": -111.95244019200517
+                      },
+                      {
+                        "latitude": 33.40539700396343,
+                        "longitude": -111.95240800549699
+                      },
+                      {
+                        "latitude": 33.40531639642055,
+                        "longitude": -111.95388858487321
+                      }
+                    ]
+                  }
+                }
+              },
+              "vehicle": {
+                "id": "281474989469774",
+                "name": "DMT 427",
+                "externalIds": {
+                  "samsara.serial": "GKF62KEZGN",
+                  "samsara.vin": "4V4WC9EH9SN660472"
+                },
+                "vin": "4V4WC9EH9SN660472",
+                "gateway": {
+                  "serial": "GKF6-2KE-ZGN",
+                  "model": "VG34"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}
+

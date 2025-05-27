@@ -3,6 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>LOS Phone - Operations Call System</title>
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -132,6 +133,15 @@
                     Status: <span id="call-status-badge" class="badge bg-secondary status-badge">Ready</span>
                 </div>
                 <div class="call-timer" id="call-timer"></div>
+                
+                <!-- Call Context Information -->
+                <div id="call-context" class="mt-2 p-2 bg-light rounded hidden">
+                    <div class="text-center">
+                        <div id="context-driver" class="fw-bold text-primary"></div>
+                        <div id="context-company" class="small text-muted"></div>
+                        <div id="context-alert" class="small text-info"></div>
+                    </div>
+                </div>
             </div>
             
             <div class="input-group" id="phone-number-container">
@@ -165,6 +175,49 @@
             </div>
             
             <div class="spacer"></div>
+            
+            <!-- Post-Call Actions (Hidden by default) -->
+            <div id="post-call-actions" class="hidden">
+                <div class="card">
+                    <div class="card-header">
+                        <h6 class="mb-0">Post-Call Actions</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label class="form-label">Call Notes</label>
+                            <textarea id="call-notes" class="form-control" rows="3" placeholder="Add notes about the call..."></textarea>
+                        </div>
+                        
+                        <div class="row mb-3">
+                            <div class="col-6">
+                                <label class="form-label">Update Status</label>
+                                <select id="post-call-status" class="form-select form-select-sm">
+                                    <option value="">No Change</option>
+                                    <option value="in_progress">In Progress</option>
+                                    <option value="resolved">Resolved</option>
+                                    <option value="escalated">Escalated</option>
+                                </select>
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label">Assign To</label>
+                                <select id="post-call-assign" class="form-select form-select-sm">
+                                    <option value="">No Change</option>
+                                    <!-- Users will be loaded here -->
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="d-grid gap-2">
+                            <button id="save-call-actions" class="btn btn-primary btn-sm">
+                                <i class="fas fa-save me-1"></i> Save & Update Alert
+                            </button>
+                            <button id="skip-call-actions" class="btn btn-outline-secondary btn-sm">
+                                Skip
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
         
         <div class="phone-footer">
@@ -284,6 +337,11 @@
             $('#make-call').prop('disabled', false);
             $('#reconnect-message').addClass('hidden');
             stopCallTimer();
+            
+            // Show post-call actions if this was an alert-related call
+            if (!showPostCallActions()) {
+                clearCallContext();
+            }
         }
         
         // Function to setup the Twilio device
@@ -333,6 +391,9 @@
                         $('#make-call').prop('disabled', true);
                         updateCallStatus('Connected', 'bg-success');
                         startCallTimer();
+                        
+                        // Log the call in our system
+                        logCallInSystem(call);
                         
                         // Call status change handlers
                         call.on('disconnect', function() {
@@ -451,6 +512,9 @@
                 $('#make-call').prop('disabled', true);
                 updateCallStatus('Calling...', 'bg-info');
                 
+                // Log call initiation for alert-related calls
+                logCallActivity('initiated', phoneNumber);
+                
                 // Make the call with the device
                 currentCall = device.connect({
                     To: phoneNumber,
@@ -464,6 +528,95 @@
                 $('#error-container').removeClass('hidden');
                 $('#make-call').prop('disabled', false);
                 updateCallStatus('Error', 'bg-danger');
+            }
+        }
+        
+        // Function to log call in our system
+        function logCallInSystem(call) {
+            const phoneNumber = $('#phone-number').val().trim();
+            
+            // Get call SID from the call object
+            const callSid = call.parameters && call.parameters.CallSid ? call.parameters.CallSid : 'browser-call-' + Date.now();
+            
+            $.ajax({
+                url: '/operations/log-call',
+                method: 'POST',
+                data: JSON.stringify({
+                    to_number: phoneNumber,
+                    call_sid: callSid,
+                    direction: 'outbound'
+                }),
+                contentType: 'application/json'
+            }).done(function(response) {
+                if (response.success) {
+                    console.log('Call logged successfully:', response.call_log_id);
+                } else {
+                    console.error('Failed to log call:', response.message);
+                }
+            }).fail(function(xhr, status, error) {
+                console.error('Error logging call:', error);
+            });
+        }
+        
+        // Function to log call activity for alert-related calls
+        function logCallActivity(activityType, phoneNumber = null) {
+            const contextData = localStorage.getItem('call_context');
+            if (!contextData) return;
+            
+            try {
+                const context = JSON.parse(contextData);
+                if (context.type === 'alert_driver_call' && context.alert_id) {
+                    const csrfToken = $('meta[name="csrf-token"]').attr('content');
+                    
+                    let activityDescription = '';
+                    let notes = '';
+                    let requestData = {};
+                    
+                    if (activityType === 'initiated') {
+                        activityDescription = `Call initiated to driver ${context.driver_name}`;
+                        notes = `Called ${phoneNumber || context.driver_phone} for alert #${context.alert_id}`;
+                        requestData = {
+                            activity_type: 'call_initiated',
+                            description: activityDescription,
+                            notes: notes
+                        };
+                    } else if (activityType === 'completed') {
+                        activityDescription = `Call completed with driver ${context.driver_name}`;
+                        notes = `Call completed for alert #${context.alert_id}`;
+                        requestData = {
+                            activity_type: 'call_completed',
+                            description: activityDescription,
+                            notes: notes
+                        };
+                    }
+                    
+                    // Use a new endpoint for call activities instead of notes
+                    $.ajax({
+                        url: `/samsara/alerts/${context.alert_id}/call-activity`,
+                        method: 'POST',
+                        data: JSON.stringify(requestData),
+                        contentType: 'application/json',
+                        headers: {
+                            'X-CSRFToken': csrfToken
+                        }
+                    }).catch(error => {
+                        console.error('Error logging call activity:', error);
+                        // Fallback to notes endpoint if call-activity endpoint doesn't exist
+                        $.ajax({
+                            url: `/samsara/alerts/${context.alert_id}/notes`,
+                            method: 'POST',
+                            data: JSON.stringify({ notes: `${activityDescription}. ${notes}` }),
+                            contentType: 'application/json',
+                            headers: {
+                                'X-CSRFToken': csrfToken
+                            }
+                        }).catch(fallbackError => {
+                            console.error('Error logging call activity (fallback):', fallbackError);
+                        });
+                    });
+                }
+            } catch (e) {
+                console.error('Error parsing call context for activity logging:', e);
             }
         }
         
@@ -487,6 +640,16 @@
         // Document ready
         $(document).ready(function() {
             console.log("DOM loaded, setting up event listeners");
+            
+            // Check for URL parameters (phone number)
+            const urlParams = new URLSearchParams(window.location.search);
+            const phoneNumber = urlParams.get('number');
+            if (phoneNumber) {
+                $('#phone-number').val(phoneNumber);
+            }
+            
+            // Load call context from localStorage
+            loadCallContext();
             
             // Check for active call state
             const callState = loadCallState();
@@ -535,6 +698,18 @@
                 endCurrentCall();
             });
             
+            // Post-call action button handlers
+            $('#save-call-actions').click(function() {
+                savePostCallActions();
+            });
+            
+            $('#skip-call-actions').click(function() {
+                // Log call completion even when skipping
+                logCallActivity('completed');
+                hidePostCallActions();
+                clearCallContext();
+            });
+            
             // Window close handler to clean up
             window.addEventListener('beforeunload', function(e) {
                 if (currentCall) {
@@ -549,6 +724,166 @@
                 }
             });
         });
+        
+        // Load call context from localStorage
+        function loadCallContext() {
+            const contextData = localStorage.getItem('call_context');
+            if (contextData) {
+                try {
+                    const context = JSON.parse(contextData);
+                    if (context.type === 'alert_driver_call') {
+                        displayCallContext(context);
+                        // Pre-fill phone number if not already set
+                        if (!$('#phone-number').val() && context.driver_phone) {
+                            $('#phone-number').val(context.driver_phone);
+                        }
+                    }
+                } catch (e) {
+                    console.error('Error parsing call context:', e);
+                }
+            }
+        }
+        
+        // Display call context information
+        function displayCallContext(context) {
+            $('#context-driver').text(context.driver_name || 'Unknown Driver');
+            $('#context-company').text(context.company_name || 'Unknown Company');
+            $('#context-alert').text(`Alert #${context.alert_id || 'N/A'}`);
+            $('#call-context').removeClass('hidden');
+        }
+        
+        // Clear call context
+        function clearCallContext() {
+            $('#call-context').addClass('hidden');
+            localStorage.removeItem('call_context');
+        }
+        
+        // Show post-call actions for alert-related calls
+        function showPostCallActions() {
+            const contextData = localStorage.getItem('call_context');
+            if (contextData) {
+                try {
+                    const context = JSON.parse(contextData);
+                    if (context.type === 'alert_driver_call' && context.alert_id) {
+                        loadUsersForAssignment();
+                        $('#post-call-actions').removeClass('hidden');
+                        return true;
+                    }
+                } catch (e) {
+                    console.error('Error parsing call context:', e);
+                }
+            }
+            return false;
+        }
+        
+        // Hide post-call actions
+        function hidePostCallActions() {
+            $('#post-call-actions').addClass('hidden');
+            $('#call-notes').val('');
+            $('#post-call-status').val('');
+            $('#post-call-assign').val('');
+        }
+        
+        // Load users for assignment dropdown
+        function loadUsersForAssignment() {
+            $.get('/operations/users', function(data) {
+                if (data.status === 'success') {
+                    const assignSelect = $('#post-call-assign');
+                    assignSelect.find('option:not(:first)').remove();
+                    
+                    data.users.forEach(user => {
+                        assignSelect.append(new Option(user.name, user.id));
+                    });
+                }
+            }).fail(function() {
+                console.error('Failed to load users for assignment');
+            });
+        }
+        
+        // Save post-call actions
+        function savePostCallActions() {
+            const contextData = localStorage.getItem('call_context');
+            if (!contextData) return;
+            
+            try {
+                const context = JSON.parse(contextData);
+                const alertId = context.alert_id;
+                
+                const notes = $('#call-notes').val().trim();
+                const status = $('#post-call-status').val();
+                const assignTo = $('#post-call-assign').val();
+                
+                // Get CSRF token
+                const csrfToken = $('meta[name="csrf-token"]').attr('content');
+                
+                const promises = [];
+                
+                // Log call completion activity
+                logCallActivity('completed');
+                
+                // Add call note if provided
+                if (notes) {
+                    promises.push(
+                        $.ajax({
+                            url: `/samsara/alerts/${alertId}/notes`,
+                            method: 'POST',
+                            data: JSON.stringify({ notes: `Call Note: ${notes}` }),
+                            contentType: 'application/json',
+                            headers: {
+                                'X-CSRFToken': csrfToken
+                            }
+                        })
+                    );
+                }
+                
+                // Update status if changed
+                if (status) {
+                    promises.push(
+                        $.ajax({
+                            url: `/samsara/alerts/${alertId}/status`,
+                            method: 'PUT',
+                            data: JSON.stringify({ status: status }),
+                            contentType: 'application/json',
+                            headers: {
+                                'X-CSRFToken': csrfToken
+                            }
+                        })
+                    );
+                }
+                
+                // Update assignment if changed
+                if (assignTo) {
+                    promises.push(
+                        $.ajax({
+                            url: `/samsara/alerts/${alertId}/assign`,
+                            method: 'POST',
+                            data: JSON.stringify({ user_id: assignTo }),
+                            contentType: 'application/json',
+                            headers: {
+                                'X-CSRFToken': csrfToken
+                            }
+                        })
+                    );
+                }
+                
+                if (promises.length > 0) {
+                    Promise.all(promises).then(() => {
+                        updateWindowTitle('Actions Saved');
+                        hidePostCallActions();
+                        clearCallContext();
+                    }).catch((error) => {
+                        console.error('Error saving post-call actions:', error);
+                        updateWindowTitle('Save Failed');
+                    });
+                } else {
+                    hidePostCallActions();
+                    clearCallContext();
+                }
+                
+            } catch (e) {
+                console.error('Error saving post-call actions:', e);
+            }
+        }
     </script>
 </body>
 </html> 

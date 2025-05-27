@@ -24,6 +24,8 @@ class CrmAccount(db.Model):
     # address_country = db.Column(db.String(100), nullable=True)
     # --- END REMOVED ---
 
+    dot_number = db.Column(db.String(50), unique=True, nullable=True, index=True)
+
     status = db.Column(db.String(50), nullable=True, default='Prospect', index=True) 
     # Example statuses: 'Prospect', 'Active Client', 'Former Client', 'Partner', 'On Hold'
     

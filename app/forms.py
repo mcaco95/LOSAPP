@@ -174,9 +174,10 @@ class ContactForm(FlaskForm):
     )
     source = SelectField(
         'Source', 
-        choices=[('', '-- Select Source (Optional) --')] + [(source, source) for source in CONTACT_SOURCES],
+        choices=[('', '-- Select Source (Optional) --')] + [(s, s) for s in CONTACT_SOURCES],
         validators=[Optional()]
     )
+    is_primary_for_account = BooleanField('Set as Primary Contact for this Account')
     
     submit = SubmitField('Save Contact')
 
@@ -280,6 +281,7 @@ class CrmAccountForm(FlaskForm):
     website = StringField('Website', validators=[Optional(), URL()])
     phone_number = StringField('Main Phone Number', validators=[Optional()])
     industry = StringField('Industry', validators=[Optional()])
+    dot_number = StringField('DOT Number', validators=[Optional(), Length(max=50)])
     
     # REMOVING these fields for now
     # address_street = StringField('Street Address', validators=[Optional()])
@@ -343,7 +345,7 @@ class CrmAccountForm(FlaskForm):
             processed_dynamic_srid_field = True
         
         elif hasattr(current_user, 'sales_profile'): # Non-manager sales user
-            # Non-Manager: Add HiddenField for sales_rep_id_hidden
+            # Non-Manager: Add HiddenField for sales_rep_id
             if field_name_srid in self._fields: # Clean up QuerySelectField if it exists
                 del self._fields[field_name_srid]
             if hasattr(self, field_name_srid):
@@ -440,17 +442,80 @@ class DealForm(FlaskForm):
     
     submit = SubmitField('Save Deal')
 
+    def __init__(self, formdata=None, obj=None, current_account_id=None, current_contact_id=None, **kwargs):
+        super(DealForm, self).__init__(formdata=formdata, obj=obj, **kwargs)
+        
+        sales_rep_id = None
+        if hasattr(current_user, 'sales_profile') and current_user.sales_profile:
+            sales_rep_id = current_user.sales_profile.id
+
+        # --- Account Field Query ---
+        account_query = CrmAccount.query
+        if sales_rep_id:
+            account_filter_conditions = [CrmAccount.sales_rep_id == sales_rep_id]
+            if current_account_id:
+                account_filter_conditions.append(CrmAccount.id == current_account_id)
+            account_query = account_query.filter(or_(*account_filter_conditions))
+        elif current_account_id: # No sales_rep_id, but a current_account_id is provided
+            account_query = account_query.filter(CrmAccount.id == current_account_id)
+        else: # No sales_rep_id and no current_account_id, show no accounts
+            account_query = account_query.filter(false())
+            
+        self.crm_account_id.query = account_query.order_by(CrmAccount.name)
+        self.crm_account_id.query_factory = None # Disable default factory
+
+        # --- Contact Field Query ---
+        contact_query = Contact.query
+        if sales_rep_id:
+            contact_filter_conditions = [Contact.sales_rep_id == sales_rep_id]
+            if current_contact_id:
+                contact_filter_conditions.append(Contact.id == current_contact_id)
+            
+            # Check if form has crm_account_id data, or if obj (deal being edited) has crm_account_id
+            selected_account_id_for_contact_filter = None
+            if self.crm_account_id.data: 
+                if isinstance(self.crm_account_id.data, CrmAccount):
+                    selected_account_id_for_contact_filter = self.crm_account_id.data.id
+                elif isinstance(self.crm_account_id.data, (int, str)):
+                    try:
+                        selected_account_id_for_contact_filter = int(self.crm_account_id.data)
+                    except ValueError:
+                        pass # Not a valid int, ignore
+            elif obj and obj.crm_account_id: # If editing an existing deal
+                 selected_account_id_for_contact_filter = obj.crm_account_id
+            elif current_account_id: # If an account ID was passed for pre-filling the account field
+                 selected_account_id_for_contact_filter = current_account_id
+
+            if selected_account_id_for_contact_filter:
+                 contact_filter_conditions.append(Contact.crm_account_id == selected_account_id_for_contact_filter)
+
+            contact_query = contact_query.filter(or_(*contact_filter_conditions))
+        elif current_contact_id: # No sales_rep_id, but a current_contact_id is provided
+            contact_query = contact_query.filter(Contact.id == current_contact_id)
+            if self.crm_account_id.data: # Still filter by selected account if any
+                 contact_query = contact_query.filter(Contact.crm_account_id == self.crm_account_id.data.id)
+            elif obj and obj.crm_account_id:
+                 contact_query = contact_query.filter(Contact.crm_account_id == obj.crm_account_id)
+            elif current_account_id:
+                 contact_query = contact_query.filter(Contact.crm_account_id == current_account_id)
+
+        else: # No sales_rep_id and no current_contact_id, show no contacts
+            contact_query = contact_query.filter(false())
+
+        self.contact_id.query = contact_query.order_by(Contact.first_name)
+        self.contact_id.query_factory = None # Disable default factory
+
 # Form for linking a contact to a company directly
 class LinkContactToCompanyForm(FlaskForm):
     crm_account = QuerySelectField(
         'Company/Account',
-        query_factory=get_user_crm_accounts_query, # Reuse the existing query factory
-        get_label='name',
-        allow_blank=True, # Allow unlinking by selecting blank
-        blank_text='-- Unlink/Select No Company --',
+        query_factory=get_user_crm_accounts_query, # Use the helper
+        get_label=lambda acc: f"{acc.name} (DOT: {acc.dot_number})" if acc.dot_number else acc.name, # MODIFIED to show DOT
+        allow_blank=True,
+        blank_text='-- Select Company --',
         validators=[Optional()]
     )
-    submit = SubmitField('Update Company Link')
+    submit = SubmitField('Link/Update Company')
 
 # --- Custom Field Definition Form --- #
 class CustomFieldDefinitionForm(FlaskForm):

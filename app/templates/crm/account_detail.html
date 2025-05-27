@@ -145,6 +145,7 @@
                         <li class="list-group-item d-flex justify-content-between align-items-center px-0">
                             <div>
                                 <a href="{{ url_for('crm.view_contact', contact_id=contact.id) }}" class="text-decoration-none fw-medium">{{ contact.full_name }}</a>
+                                {% if contact.is_primary_for_account %}<span class="badge bg-success ms-2">Primary</span>{% endif %}
                                 <small class="d-block text-muted">{{ contact.job_title or 'No title' }}</small>
                             </div>
                             <a href="{{ url_for('crm.view_contact', contact_id=contact.id) }}" class="btn btn-sm btn-outline-secondary border-0" title="View Contact"><i class="bi bi-eye"></i></a>

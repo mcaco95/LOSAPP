@@ -68,10 +68,12 @@ def create_app():
         from .routes import referrals as referrals_routes
         from .routes import operations as operations_routes
         from .routes import samsara
+        from .routes import dashboard as dashboard_routes
         from .api.v1 import bp as api_v1_bp
         # Import the new CRM blueprint correctly
         from .routes import crm
         from .routes.crm_phone import crm_phone_bp
+        from .routes import dot_infractions
         
         # Initialize OAuth
         from .oauth import init_oauth
@@ -88,14 +90,44 @@ def create_app():
             print(f"Couldn't set admin flag: {str(e)}")
         
         # Register blueprints
-        app.register_blueprint(main_routes.main)
-        app.register_blueprint(auth_routes.bp)
-        app.register_blueprint(users_routes.users)
-        app.register_blueprint(commission_routes.bp)
-        app.register_blueprint(referrals_routes.bp)
-        app.register_blueprint(operations_routes.bp)
-        app.register_blueprint(samsara.bp)
-        app.register_blueprint(api_v1_bp)  # Register the API blueprint
+        from app.routes.main import main as main_bp
+        app.register_blueprint(main_bp)
+
+        from app.routes.auth import bp as auth_bp
+        app.register_blueprint(auth_bp, url_prefix='/auth')
+
+        from app.routes.dashboard import bp as dashboard_bp
+        app.register_blueprint(dashboard_bp)
+
+        from app.routes.users import users as users_bp
+        app.register_blueprint(users_bp)
+        
+        from app.routes.commission import bp as commission_bp
+        app.register_blueprint(commission_bp)
+        
+        from app.routes.referrals import bp as referrals_bp
+        app.register_blueprint(referrals_bp)
+        
+        from app.routes.operations import bp as operations_bp
+        app.register_blueprint(operations_bp, url_prefix='/operations')
+
+        from app.routes.samsara import bp as samsara_bp
+        app.register_blueprint(samsara_bp)
+
+        from app.routes.dot_infractions import bp as dot_infractions_bp
+        app.register_blueprint(dot_infractions_bp)
+
+        from app.routes.drivers import bp as drivers_bp
+        app.register_blueprint(drivers_bp)
+        
+        # Register CRM blueprints
+        from app.routes.crm import crm_bp
+        app.register_blueprint(crm_bp)
+        
+        from app.routes.crm_phone import crm_phone_bp
+        app.register_blueprint(crm_phone_bp)
+        
+        app.register_blueprint(api_v1_bp)
         # Import the webhook blueprint
         try:
             # Check if webhook blueprint is imported and register it
@@ -107,9 +139,6 @@ def create_app():
         except AttributeError:
             app.logger.warning("Webhook module found, but no 'bp' attribute.")
        
-        # Register the CRM blueprint
-        app.register_blueprint(crm.crm_bp)
-        app.register_blueprint(crm_phone_bp)
         # Exempt Samsara webhook routes from CSRF protection
         csrf.exempt(samsara.webhook)
         csrf.exempt(samsara.test_webhook)

@@ -18,7 +18,7 @@ from .note import Note
 from .task import Task, TASK_STATUSES, TASK_PRIORITIES
 from .deal import Deal, DEAL_STAGES
 from .custom_field import CustomFieldDefinition, CustomFieldValue
-from .samsara import SamsaraVehicle, SamsaraWebhookEvent, SamsaraClient, SamsaraVehicleLocation, SamsaraAlert, SamsaraAlertAssignment
+from .samsara import SamsaraVehicle, SamsaraWebhookEvent, SamsaraClient, SamsaraVehicleLocation, SamsaraAlert, SamsaraAlertAssignment, SamsaraDriver
 
 __all__ = [
     'User',
@@ -51,5 +51,6 @@ __all__ = [
     'SamsaraClient',
     'SamsaraVehicleLocation',
     'SamsaraAlert',
-    'SamsaraAlertAssignment'
+    'SamsaraAlertAssignment',
+    'SamsaraDriver'
 ] 

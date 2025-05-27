@@ -1,0 +1,431 @@
+{% extends "base.html" %}
+
+{% block title %}My Alerts Dashboard{% endblock %}
+
+{% block content %}
+<div class="py-4">
+    <div class="d-flex justify-content-between w-100 flex-wrap">
+        <div class="mb-3 mb-lg-0">
+            <h1 class="h4">My Alerts Dashboard</h1>
+            <p class="mb-0">Track and manage your assigned alerts</p>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Metrics Cards -->
+    <div class="col-12 col-sm-6 col-xl-3 mb-4">
+        <div class="card border-0 shadow">
+            <div class="card-body">
+                <div class="row d-block d-xl-flex align-items-center">
+                    <div class="col-12 col-xl-5 text-xl-center mb-3 mb-xl-0 d-flex align-items-center justify-content-xl-center">
+                        <div class="icon-shape icon-shape-primary rounded me-4 me-sm-0">
+                            <i class="fas fa-tasks"></i>
+                        </div>
+                    </div>
+                    <div class="col-12 col-xl-7 px-xl-0">
+                        <h2 class="h6 text-gray-400 mb-0">Active Alerts</h2>
+                        <h3 class="fw-extrabold mb-2">{{ active_alerts }}</h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 col-sm-6 col-xl-3 mb-4">
+        <div class="card border-0 shadow">
+            <div class="card-body">
+                <div class="row d-block d-xl-flex align-items-center">
+                    <div class="col-12 col-xl-5 text-xl-center mb-3 mb-xl-0 d-flex align-items-center justify-content-xl-center">
+                        <div class="icon-shape icon-shape-success rounded me-4 me-sm-0">
+                            <i class="fas fa-check"></i>
+                        </div>
+                    </div>
+                    <div class="col-12 col-xl-7 px-xl-0">
+                        <h2 class="h6 text-gray-400 mb-0">Resolved (30d)</h2>
+                        <h3 class="fw-extrabold mb-2">{{ resolved_30d }}</h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 col-sm-6 col-xl-3 mb-4">
+        <div class="card border-0 shadow">
+            <div class="card-body">
+                <div class="row d-block d-xl-flex align-items-center">
+                    <div class="col-12 col-xl-5 text-xl-center mb-3 mb-xl-0 d-flex align-items-center justify-content-xl-center">
+                        <div class="icon-shape icon-shape-tertiary rounded me-4 me-sm-0">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                    </div>
+                    <div class="col-12 col-xl-7 px-xl-0">
+                        <h2 class="h6 text-gray-400 mb-0">Avg. Resolution Time</h2>
+                        <h3 class="fw-extrabold mb-2">{{ avg_resolution_hours }}h</h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 col-sm-6 col-xl-3 mb-4">
+        <div class="card border-0 shadow">
+            <div class="card-body">
+                <div class="row d-block d-xl-flex align-items-center">
+                    <div class="col-12 col-xl-5 text-xl-center mb-3 mb-xl-0 d-flex align-items-center justify-content-xl-center">
+                        <div class="icon-shape icon-shape-info rounded me-4 me-sm-0">
+                            <i class="fas fa-chart-pie"></i>
+                        </div>
+                    </div>
+                    <div class="col-12 col-xl-7 px-xl-0">
+                        <h2 class="h6 text-gray-400 mb-0">Completion Rate</h2>
+                        <h3 class="fw-extrabold mb-2">
+                            {% set total = status_data.values()|sum %}
+                            {% if total > 0 %}
+                                {{ ((status_data.get('resolved', 0) / total) * 100)|round }}%
+                            {% else %}
+                                0%
+                            {% endif %}
+                        </h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Status Distribution Chart -->
+    <div class="col-12 col-xl-8 mb-4">
+        <div class="card border-0 shadow">
+            <div class="card-header">
+                <div class="row align-items-center">
+                    <div class="col">
+                        <h2 class="fs-5 fw-bold mb-0">Recent Alerts</h2>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-centered table-nowrap mb-0 rounded">
+                        <thead class="thead-light">
+                            <tr>
+                                <th class="border-0">Alert</th>
+                                <th class="border-0">Vehicle</th>
+                                <th class="border-0">Status</th>
+                                <th class="border-0">Created</th>
+                                <th class="border-0">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for alert in alerts %}
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        {% set severity_class = {
+                                            'high': 'danger',
+                                            'medium': 'warning',
+                                            'low': 'info'
+                                        } %}
+                                        <span class="badge bg-{{ severity_class.get(alert.severity, 'secondary') }} me-2"></span>
+                                        <div class="d-block">
+                                            <span class="fw-bold">{{ alert.alert_type|title }}</span>
+                                            <div class="small text-gray">{{ alert.description }}</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>{{ alert.vehicle.name if alert.vehicle else 'Unknown' }}</td>
+                                <td>
+                                    {% set status_class = {
+                                        'unassigned': 'secondary',
+                                        'in_progress': 'info',
+                                        'resolved': 'success',
+                                        'escalated': 'danger'
+                                    } %}
+                                    <span class="badge bg-{{ status_class.get(alert.status, 'secondary') }}">
+                                        {{ alert.status|title }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <span data-bs-toggle="tooltip" data-bs-placement="top" title="{{ alert.created_at }}">
+                                        <script>
+                                            document.write(formatLocalDateTime("{{ alert.created_at.replace(tzinfo=timezone.utc).isoformat() if alert.created_at else '' }}"));
+                                        </script>
+                                    </span>
+                                </td>
+                                <td>
+                                    <div class="btn-group">
+                                        <button class="btn btn-link text-dark dropdown-toggle dropdown-toggle-split m-0 p-0" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                            <i class="fas fa-ellipsis-h"></i>
+                                            <span class="visually-hidden">Toggle Dropdown</span>
+                                        </button>
+                                        <div class="dropdown-menu py-0">
+                                            <a class="dropdown-item rounded-top" href="#" 
+                                               onclick="viewAlertDetails('{{ alert.id }}')">
+                                                <i class="fas fa-eye me-2"></i>View Details
+                                            </a>
+                                            {% if alert.status != 'resolved' %}
+                                            <a class="dropdown-item" href="#" 
+                                               onclick="updateAlertStatus('{{ alert.id }}', 'resolved')">
+                                                <i class="fas fa-check me-2"></i>Mark as Resolved
+                                            </a>
+                                            {% endif %}
+                                            {% if alert.status != 'escalated' %}
+                                            <a class="dropdown-item rounded-bottom" href="#"
+                                               onclick="updateAlertStatus('{{ alert.id }}', 'escalated')">
+                                                <i class="fas fa-arrow-up me-2"></i>Escalate
+                                            </a>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="5" class="text-center py-4">
+                                    <div class="text-gray-500">
+                                        <i class="fas fa-inbox fa-2x mb-3"></i>
+                                        <h6>No alerts assigned to you</h6>
+                                        <p class="mb-0">When you are assigned alerts, they will appear here.</p>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Status Distribution -->
+    <div class="col-12 col-xl-4 mb-4">
+        <div class="card border-0 shadow">
+            <div class="card-header">
+                <div class="row align-items-center">
+                    <div class="col">
+                        <h2 class="fs-5 fw-bold mb-0">Alerts by Status</h2>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                {% for status in ['in_progress', 'resolved', 'escalated'] %}
+                <div class="d-flex align-items-center justify-content-between mb-4">
+                    <div>
+                        <h6 class="mb-0">{{ status|title }}</h6>
+                    </div>
+                    <div>
+                        <span class="h6 mb-0">{{ status_data.get(status, 0) }}</span>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Alert Details Modal -->
+<div class="modal fade" id="alertDetailsModal" tabindex="-1" role="dialog" aria-labelledby="alertDetailsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="alertDetailsModalLabel">Alert Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="alertDetailsContent">
+                Loading...
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Helper function to format date in user's timezone
+function formatLocalDateTime(utcDateString) {
+    if (!utcDateString) return 'N/A';
+    try {
+        // Parse the UTC date string
+        const date = new Date(utcDateString);
+        
+        // Check if the date is valid
+        if (isNaN(date.getTime())) {
+            console.error('Invalid date:', utcDateString);
+            return 'Invalid Date';
+        }
+        
+        // Format options for date and time
+        const options = {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: true,
+            timeZoneName: 'short'
+        };
+
+        // Get user's timezone
+        const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+        
+        // Format the date in the user's local timezone
+        const formatter = new Intl.DateTimeFormat('en-US', { ...options, timeZone });
+        return formatter.format(date);
+    } catch (error) {
+        console.error('Error formatting date:', error, utcDateString);
+        return 'Invalid Date';
+    }
+}
+
+function viewAlertDetails(alertId) {
+    const modal = new bootstrap.Modal(document.getElementById('alertDetailsModal'));
+    const contentDiv = document.getElementById('alertDetailsContent');
+    
+    // Show modal with loading state
+    modal.show();
+    contentDiv.innerHTML = '<div class="text-center"><div class="spinner-border" role="status"></div></div>';
+    
+    // Fetch alert details
+    fetch(`/samsara/alerts/${alertId}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                const alert = data.alert;
+                const timestamp = formatLocalDateTime(alert.timestamp);
+                const createdAt = formatLocalDateTime(alert.created_at);
+                
+                // Render activities timeline
+                let activitiesHtml = '';
+                if (alert.activities && alert.activities.length > 0) {
+                    activitiesHtml = alert.activities.map(activity => {
+                        const activityTime = formatLocalDateTime(activity.created_at);
+                        const changeInfo = activity.old_value && activity.new_value 
+                            ? `<small class="text-muted d-block">Changed from "${activity.old_value}" to "${activity.new_value}"</small>`
+                            : activity.new_value && !activity.old_value
+                            ? `<small class="text-muted d-block">Set to "${activity.new_value}"</small>`
+                            : activity.old_value && !activity.new_value
+                            ? `<small class="text-muted d-block">Removed "${activity.old_value}"</small>`
+                            : '';
+                        
+                        const notesHtml = activity.notes 
+                            ? `<div class="mt-2 p-2 bg-light rounded border-start border-primary border-3"><small><em>${activity.notes}</em></small></div>`
+                            : '';
+                        
+                        return `
+                            <div class="d-flex mb-3">
+                                <div class="flex-shrink-0">
+                                    <span class="badge bg-secondary rounded-pill" style="width: 30px; height: 30px; display: flex; align-items: center; justify-content: center;">
+                                        <i class="fas fa-circle" style="font-size: 8px;"></i>
+                                    </span>
+                                </div>
+                                <div class="flex-grow-1 ms-3">
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <div>
+                                            <h6 class="mb-1" style="font-size: 0.9rem;">${activity.description}</h6>
+                                            ${changeInfo}
+                                            ${notesHtml}
+                                        </div>
+                                        <small class="text-muted">${activityTime}</small>
+                                    </div>
+                                    <small class="text-muted">by ${activity.user_name}</small>
+                                </div>
+                            </div>
+                        `;
+                    }).join('');
+                } else {
+                    activitiesHtml = '<div class="text-center text-muted py-3">No activities yet</div>';
+                }
+                
+                contentDiv.innerHTML = `
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-4">
+                                <h6 class="fw-bold">Description</h6>
+                                <p>${alert.description}</p>
+                            </div>
+                            <div class="mb-4">
+                                <h6 class="fw-bold">Details</h6>
+                                <ul class="list-unstyled">
+                                    <li><strong>Vehicle:</strong> ${alert.vehicle_name}</li>
+                                    <li><strong>Client:</strong> ${alert.client_name}</li>
+                                    <li><strong>Type:</strong> ${alert.alert_type}</li>
+                                    <li><strong>Severity:</strong> ${alert.severity}</li>
+                                    <li><strong>Status:</strong> ${alert.status}</li>
+                                    <li><strong>Driver:</strong> ${alert.driver_name || 'N/A'}</li>
+                                    <li><strong>Location:</strong> ${alert.location || 'N/A'}</li>
+                                </ul>
+                            </div>
+                            <div>
+                                <h6 class="fw-bold">Timestamps</h6>
+                                <ul class="list-unstyled">
+                                    <li><strong>Event Time:</strong> ${timestamp}</li>
+                                    <li><strong>Created:</strong> ${createdAt}</li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h6 class="fw-bold mb-0">Activity Timeline</h6>
+                            </div>
+                            <div style="max-height: 400px; overflow-y: auto;">
+                                ${activitiesHtml}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            } else {
+                contentDiv.innerHTML = '<div class="alert alert-danger">Failed to load alert details</div>';
+            }
+        })
+        .catch(error => {
+            contentDiv.innerHTML = '<div class="alert alert-danger">An error occurred while loading alert details</div>';
+            console.error('Error:', error);
+        });
+}
+
+function updateAlertStatus(alertId, newStatus) {
+    if (!confirm(`Are you sure you want to mark this alert as ${newStatus}?`)) {
+        return;
+    }
+    
+    let notes = '';
+    if (newStatus === 'resolved' || newStatus === 'escalated') {
+        notes = prompt(`Please provide notes for ${newStatus} status:`);
+        if (notes === null) return; // User cancelled
+    }
+    
+    fetch(`/samsara/alerts/${alertId}/status`, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            status: newStatus,
+            notes: notes
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'success') {
+            // Reload the page to reflect changes
+            window.location.reload();
+        } else {
+            alert('Failed to update alert status: ' + data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('An error occurred while updating the alert status');
+    });
+}
+
+// Initialize tooltips
+document.addEventListener('DOMContentLoaded', function() {
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    var tooltipList = tooltipTriggerList.map(function(tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+});
+</script>
+{% endblock %} 

@@ -50,6 +50,9 @@
                                         {% endif %}
                                     </td>
                                     <td>
+                                        <a href="{{ url_for('samsara.fleet_dashboard', client_id=client.id) }}" class="btn btn-sm btn-primary">
+                                            <i class="fas fa-truck"></i> Fleet
+                                        </a>
                                         <button class="btn btn-sm btn-info edit-client" data-client-id="{{ client.id }}">
                                             <i class="fas fa-edit"></i>
                                         </button>

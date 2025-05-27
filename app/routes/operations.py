@@ -7,15 +7,18 @@ from .. import db, csrf
 from twilio.jwt.access_token import AccessToken
 from twilio.jwt.access_token.grants import VoiceGrant
 from twilio.twiml.voice_response import VoiceResponse, Dial, Say, Parameter
-from datetime import datetime
+from datetime import datetime, timedelta
 from app.models.call_log import CallLog
 from app.models.sales_user import SalesUser
 from app.models.contact import Contact
 from app.routes.crm_phone import normalize_phone_number
+from app.models.user import User
+from sqlalchemy import func, and_, or_
+from app.models.samsara import SamsaraAlert, SamsaraAlertActivity
 
 bp = Blueprint('operations', __name__)
 
-@bp.route('/operations/call', methods=['POST'])
+@bp.route('/call', methods=['POST'])
 @csrf.exempt
 @login_required
 @operations_required
@@ -90,7 +93,7 @@ def make_call():
         current_app.logger.error(f"Error in make_call: {str(e)}")
         return jsonify({'success': False, 'message': f'Error making call: {str(e)}'}), 400
 
-@bp.route('/operations/call/<call_sid>', methods=['GET'])
+@bp.route('/call/<call_sid>', methods=['GET'])
 @csrf.exempt
 @login_required
 @operations_required
@@ -105,7 +108,7 @@ def get_call_status(call_sid):
         'duration': duration
     })
 
-@bp.route('/operations/call/<call_sid>', methods=['DELETE'])
+@bp.route('/call/<call_sid>', methods=['DELETE'])
 @csrf.exempt
 @login_required
 @operations_required
@@ -119,7 +122,7 @@ def end_call(call_sid):
         'message': 'Call ended successfully' if success else 'Failed to end call'
     })
 
-@bp.route('/operations/calls/recent')
+@bp.route('/calls/recent')
 @login_required
 @operations_required
 def get_recent_calls():
@@ -161,7 +164,7 @@ def get_recent_calls():
             'error': str(e)
         })
 
-@bp.route('/operations/calls/metrics')
+@bp.route('/calls/metrics')
 @login_required
 @operations_required
 def get_call_metrics():
@@ -361,7 +364,7 @@ def recording_status_callback():
             
     return '', 200
 
-@bp.route('/operations/token', methods=['GET'])
+@bp.route('/token', methods=['GET'])
 @csrf.exempt
 @login_required
 @operations_required
@@ -626,4 +629,411 @@ def voice_twiml():
 @operations_required
 def phone_interface():
     """Dedicated phone interface page that will be embedded in an iframe"""
-    return render_template('operations/phone.html') 
+    return render_template('operations/phone.html')
+
+@bp.route('/users', methods=['GET'])
+@login_required
+@operations_required
+def get_users():
+    """Get list of users for assignment dropdowns"""
+    try:
+        # Get users who have operations profiles
+        from ..models.operations_user import OperationsUser
+        
+        users = db.session.query(User).join(OperationsUser).filter(
+            OperationsUser.user_id == User.id
+        ).all()
+        
+        return jsonify({
+            'status': 'success',
+            'users': [{'id': user.id, 'name': user.name} for user in users]
+        })
+    except Exception as e:
+        print(f"Error getting users: {str(e)}")
+        return jsonify({
+            'status': 'error',
+            'message': 'Failed to get users'
+        }), 500
+
+@bp.route('/kpis', methods=['GET'])
+@login_required
+@operations_required
+def get_operations_kpis():
+    """Get comprehensive KPI data for operations dashboard"""
+    try:
+        # Get today's date range
+        today = datetime.now().date()
+        yesterday = today - timedelta(days=1)
+        today_start = datetime.combine(today, datetime.min.time())
+        yesterday_start = datetime.combine(yesterday, datetime.min.time())
+        
+        # Today's alerts
+        today_alerts = SamsaraAlert.query.filter(
+            func.date(SamsaraAlert.created_at) == today
+        ).count()
+        
+        # Yesterday's alerts for comparison
+        yesterday_alerts = SamsaraAlert.query.filter(
+            func.date(SamsaraAlert.created_at) == yesterday
+        ).count()
+        
+        # Status breakdowns (all active alerts)
+        unassigned_alerts = SamsaraAlert.query.filter(
+            and_(SamsaraAlert.assigned_to.is_(None), SamsaraAlert.status != 'resolved')
+        ).count()
+        
+        in_progress_alerts = SamsaraAlert.query.filter(
+            SamsaraAlert.status == 'in_progress'
+        ).count()
+        
+        resolved_today = SamsaraAlert.query.filter(
+            and_(
+                SamsaraAlert.status == 'resolved',
+                func.date(SamsaraAlert.updated_at) == today
+            )
+        ).count()
+        
+        critical_alerts = SamsaraAlert.query.filter(
+            and_(SamsaraAlert.severity == 'critical', SamsaraAlert.status != 'resolved')
+        ).count()
+        
+        escalated_alerts = SamsaraAlert.query.filter(
+            SamsaraAlert.status == 'escalated'
+        ).count()
+        
+        # Total active alerts for percentages
+        total_active_alerts = SamsaraAlert.query.filter(
+            SamsaraAlert.status != 'resolved'
+        ).count()
+        
+        # Calculate percentages
+        unassigned_percentage = round((unassigned_alerts / max(total_active_alerts, 1)) * 100, 1)
+        critical_percentage = round((critical_alerts / max(total_active_alerts, 1)) * 100, 1)
+        resolution_rate = round((resolved_today / max(today_alerts, 1)) * 100, 1)
+        
+        # Calculate average response time (time from created to first assignment)
+        response_times = db.session.query(
+            func.extract('epoch', SamsaraAlertActivity.timestamp - SamsaraAlert.created_at) / 60
+        ).join(SamsaraAlert).filter(
+            and_(
+                SamsaraAlertActivity.activity_type == 'assignment',
+                func.date(SamsaraAlert.created_at) == today
+            )
+        ).all()
+        
+        avg_response_time = 0
+        if response_times:
+            avg_response_time = round(sum([rt[0] for rt in response_times if rt[0]]) / len(response_times), 1)
+        
+        # Calculate average resolution time for resolved alerts today
+        resolution_times = db.session.query(
+            func.extract('epoch', SamsaraAlert.updated_at - SamsaraAlert.created_at) / 3600
+        ).filter(
+            and_(
+                SamsaraAlert.status == 'resolved',
+                func.date(SamsaraAlert.updated_at) == today
+            )
+        ).all()
+        
+        avg_resolution_hours = 0
+        avg_resolution_minutes = 0
+        if resolution_times:
+            avg_resolution_hours_float = sum([rt[0] for rt in resolution_times if rt[0]]) / len(resolution_times)
+            avg_resolution_hours = int(avg_resolution_hours_float)
+            avg_resolution_minutes = int((avg_resolution_hours_float - avg_resolution_hours) * 60)
+        
+        # Calculate average age of escalated alerts
+        escalated_ages = db.session.query(
+            func.extract('epoch', func.now() - SamsaraAlert.created_at) / 3600
+        ).filter(SamsaraAlert.status == 'escalated').all()
+        
+        avg_escalated_age = 0
+        if escalated_ages:
+            avg_escalated_age = round(sum([age[0] for age in escalated_ages if age[0]]) / len(escalated_ages), 1)
+        
+        # Active agents (users who have been assigned alerts today or have active alerts)
+        active_agents = db.session.query(User.id).join(SamsaraAlert).filter(
+            or_(
+                func.date(SamsaraAlert.updated_at) == today,
+                and_(SamsaraAlert.assigned_to.isnot(None), SamsaraAlert.status != 'resolved')
+            )
+        ).distinct().count()
+        
+        # Team efficiency (alerts per agent)
+        team_efficiency = round(today_alerts / max(active_agents, 1), 1)
+        
+        return jsonify({
+            'status': 'success',
+            'kpis': {
+                'today_alerts': today_alerts,
+                'today_alerts_change': today_alerts - yesterday_alerts,
+                'unassigned_alerts': unassigned_alerts,
+                'unassigned_percentage': unassigned_percentage,
+                'in_progress_alerts': in_progress_alerts,
+                'avg_resolution_time': f"{avg_resolution_hours}h {avg_resolution_minutes}m",
+                'resolved_today': resolved_today,
+                'resolution_rate': resolution_rate,
+                'critical_alerts': critical_alerts,
+                'critical_percentage': critical_percentage,
+                'escalated_alerts': escalated_alerts,
+                'escalated_age': avg_escalated_age,
+                'avg_response_time': avg_response_time,
+                'active_agents': active_agents,
+                'team_efficiency': team_efficiency
+            }
+        })
+        
+    except Exception as e:
+        print(f"Error getting KPIs: {str(e)}")
+        return jsonify({
+            'status': 'error',
+            'message': 'Failed to get KPI data'
+        }), 500 
+
+@bp.route('/call-logs')
+@login_required
+@operations_required
+def call_logs_page():
+    """Call logs page"""
+    return render_template('operations/call_logs.html')
+
+@bp.route('/api/call-logs', methods=['GET'])
+@login_required
+@operations_required
+def get_call_logs():
+    """Get paginated call logs with filtering"""
+    try:
+        page = int(request.args.get('page', 1))
+        per_page = int(request.args.get('per_page', 50))
+        direction = request.args.get('direction', '')
+        status = request.args.get('status', '')
+        date_range = request.args.get('date_range', '')
+        recording = request.args.get('recording', '')
+        search = request.args.get('search', '')
+        
+        # Base query for ALL operations calls (not just current user)
+        # This will show calls from all operators
+        query = CallLog.query.filter(CallLog.operator_id.isnot(None))
+        
+        # Apply filters
+        if direction:
+            query = query.filter(CallLog.direction == direction)
+        
+        if status:
+            query = query.filter(CallLog.status == status)
+        
+        if recording == 'recorded':
+            query = query.filter(CallLog.recording_url.isnot(None))
+        elif recording == 'not_recorded':
+            query = query.filter(CallLog.recording_url.is_(None))
+        
+        # Date range filtering
+        if date_range:
+            today = datetime.now().date()
+            if date_range == 'today':
+                query = query.filter(func.date(CallLog.created_at) == today)
+            elif date_range == 'yesterday':
+                yesterday = today - timedelta(days=1)
+                query = query.filter(func.date(CallLog.created_at) == yesterday)
+            elif date_range == 'week':
+                week_start = today - timedelta(days=today.weekday())
+                query = query.filter(CallLog.created_at >= week_start)
+            elif date_range == 'month':
+                month_start = today.replace(day=1)
+                query = query.filter(CallLog.created_at >= month_start)
+        
+        # Search filtering
+        if search:
+            search_term = f"%{search}%"
+            query = query.filter(
+                or_(
+                    CallLog.from_number.ilike(search_term),
+                    CallLog.to_number.ilike(search_term)
+                )
+            )
+        
+        # Order by most recent first
+        query = query.order_by(CallLog.created_at.desc())
+        
+        # Paginate
+        pagination = query.paginate(
+            page=page, 
+            per_page=per_page, 
+            error_out=False
+        )
+        
+        # Format call logs
+        calls = []
+        for call in pagination.items:
+            # Determine display number and contact info
+            display_number = call.to_number if call.direction == 'outbound' else call.from_number
+            contact_name = None
+            operator_name = 'Unknown'
+            
+            # Get operator name
+            if call.operator_id:
+                from app.models.operations_user import OperationsUser
+                operator = OperationsUser.query.get(call.operator_id)
+                if operator and operator.user:
+                    operator_name = operator.user.name
+            
+            # Try to find contact info (you can enhance this with actual contact lookup)
+            if hasattr(call, 'contact') and call.contact:
+                contact_name = call.contact.full_name
+            
+            calls.append({
+                'id': call.id,
+                'call_sid': call.call_sid,
+                'direction': call.direction,
+                'from_number': call.from_number,
+                'to_number': call.to_number,
+                'display_number': display_number,
+                'contact_name': contact_name,
+                'operator_name': operator_name,
+                'operator_id': call.operator_id,
+                'status': call.status,
+                'duration': call.duration or 0,
+                'recording_url': call.recording_url,
+                'created_at': call.created_at.isoformat() if call.created_at else None,
+                'start_time': call.start_time.isoformat() if call.start_time else None,
+                'end_time': call.end_time.isoformat() if call.end_time else None
+            })
+        
+        return jsonify({
+            'success': True,
+            'calls': calls,
+            'current_page': pagination.page,
+            'total_pages': pagination.pages,
+            'total_calls': pagination.total,
+            'has_next': pagination.has_next,
+            'has_prev': pagination.has_prev
+        })
+        
+    except Exception as e:
+        current_app.logger.error(f"Error getting call logs: {str(e)}")
+        return jsonify({
+            'success': False,
+            'message': 'Failed to get call logs'
+        }), 500
+
+@bp.route('/api/call-stats', methods=['GET'])
+@login_required
+@operations_required
+def get_call_stats():
+    """Get call statistics for the current user"""
+    try:
+        today = datetime.now().date()
+        
+        # Total calls
+        total_calls = CallLog.query.filter_by(
+            operator_id=current_user.operations_profile.id
+        ).count()
+        
+        # Calls today
+        calls_today = CallLog.query.filter_by(
+            operator_id=current_user.operations_profile.id
+        ).filter(func.date(CallLog.created_at) == today).count()
+        
+        # Completed calls
+        completed_calls = CallLog.query.filter_by(
+            operator_id=current_user.operations_profile.id,
+            status='completed'
+        ).count()
+        
+        # Completion rate
+        completion_rate = round((completed_calls / max(total_calls, 1)) * 100, 1)
+        
+        # Average duration of completed calls
+        completed_calls_with_duration = CallLog.query.filter(
+            CallLog.operator_id == current_user.operations_profile.id,
+            CallLog.status == 'completed',
+            CallLog.duration.isnot(None)
+        ).all()
+        
+        avg_duration = 0
+        total_duration_today = 0
+        if completed_calls_with_duration:
+            total_duration = sum(call.duration for call in completed_calls_with_duration)
+            avg_duration = round(total_duration / len(completed_calls_with_duration))
+            
+            # Calculate today's total duration
+            today_calls = [call for call in completed_calls_with_duration 
+                          if call.created_at and call.created_at.date() == today]
+            if today_calls:
+                total_duration_today = sum(call.duration for call in today_calls)
+        
+        # Recorded calls
+        recorded_calls = CallLog.query.filter_by(
+            operator_id=current_user.operations_profile.id
+        ).filter(CallLog.recording_url.isnot(None)).count()
+        
+        # Recording rate
+        recording_rate = round((recorded_calls / max(total_calls, 1)) * 100, 1)
+        
+        return jsonify({
+            'success': True,
+            'stats': {
+                'total_calls': total_calls,
+                'calls_today': calls_today,
+                'completed_calls': completed_calls,
+                'completion_rate': completion_rate,
+                'avg_duration': avg_duration,
+                'total_duration_today': total_duration_today,
+                'recorded_calls': recorded_calls,
+                'recording_rate': recording_rate
+            }
+        })
+        
+    except Exception as e:
+        current_app.logger.error(f"Error getting call stats: {str(e)}")
+        return jsonify({
+            'success': False,
+            'message': 'Failed to get call statistics'
+        }), 500 
+
+@bp.route('/log-call', methods=['POST'])
+@csrf.exempt
+@login_required
+@operations_required
+def log_call():
+    """Log a call initiated from the browser phone interface"""
+    try:
+        data = request.get_json()
+        to_number = data.get('to_number')
+        call_sid = data.get('call_sid')
+        direction = data.get('direction', 'outbound')
+        
+        if not to_number:
+            return jsonify({
+                'success': False,
+                'message': 'Phone number is required'
+            }), 400
+        
+        # Create call log entry
+        call_log = CallLog(
+            call_sid=call_sid,
+            operator_id=current_user.operations_profile.id,
+            from_number=current_app.config.get('TWILIO_PHONE_NUMBER', 'Browser'),
+            to_number=to_number,
+            direction=direction,
+            status='initiated',
+            created_at=datetime.utcnow()
+        )
+        
+        db.session.add(call_log)
+        db.session.commit()
+        
+        current_app.logger.info(f"Logged browser call: {call_sid} to {to_number} for operator {current_user.operations_profile.id}")
+        
+        return jsonify({
+            'success': True,
+            'call_log_id': call_log.id
+        })
+        
+    except Exception as e:
+        db.session.rollback()
+        current_app.logger.error(f"Error logging call: {str(e)}")
+        return jsonify({
+            'success': False,
+            'message': 'Failed to log call'
+        }), 500 

@@ -1,0 +1,2974 @@
+{
+  "timestamp": "2025-05-26T15:18:28.005534",
+  "event_type": "SevereSpeedingEnded",
+  "event_id": "893d7a14-4db2-4303-afba-f9713376cfeb",
+  "org_id": 3000388,
+  "error_type": "Vehicle creation failed",
+  "error_message": "(psycopg2.errors.UniqueViolation) duplicate key value violates unique constraint \"samsara_vehicles_vehicle_id_key\"\nDETAIL:  Key (vehicle_id)=(281474987971587) already exists.\n\n[SQL: INSERT INTO samsara_vehicles (vehicle_id, name, serial, license_plate, vin, make, model, year, company_id, created_at, updated_at) VALUES (%(vehicle_id)s, %(name)s, %(serial)s, %(license_plate)s, %(vin)s, %(make)s, %(model)s, %(year)s, %(company_id)s, %(created_at)s, %(updated_at)s) RETURNING samsara_vehicles.id]\n[parameters: {'vehicle_id': '281474987971587', 'name': 'Vehicle 281474987971587', 'serial': None, 'license_plate': None, 'vin': None, 'make': None, 'model': None, 'year': None, 'company_id': 4, 'created_at': datetime.datetime(2025, 5, 26, 22, 18, 27, 970570), 'updated_at': datetime.datetime(2025, 5, 26, 22, 18, 27, 970577)}]\n(Background on this error at: https://sqlalche.me/e/20/gkpj)",
+  "vehicle_info": {
+    "id": null,
+    "name": null
+  },
+  "trailer_info": {
+    "id": null,
+    "name": null
+  },
+  "conditions": [],
+  "raw_data": {
+    "eventId": "893d7a14-4db2-4303-afba-f9713376cfeb",
+    "eventTime": "2025-05-26T22:17:11.834Z",
+    "eventType": "SevereSpeedingEnded",
+    "orgId": 3000388,
+    "webhookId": "7308935500489801",
+    "data": {
+      "data": {
+        "tripStartTime": "2025-05-26T20:59:24.295Z",
+        "startTime": "2025-05-26T22:16:01.705Z",
+        "endTime": "2025-05-26T22:17:11.834Z",
+        "vehicle": {
+          "id": "281474987971587"
+        }
+      }
+    }
+  }
+}
+
+{
+  "timestamp": "2025-05-26T15:40:09.143870",
+  "event_type": "SevereSpeedingStarted",
+  "event_id": "be7de649-0c96-4a25-8711-25488dcaa142",
+  "org_id": 3000388,
+  "error_type": "Vehicle creation failed",
+  "error_message": "(psycopg2.errors.UniqueViolation) duplicate key value violates unique constraint \"samsara_vehicles_vehicle_id_key\"\nDETAIL:  Key (vehicle_id)=(281474978767088) already exists.\n\n[SQL: INSERT INTO samsara_vehicles (vehicle_id, name, serial, license_plate, vin, make, model, year, company_id, created_at, updated_at) VALUES (%(vehicle_id)s, %(name)s, %(serial)s, %(license_plate)s, %(vin)s, %(make)s, %(model)s, %(year)s, %(company_id)s, %(created_at)s, %(updated_at)s) RETURNING samsara_vehicles.id]\n[parameters: {'vehicle_id': '281474978767088', 'name': 'Vehicle 281474978767088', 'serial': None, 'license_plate': None, 'vin': None, 'make': None, 'model': None, 'year': None, 'company_id': 4, 'created_at': datetime.datetime(2025, 5, 26, 22, 40, 9, 134826), 'updated_at': datetime.datetime(2025, 5, 26, 22, 40, 9, 134834)}]\n(Background on this error at: https://sqlalche.me/e/20/gkpj)",
+  "vehicle_info": {
+    "id": null,
+    "name": null
+  },
+  "trailer_info": {
+    "id": null,
+    "name": null
+  },
+  "conditions": [],
+  "raw_data": {
+    "eventId": "be7de649-0c96-4a25-8711-25488dcaa142",
+    "eventTime": "2025-05-26T22:38:26.009Z",
+    "eventType": "SevereSpeedingStarted",
+    "orgId": 3000388,
+    "webhookId": "7308935500489801",
+    "data": {
+      "data": {
+        "tripStartTime": "2025-05-26T22:26:12.261Z",
+        "startTime": "2025-05-26T22:38:26.009Z",
+        "vehicle": {
+          "id": "281474978767088"
+        }
+      }
+    }
+  }
+}
+
+{
+  "timestamp": "2025-05-26T15:50:10.398854",
+  "event_type": "AlertIncident",
+  "event_id": "a452c564-736f-4a47-a5c1-4591cf2bba00",
+  "org_id": 3000388,
+  "error_type": "Vehicle/Trailer ID extraction failed",
+  "error_message": "No vehicle/trailer ID found in payload",
+  "vehicle_info": {
+    "id": null,
+    "name": null
+  },
+  "trailer_info": {
+    "id": null,
+    "name": null
+  },
+  "conditions": [
+    {
+      "triggerId": 1018,
+      "description": "Driver HOS Violation",
+      "details": {
+        "hosViolation": {
+          "driver": {
+            "id": "7753010",
+            "name": "Frank Miller",
+            "tags": [
+              {
+                "id": "3155282",
+                "name": "Reefer",
+                "parentTagId": "3265239"
+              },
+              {
+                "id": "3155283",
+                "name": "Multi-Temp",
+                "parentTagId": "3265239"
+              },
+              {
+                "id": "3155284",
+                "name": "Dry Van",
+                "parentTagId": "3265239"
+              },
+              {
+                "id": "3155609",
+                "name": "Day Cab",
+                "parentTagId": "3265240"
+              },
+              {
+                "id": "3155610",
+                "name": "Sleeper",
+                "parentTagId": "3265240"
+              },
+              {
+                "id": "3155611",
+                "name": "Tanker",
+                "parentTagId": "3265239"
+              },
+              {
+                "id": "3265251",
+                "name": "Napa/Central Valley",
+                "parentTagId": "3265236"
+              }
+            ]
+          }
+        }
+      }
+    }
+  ],
+  "raw_data": {
+    "eventId": "a452c564-736f-4a47-a5c1-4591cf2bba00",
+    "eventTime": "2025-05-26T22:49:59.193Z",
+    "eventType": "AlertIncident",
+    "orgId": 3000388,
+    "webhookId": "7308935500489801",
+    "data": {
+      "configurationId": "4b527987-53ad-460c-af0d-4b8f73a7fb61",
+      "updatedAtTime": "2025-05-26T22:50:10Z",
+      "happenedAtTime": "2025-05-26T22:49:59Z",
+      "isResolved": false,
+      "incidentUrl": "https://cloud.samsara.com/o/3000388/fleet/workflows/incidents/4b527987-53ad-460c-af0d-4b8f73a7fb61/5/7753010/1748299799193",
+      "conditions": [
+        {
+          "triggerId": 1018,
+          "description": "Driver HOS Violation",
+          "details": {
+            "hosViolation": {
+              "driver": {
+                "id": "7753010",
+                "name": "Frank Miller",
+                "tags": [
+                  {
+                    "id": "3155282",
+                    "name": "Reefer",
+                    "parentTagId": "3265239"
+                  },
+                  {
+                    "id": "3155283",
+                    "name": "Multi-Temp",
+                    "parentTagId": "3265239"
+                  },
+                  {
+                    "id": "3155284",
+                    "name": "Dry Van",
+                    "parentTagId": "3265239"
+                  },
+                  {
+                    "id": "3155609",
+                    "name": "Day Cab",
+                    "parentTagId": "3265240"
+                  },
+                  {
+                    "id": "3155610",
+                    "name": "Sleeper",
+                    "parentTagId": "3265240"
+                  },
+                  {
+                    "id": "3155611",
+                    "name": "Tanker",
+                    "parentTagId": "3265239"
+                  },
+                  {
+                    "id": "3265251",
+                    "name": "Napa/Central Valley",
+                    "parentTagId": "3265236"
+                  }
+                ]
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}
+
+{
+  "timestamp": "2025-05-26T15:50:12.632115",
+  "event_type": "AlertIncident",
+  "event_id": "a452c564-736f-4a47-a5c1-4591cf2bba00",
+  "org_id": 3000388,
+  "error_type": "Vehicle/Trailer ID extraction failed",
+  "error_message": "No vehicle/trailer ID found in payload",
+  "vehicle_info": {
+    "id": null,
+    "name": null
+  },
+  "trailer_info": {
+    "id": null,
+    "name": null
+  },
+  "conditions": [
+    {
+      "triggerId": 1018,
+      "description": "Driver HOS Violation",
+      "details": {
+        "hosViolation": {
+          "driver": {
+            "id": "7753010",
+            "name": "Frank Miller",
+            "tags": [
+              {
+                "id": "3155282",
+                "name": "Reefer",
+                "parentTagId": "3265239"
+              },
+              {
+                "id": "3155283",
+                "name": "Multi-Temp",
+                "parentTagId": "3265239"
+              },
+              {
+                "id": "3155284",
+                "name": "Dry Van",
+                "parentTagId": "3265239"
+              },
+              {
+                "id": "3155609",
+                "name": "Day Cab",
+                "parentTagId": "3265240"
+              },
+              {
+                "id": "3155610",
+                "name": "Sleeper",
+                "parentTagId": "3265240"
+              },
+              {
+                "id": "3155611",
+                "name": "Tanker",
+                "parentTagId": "3265239"
+              },
+              {
+                "id": "3265251",
+                "name": "Napa/Central Valley",
+                "parentTagId": "3265236"
+              }
+            ]
+          }
+        }
+      }
+    }
+  ],
+  "raw_data": {
+    "eventId": "a452c564-736f-4a47-a5c1-4591cf2bba00",
+    "eventTime": "2025-05-26T22:49:59.193Z",
+    "eventType": "AlertIncident",
+    "orgId": 3000388,
+    "webhookId": "7308935500489801",
+    "data": {
+      "configurationId": "4b527987-53ad-460c-af0d-4b8f73a7fb61",
+      "updatedAtTime": "2025-05-26T22:50:10Z",
+      "happenedAtTime": "2025-05-26T22:49:59Z",
+      "isResolved": false,
+      "incidentUrl": "https://cloud.samsara.com/o/3000388/fleet/workflows/incidents/4b527987-53ad-460c-af0d-4b8f73a7fb61/5/7753010/1748299799193",
+      "conditions": [
+        {
+          "triggerId": 1018,
+          "description": "Driver HOS Violation",
+          "details": {
+            "hosViolation": {
+              "driver": {
+                "id": "7753010",
+                "name": "Frank Miller",
+                "tags": [
+                  {
+                    "id": "3155282",
+                    "name": "Reefer",
+                    "parentTagId": "3265239"
+                  },
+                  {
+                    "id": "3155283",
+                    "name": "Multi-Temp",
+                    "parentTagId": "3265239"
+                  },
+                  {
+                    "id": "3155284",
+                    "name": "Dry Van",
+                    "parentTagId": "3265239"
+                  },
+                  {
+                    "id": "3155609",
+                    "name": "Day Cab",
+                    "parentTagId": "3265240"
+                  },
+                  {
+                    "id": "3155610",
+                    "name": "Sleeper",
+                    "parentTagId": "3265240"
+                  },
+                  {
+                    "id": "3155611",
+                    "name": "Tanker",
+                    "parentTagId": "3265239"
+                  },
+                  {
+                    "id": "3265251",
+                    "name": "Napa/Central Valley",
+                    "parentTagId": "3265236"
+                  }
+                ]
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}
+
+{
+  "timestamp": "2025-05-26T15:50:18.878263",
+  "event_type": "AlertIncident",
+  "event_id": "a452c564-736f-4a47-a5c1-4591cf2bba00",
+  "org_id": 3000388,
+  "error_type": "Vehicle/Trailer ID extraction failed",
+  "error_message": "No vehicle/trailer ID found in payload",
+  "vehicle_info": {
+    "id": null,
+    "name": null
+  },
+  "trailer_info": {
+    "id": null,
+    "name": null
+  },
+  "conditions": [
+    {
+      "triggerId": 1018,
+      "description": "Driver HOS Violation",
+      "details": {
+        "hosViolation": {
+          "driver": {
+            "id": "7753010",
+            "name": "Frank Miller",
+            "tags": [
+              {
+                "id": "3155282",
+                "name": "Reefer",
+                "parentTagId": "3265239"
+              },
+              {
+                "id": "3155283",
+                "name": "Multi-Temp",
+                "parentTagId": "3265239"
+              },
+              {
+                "id": "3155284",
+                "name": "Dry Van",
+                "parentTagId": "3265239"
+              },
+              {
+                "id": "3155609",
+                "name": "Day Cab",
+                "parentTagId": "3265240"
+              },
+              {
+                "id": "3155610",
+                "name": "Sleeper",
+                "parentTagId": "3265240"
+              },
+              {
+                "id": "3155611",
+                "name": "Tanker",
+                "parentTagId": "3265239"
+              },
+              {
+                "id": "3265251",
+                "name": "Napa/Central Valley",
+                "parentTagId": "3265236"
+              }
+            ]
+          }
+        }
+      }
+    }
+  ],
+  "raw_data": {
+    "eventId": "a452c564-736f-4a47-a5c1-4591cf2bba00",
+    "eventTime": "2025-05-26T22:49:59.193Z",
+    "eventType": "AlertIncident",
+    "orgId": 3000388,
+    "webhookId": "7308935500489801",
+    "data": {
+      "configurationId": "4b527987-53ad-460c-af0d-4b8f73a7fb61",
+      "updatedAtTime": "2025-05-26T22:50:10Z",
+      "happenedAtTime": "2025-05-26T22:49:59Z",
+      "isResolved": false,
+      "incidentUrl": "https://cloud.samsara.com/o/3000388/fleet/workflows/incidents/4b527987-53ad-460c-af0d-4b8f73a7fb61/5/7753010/1748299799193",
+      "conditions": [
+        {
+          "triggerId": 1018,
+          "description": "Driver HOS Violation",
+          "details": {
+            "hosViolation": {
+              "driver": {
+                "id": "7753010",
+                "name": "Frank Miller",
+                "tags": [
+                  {
+                    "id": "3155282",
+                    "name": "Reefer",
+                    "parentTagId": "3265239"
+                  },
+                  {
+                    "id": "3155283",
+                    "name": "Multi-Temp",
+                    "parentTagId": "3265239"
+                  },
+                  {
+                    "id": "3155284",
+                    "name": "Dry Van",
+                    "parentTagId": "3265239"
+                  },
+                  {
+                    "id": "3155609",
+                    "name": "Day Cab",
+                    "parentTagId": "3265240"
+                  },
+                  {
+                    "id": "3155610",
+                    "name": "Sleeper",
+                    "parentTagId": "3265240"
+                  },
+                  {
+                    "id": "3155611",
+                    "name": "Tanker",
+                    "parentTagId": "3265239"
+                  },
+                  {
+                    "id": "3265251",
+                    "name": "Napa/Central Valley",
+                    "parentTagId": "3265236"
+                  }
+                ]
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}
+
+{
+  "timestamp": "2025-05-26T15:50:27.948555",
+  "event_type": "AlertIncident",
+  "event_id": "37a07bee-83f7-4d6e-8e80-055c60e0811e",
+  "org_id": 3000388,
+  "error_type": "Vehicle/Trailer ID extraction failed",
+  "error_message": "No vehicle/trailer ID found in payload",
+  "vehicle_info": {
+    "id": null,
+    "name": null
+  },
+  "trailer_info": {
+    "id": null,
+    "name": null
+  },
+  "conditions": [
+    {
+      "triggerId": 1018,
+      "description": "Driver HOS Violation",
+      "details": {
+        "hosViolation": {
+          "driver": {
+            "id": "7752964",
+            "name": "Tammy Jungert",
+            "tags": [
+              {
+                "id": "3155282",
+                "name": "Reefer",
+                "parentTagId": "3265239"
+              },
+              {
+                "id": "3155283",
+                "name": "Multi-Temp",
+                "parentTagId": "3265239"
+              },
+              {
+                "id": "3155284",
+                "name": "Dry Van",
+                "parentTagId": "3265239"
+              },
+              {
+                "id": "3155609",
+                "name": "Day Cab",
+                "parentTagId": "3265240"
+              },
+              {
+                "id": "3155610",
+                "name": "Sleeper",
+                "parentTagId": "3265240"
+              },
+              {
+                "id": "3155611",
+                "name": "Tanker",
+                "parentTagId": "3265239"
+              },
+              {
+                "id": "3265248",
+                "name": "Oregon",
+                "parentTagId": "3265236"
+              }
+            ]
+          }
+        }
+      }
+    }
+  ],
+  "raw_data": {
+    "eventId": "37a07bee-83f7-4d6e-8e80-055c60e0811e",
+    "eventTime": "2025-05-26T22:50:10.410Z",
+    "eventType": "AlertIncident",
+    "orgId": 3000388,
+    "webhookId": "7308935500489801",
+    "data": {
+      "configurationId": "4b527987-53ad-460c-af0d-4b8f73a7fb61",
+      "updatedAtTime": "2025-05-26T22:50:27Z",
+      "happenedAtTime": "2025-05-26T22:50:10Z",
+      "isResolved": false,
+      "incidentUrl": "https://cloud.samsara.com/o/3000388/fleet/workflows/incidents/4b527987-53ad-460c-af0d-4b8f73a7fb61/5/7752964/1748299810410",
+      "conditions": [
+        {
+          "triggerId": 1018,
+          "description": "Driver HOS Violation",
+          "details": {
+            "hosViolation": {
+              "driver": {
+                "id": "7752964",
+                "name": "Tammy Jungert",
+                "tags": [
+                  {
+                    "id": "3155282",
+                    "name": "Reefer",
+                    "parentTagId": "3265239"
+                  },
+                  {
+                    "id": "3155283",
+                    "name": "Multi-Temp",
+                    "parentTagId": "3265239"
+                  },
+                  {
+                    "id": "3155284",
+                    "name": "Dry Van",
+                    "parentTagId": "3265239"
+                  },
+                  {
+                    "id": "3155609",
+                    "name": "Day Cab",
+                    "parentTagId": "3265240"
+                  },
+                  {
+                    "id": "3155610",
+                    "name": "Sleeper",
+                    "parentTagId": "3265240"
+                  },
+                  {
+                    "id": "3155611",
+                    "name": "Tanker",
+                    "parentTagId": "3265239"
+                  },
+                  {
+                    "id": "3265248",
+                    "name": "Oregon",
+                    "parentTagId": "3265236"
+                  }
+                ]
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}
+
+{
+  "timestamp": "2025-05-26T15:50:30.309462",
+  "event_type": "AlertIncident",
+  "event_id": "37a07bee-83f7-4d6e-8e80-055c60e0811e",
+  "org_id": 3000388,
+  "error_type": "Vehicle/Trailer ID extraction failed",
+  "error_message": "No vehicle/trailer ID found in payload",
+  "vehicle_info": {
+    "id": null,
+    "name": null
+  },
+  "trailer_info": {
+    "id": null,
+    "name": null
+  },
+  "conditions": [
+    {
+      "triggerId": 1018,
+      "description": "Driver HOS Violation",
+      "details": {
+        "hosViolation": {
+          "driver": {
+            "id": "7752964",
+            "name": "Tammy Jungert",
+            "tags": [
+              {
+                "id": "3155282",
+                "name": "Reefer",
+                "parentTagId": "3265239"
+              },
+              {
+                "id": "3155283",
+                "name": "Multi-Temp",
+                "parentTagId": "3265239"
+              },
+              {
+                "id": "3155284",
+                "name": "Dry Van",
+                "parentTagId": "3265239"
+              },
+              {
+                "id": "3155609",
+                "name": "Day Cab",
+                "parentTagId": "3265240"
+              },
+              {
+                "id": "3155610",
+                "name": "Sleeper",
+                "parentTagId": "3265240"
+              },
+              {
+                "id": "3155611",
+                "name": "Tanker",
+                "parentTagId": "3265239"
+              },
+              {
+                "id": "3265248",
+                "name": "Oregon",
+                "parentTagId": "3265236"
+              }
+            ]
+          }
+        }
+      }
+    }
+  ],
+  "raw_data": {
+    "eventId": "37a07bee-83f7-4d6e-8e80-055c60e0811e",
+    "eventTime": "2025-05-26T22:50:10.410Z",
+    "eventType": "AlertIncident",
+    "orgId": 3000388,
+    "webhookId": "7308935500489801",
+    "data": {
+      "configurationId": "4b527987-53ad-460c-af0d-4b8f73a7fb61",
+      "updatedAtTime": "2025-05-26T22:50:27Z",
+      "happenedAtTime": "2025-05-26T22:50:10Z",
+      "isResolved": false,
+      "incidentUrl": "https://cloud.samsara.com/o/3000388/fleet/workflows/incidents/4b527987-53ad-460c-af0d-4b8f73a7fb61/5/7752964/1748299810410",
+      "conditions": [
+        {
+          "triggerId": 1018,
+          "description": "Driver HOS Violation",
+          "details": {
+            "hosViolation": {
+              "driver": {
+                "id": "7752964",
+                "name": "Tammy Jungert",
+                "tags": [
+                  {
+                    "id": "3155282",
+                    "name": "Reefer",
+                    "parentTagId": "3265239"
+                  },
+                  {
+                    "id": "3155283",
+                    "name": "Multi-Temp",
+                    "parentTagId": "3265239"
+                  },
+                  {
+                    "id": "3155284",
+                    "name": "Dry Van",
+                    "parentTagId": "3265239"
+                  },
+                  {
+                    "id": "3155609",
+                    "name": "Day Cab",
+                    "parentTagId": "3265240"
+                  },
+                  {
+                    "id": "3155610",
+                    "name": "Sleeper",
+                    "parentTagId": "3265240"
+                  },
+                  {
+                    "id": "3155611",
+                    "name": "Tanker",
+                    "parentTagId": "3265239"
+                  },
+                  {
+                    "id": "3265248",
+                    "name": "Oregon",
+                    "parentTagId": "3265236"
+                  }
+                ]
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}
+
+{
+  "timestamp": "2025-05-26T15:50:36.616121",
+  "event_type": "AlertIncident",
+  "event_id": "37a07bee-83f7-4d6e-8e80-055c60e0811e",
+  "org_id": 3000388,
+  "error_type": "Vehicle/Trailer ID extraction failed",
+  "error_message": "No vehicle/trailer ID found in payload",
+  "vehicle_info": {
+    "id": null,
+    "name": null
+  },
+  "trailer_info": {
+    "id": null,
+    "name": null
+  },
+  "conditions": [
+    {
+      "triggerId": 1018,
+      "description": "Driver HOS Violation",
+      "details": {
+        "hosViolation": {
+          "driver": {
+            "id": "7752964",
+            "name": "Tammy Jungert",
+            "tags": [
+              {
+                "id": "3155282",
+                "name": "Reefer",
+                "parentTagId": "3265239"
+              },
+              {
+                "id": "3155283",
+                "name": "Multi-Temp",
+                "parentTagId": "3265239"
+              },
+              {
+                "id": "3155284",
+                "name": "Dry Van",
+                "parentTagId": "3265239"
+              },
+              {
+                "id": "3155609",
+                "name": "Day Cab",
+                "parentTagId": "3265240"
+              },
+              {
+                "id": "3155610",
+                "name": "Sleeper",
+                "parentTagId": "3265240"
+              },
+              {
+                "id": "3155611",
+                "name": "Tanker",
+                "parentTagId": "3265239"
+              },
+              {
+                "id": "3265248",
+                "name": "Oregon",
+                "parentTagId": "3265236"
+              }
+            ]
+          }
+        }
+      }
+    }
+  ],
+  "raw_data": {
+    "eventId": "37a07bee-83f7-4d6e-8e80-055c60e0811e",
+    "eventTime": "2025-05-26T22:50:10.410Z",
+    "eventType": "AlertIncident",
+    "orgId": 3000388,
+    "webhookId": "7308935500489801",
+    "data": {
+      "configurationId": "4b527987-53ad-460c-af0d-4b8f73a7fb61",
+      "updatedAtTime": "2025-05-26T22:50:27Z",
+      "happenedAtTime": "2025-05-26T22:50:10Z",
+      "isResolved": false,
+      "incidentUrl": "https://cloud.samsara.com/o/3000388/fleet/workflows/incidents/4b527987-53ad-460c-af0d-4b8f73a7fb61/5/7752964/1748299810410",
+      "conditions": [
+        {
+          "triggerId": 1018,
+          "description": "Driver HOS Violation",
+          "details": {
+            "hosViolation": {
+              "driver": {
+                "id": "7752964",
+                "name": "Tammy Jungert",
+                "tags": [
+                  {
+                    "id": "3155282",
+                    "name": "Reefer",
+                    "parentTagId": "3265239"
+                  },
+                  {
+                    "id": "3155283",
+                    "name": "Multi-Temp",
+                    "parentTagId": "3265239"
+                  },
+                  {
+                    "id": "3155284",
+                    "name": "Dry Van",
+                    "parentTagId": "3265239"
+                  },
+                  {
+                    "id": "3155609",
+                    "name": "Day Cab",
+                    "parentTagId": "3265240"
+                  },
+                  {
+                    "id": "3155610",
+                    "name": "Sleeper",
+                    "parentTagId": "3265240"
+                  },
+                  {
+                    "id": "3155611",
+                    "name": "Tanker",
+                    "parentTagId": "3265239"
+                  },
+                  {
+                    "id": "3265248",
+                    "name": "Oregon",
+                    "parentTagId": "3265236"
+                  }
+                ]
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}
+
+{
+  "timestamp": "2025-05-26T15:50:37.112533",
+  "event_type": "AlertIncident",
+  "event_id": "a452c564-736f-4a47-a5c1-4591cf2bba00",
+  "org_id": 3000388,
+  "error_type": "Vehicle/Trailer ID extraction failed",
+  "error_message": "No vehicle/trailer ID found in payload",
+  "vehicle_info": {
+    "id": null,
+    "name": null
+  },
+  "trailer_info": {
+    "id": null,
+    "name": null
+  },
+  "conditions": [
+    {
+      "triggerId": 1018,
+      "description": "Driver HOS Violation",
+      "details": {
+        "hosViolation": {
+          "driver": {
+            "id": "7753010",
+            "name": "Frank Miller",
+            "tags": [
+              {
+                "id": "3155282",
+                "name": "Reefer",
+                "parentTagId": "3265239"
+              },
+              {
+                "id": "3155283",
+                "name": "Multi-Temp",
+                "parentTagId": "3265239"
+              },
+              {
+                "id": "3155284",
+                "name": "Dry Van",
+                "parentTagId": "3265239"
+              },
+              {
+                "id": "3155609",
+                "name": "Day Cab",
+                "parentTagId": "3265240"
+              },
+              {
+                "id": "3155610",
+                "name": "Sleeper",
+                "parentTagId": "3265240"
+              },
+              {
+                "id": "3155611",
+                "name": "Tanker",
+                "parentTagId": "3265239"
+              },
+              {
+                "id": "3265251",
+                "name": "Napa/Central Valley",
+                "parentTagId": "3265236"
+              }
+            ]
+          }
+        }
+      }
+    }
+  ],
+  "raw_data": {
+    "eventId": "a452c564-736f-4a47-a5c1-4591cf2bba00",
+    "eventTime": "2025-05-26T22:49:59.193Z",
+    "eventType": "AlertIncident",
+    "orgId": 3000388,
+    "webhookId": "7308935500489801",
+    "data": {
+      "configurationId": "4b527987-53ad-460c-af0d-4b8f73a7fb61",
+      "updatedAtTime": "2025-05-26T22:50:10Z",
+      "happenedAtTime": "2025-05-26T22:49:59Z",
+      "isResolved": false,
+      "incidentUrl": "https://cloud.samsara.com/o/3000388/fleet/workflows/incidents/4b527987-53ad-460c-af0d-4b8f73a7fb61/5/7753010/1748299799193",
+      "conditions": [
+        {
+          "triggerId": 1018,
+          "description": "Driver HOS Violation",
+          "details": {
+            "hosViolation": {
+              "driver": {
+                "id": "7753010",
+                "name": "Frank Miller",
+                "tags": [
+                  {
+                    "id": "3155282",
+                    "name": "Reefer",
+                    "parentTagId": "3265239"
+                  },
+                  {
+                    "id": "3155283",
+                    "name": "Multi-Temp",
+                    "parentTagId": "3265239"
+                  },
+                  {
+                    "id": "3155284",
+                    "name": "Dry Van",
+                    "parentTagId": "3265239"
+                  },
+                  {
+                    "id": "3155609",
+                    "name": "Day Cab",
+                    "parentTagId": "3265240"
+                  },
+                  {
+                    "id": "3155610",
+                    "name": "Sleeper",
+                    "parentTagId": "3265240"
+                  },
+                  {
+                    "id": "3155611",
+                    "name": "Tanker",
+                    "parentTagId": "3265239"
+                  },
+                  {
+                    "id": "3265251",
+                    "name": "Napa/Central Valley",
+                    "parentTagId": "3265236"
+                  }
+                ]
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}
+
+{
+  "timestamp": "2025-05-26T15:50:54.857520",
+  "event_type": "AlertIncident",
+  "event_id": "37a07bee-83f7-4d6e-8e80-055c60e0811e",
+  "org_id": 3000388,
+  "error_type": "Vehicle/Trailer ID extraction failed",
+  "error_message": "No vehicle/trailer ID found in payload",
+  "vehicle_info": {
+    "id": null,
+    "name": null
+  },
+  "trailer_info": {
+    "id": null,
+    "name": null
+  },
+  "conditions": [
+    {
+      "triggerId": 1018,
+      "description": "Driver HOS Violation",
+      "details": {
+        "hosViolation": {
+          "driver": {
+            "id": "7752964",
+            "name": "Tammy Jungert",
+            "tags": [
+              {
+                "id": "3155282",
+                "name": "Reefer",
+                "parentTagId": "3265239"
+              },
+              {
+                "id": "3155283",
+                "name": "Multi-Temp",
+                "parentTagId": "3265239"
+              },
+              {
+                "id": "3155284",
+                "name": "Dry Van",
+                "parentTagId": "3265239"
+              },
+              {
+                "id": "3155609",
+                "name": "Day Cab",
+                "parentTagId": "3265240"
+              },
+              {
+                "id": "3155610",
+                "name": "Sleeper",
+                "parentTagId": "3265240"
+              },
+              {
+                "id": "3155611",
+                "name": "Tanker",
+                "parentTagId": "3265239"
+              },
+              {
+                "id": "3265248",
+                "name": "Oregon",
+                "parentTagId": "3265236"
+              }
+            ]
+          }
+        }
+      }
+    }
+  ],
+  "raw_data": {
+    "eventId": "37a07bee-83f7-4d6e-8e80-055c60e0811e",
+    "eventTime": "2025-05-26T22:50:10.410Z",
+    "eventType": "AlertIncident",
+    "orgId": 3000388,
+    "webhookId": "7308935500489801",
+    "data": {
+      "configurationId": "4b527987-53ad-460c-af0d-4b8f73a7fb61",
+      "updatedAtTime": "2025-05-26T22:50:27Z",
+      "happenedAtTime": "2025-05-26T22:50:10Z",
+      "isResolved": false,
+      "incidentUrl": "https://cloud.samsara.com/o/3000388/fleet/workflows/incidents/4b527987-53ad-460c-af0d-4b8f73a7fb61/5/7752964/1748299810410",
+      "conditions": [
+        {
+          "triggerId": 1018,
+          "description": "Driver HOS Violation",
+          "details": {
+            "hosViolation": {
+              "driver": {
+                "id": "7752964",
+                "name": "Tammy Jungert",
+                "tags": [
+                  {
+                    "id": "3155282",
+                    "name": "Reefer",
+                    "parentTagId": "3265239"
+                  },
+                  {
+                    "id": "3155283",
+                    "name": "Multi-Temp",
+                    "parentTagId": "3265239"
+                  },
+                  {
+                    "id": "3155284",
+                    "name": "Dry Van",
+                    "parentTagId": "3265239"
+                  },
+                  {
+                    "id": "3155609",
+                    "name": "Day Cab",
+                    "parentTagId": "3265240"
+                  },
+                  {
+                    "id": "3155610",
+                    "name": "Sleeper",
+                    "parentTagId": "3265240"
+                  },
+                  {
+                    "id": "3155611",
+                    "name": "Tanker",
+                    "parentTagId": "3265239"
+                  },
+                  {
+                    "id": "3265248",
+                    "name": "Oregon",
+                    "parentTagId": "3265236"
+                  }
+                ]
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}
+
+{
+  "timestamp": "2025-05-26T15:51:31.354815",
+  "event_type": "AlertIncident",
+  "event_id": "a452c564-736f-4a47-a5c1-4591cf2bba00",
+  "org_id": 3000388,
+  "error_type": "Vehicle/Trailer ID extraction failed",
+  "error_message": "No vehicle/trailer ID found in payload",
+  "vehicle_info": {
+    "id": null,
+    "name": null
+  },
+  "trailer_info": {
+    "id": null,
+    "name": null
+  },
+  "conditions": [
+    {
+      "triggerId": 1018,
+      "description": "Driver HOS Violation",
+      "details": {
+        "hosViolation": {
+          "driver": {
+            "id": "7753010",
+            "name": "Frank Miller",
+            "tags": [
+              {
+                "id": "3155282",
+                "name": "Reefer",
+                "parentTagId": "3265239"
+              },
+              {
+                "id": "3155283",
+                "name": "Multi-Temp",
+                "parentTagId": "3265239"
+              },
+              {
+                "id": "3155284",
+                "name": "Dry Van",
+                "parentTagId": "3265239"
+              },
+              {
+                "id": "3155609",
+                "name": "Day Cab",
+                "parentTagId": "3265240"
+              },
+              {
+                "id": "3155610",
+                "name": "Sleeper",
+                "parentTagId": "3265240"
+              },
+              {
+                "id": "3155611",
+                "name": "Tanker",
+                "parentTagId": "3265239"
+              },
+              {
+                "id": "3265251",
+                "name": "Napa/Central Valley",
+                "parentTagId": "3265236"
+              }
+            ]
+          }
+        }
+      }
+    }
+  ],
+  "raw_data": {
+    "eventId": "a452c564-736f-4a47-a5c1-4591cf2bba00",
+    "eventTime": "2025-05-26T22:49:59.193Z",
+    "eventType": "AlertIncident",
+    "orgId": 3000388,
+    "webhookId": "7308935500489801",
+    "data": {
+      "configurationId": "4b527987-53ad-460c-af0d-4b8f73a7fb61",
+      "updatedAtTime": "2025-05-26T22:50:10Z",
+      "happenedAtTime": "2025-05-26T22:49:59Z",
+      "isResolved": false,
+      "incidentUrl": "https://cloud.samsara.com/o/3000388/fleet/workflows/incidents/4b527987-53ad-460c-af0d-4b8f73a7fb61/5/7753010/1748299799193",
+      "conditions": [
+        {
+          "triggerId": 1018,
+          "description": "Driver HOS Violation",
+          "details": {
+            "hosViolation": {
+              "driver": {
+                "id": "7753010",
+                "name": "Frank Miller",
+                "tags": [
+                  {
+                    "id": "3155282",
+                    "name": "Reefer",
+                    "parentTagId": "3265239"
+                  },
+                  {
+                    "id": "3155283",
+                    "name": "Multi-Temp",
+                    "parentTagId": "3265239"
+                  },
+                  {
+                    "id": "3155284",
+                    "name": "Dry Van",
+                    "parentTagId": "3265239"
+                  },
+                  {
+                    "id": "3155609",
+                    "name": "Day Cab",
+                    "parentTagId": "3265240"
+                  },
+                  {
+                    "id": "3155610",
+                    "name": "Sleeper",
+                    "parentTagId": "3265240"
+                  },
+                  {
+                    "id": "3155611",
+                    "name": "Tanker",
+                    "parentTagId": "3265239"
+                  },
+                  {
+                    "id": "3265251",
+                    "name": "Napa/Central Valley",
+                    "parentTagId": "3265236"
+                  }
+                ]
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}
+
+{
+  "timestamp": "2025-05-26T15:51:49.109288",
+  "event_type": "AlertIncident",
+  "event_id": "37a07bee-83f7-4d6e-8e80-055c60e0811e",
+  "org_id": 3000388,
+  "error_type": "Vehicle/Trailer ID extraction failed",
+  "error_message": "No vehicle/trailer ID found in payload",
+  "vehicle_info": {
+    "id": null,
+    "name": null
+  },
+  "trailer_info": {
+    "id": null,
+    "name": null
+  },
+  "conditions": [
+    {
+      "triggerId": 1018,
+      "description": "Driver HOS Violation",
+      "details": {
+        "hosViolation": {
+          "driver": {
+            "id": "7752964",
+            "name": "Tammy Jungert",
+            "tags": [
+              {
+                "id": "3155282",
+                "name": "Reefer",
+                "parentTagId": "3265239"
+              },
+              {
+                "id": "3155283",
+                "name": "Multi-Temp",
+                "parentTagId": "3265239"
+              },
+              {
+                "id": "3155284",
+                "name": "Dry Van",
+                "parentTagId": "3265239"
+              },
+              {
+                "id": "3155609",
+                "name": "Day Cab",
+                "parentTagId": "3265240"
+              },
+              {
+                "id": "3155610",
+                "name": "Sleeper",
+                "parentTagId": "3265240"
+              },
+              {
+                "id": "3155611",
+                "name": "Tanker",
+                "parentTagId": "3265239"
+              },
+              {
+                "id": "3265248",
+                "name": "Oregon",
+                "parentTagId": "3265236"
+              }
+            ]
+          }
+        }
+      }
+    }
+  ],
+  "raw_data": {
+    "eventId": "37a07bee-83f7-4d6e-8e80-055c60e0811e",
+    "eventTime": "2025-05-26T22:50:10.410Z",
+    "eventType": "AlertIncident",
+    "orgId": 3000388,
+    "webhookId": "7308935500489801",
+    "data": {
+      "configurationId": "4b527987-53ad-460c-af0d-4b8f73a7fb61",
+      "updatedAtTime": "2025-05-26T22:50:27Z",
+      "happenedAtTime": "2025-05-26T22:50:10Z",
+      "isResolved": false,
+      "incidentUrl": "https://cloud.samsara.com/o/3000388/fleet/workflows/incidents/4b527987-53ad-460c-af0d-4b8f73a7fb61/5/7752964/1748299810410",
+      "conditions": [
+        {
+          "triggerId": 1018,
+          "description": "Driver HOS Violation",
+          "details": {
+            "hosViolation": {
+              "driver": {
+                "id": "7752964",
+                "name": "Tammy Jungert",
+                "tags": [
+                  {
+                    "id": "3155282",
+                    "name": "Reefer",
+                    "parentTagId": "3265239"
+                  },
+                  {
+                    "id": "3155283",
+                    "name": "Multi-Temp",
+                    "parentTagId": "3265239"
+                  },
+                  {
+                    "id": "3155284",
+                    "name": "Dry Van",
+                    "parentTagId": "3265239"
+                  },
+                  {
+                    "id": "3155609",
+                    "name": "Day Cab",
+                    "parentTagId": "3265240"
+                  },
+                  {
+                    "id": "3155610",
+                    "name": "Sleeper",
+                    "parentTagId": "3265240"
+                  },
+                  {
+                    "id": "3155611",
+                    "name": "Tanker",
+                    "parentTagId": "3265239"
+                  },
+                  {
+                    "id": "3265248",
+                    "name": "Oregon",
+                    "parentTagId": "3265236"
+                  }
+                ]
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}
+
+{
+  "timestamp": "2025-05-26T16:07:14.330728",
+  "event_type": "AlertIncident",
+  "event_id": "03cc26f4-6bcd-4316-bafc-258bc72d5e7b",
+  "org_id": 3000388,
+  "error_type": "Vehicle/Trailer ID extraction failed",
+  "error_message": "No vehicle/trailer ID found in payload",
+  "vehicle_info": {
+    "id": null,
+    "name": null
+  },
+  "trailer_info": {
+    "id": null,
+    "name": null
+  },
+  "conditions": [
+    {
+      "triggerId": 1018,
+      "description": "Driver HOS Violation",
+      "details": {
+        "hosViolation": {
+          "driver": {
+            "id": "52012120",
+            "name": "Damien De La Torre"
+          }
+        }
+      }
+    }
+  ],
+  "raw_data": {
+    "eventId": "03cc26f4-6bcd-4316-bafc-258bc72d5e7b",
+    "eventTime": "2025-05-26T23:06:43.067Z",
+    "eventType": "AlertIncident",
+    "orgId": 3000388,
+    "webhookId": "7308935500489801",
+    "data": {
+      "configurationId": "ec27c52d-8dcb-47a3-a829-32354957051c",
+      "updatedAtTime": "2025-05-26T23:07:14Z",
+      "happenedAtTime": "2025-05-26T23:06:43Z",
+      "isResolved": false,
+      "incidentUrl": "https://cloud.samsara.com/o/3000388/fleet/workflows/incidents/ec27c52d-8dcb-47a3-a829-32354957051c/5/52012120/1748300803067",
+      "conditions": [
+        {
+          "triggerId": 1018,
+          "description": "Driver HOS Violation",
+          "details": {
+            "hosViolation": {
+              "driver": {
+                "id": "52012120",
+                "name": "Damien De La Torre"
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}
+
+{
+  "timestamp": "2025-05-26T16:07:16.523224",
+  "event_type": "AlertIncident",
+  "event_id": "03cc26f4-6bcd-4316-bafc-258bc72d5e7b",
+  "org_id": 3000388,
+  "error_type": "Vehicle/Trailer ID extraction failed",
+  "error_message": "No vehicle/trailer ID found in payload",
+  "vehicle_info": {
+    "id": null,
+    "name": null
+  },
+  "trailer_info": {
+    "id": null,
+    "name": null
+  },
+  "conditions": [
+    {
+      "triggerId": 1018,
+      "description": "Driver HOS Violation",
+      "details": {
+        "hosViolation": {
+          "driver": {
+            "id": "52012120",
+            "name": "Damien De La Torre"
+          }
+        }
+      }
+    }
+  ],
+  "raw_data": {
+    "eventId": "03cc26f4-6bcd-4316-bafc-258bc72d5e7b",
+    "eventTime": "2025-05-26T23:06:43.067Z",
+    "eventType": "AlertIncident",
+    "orgId": 3000388,
+    "webhookId": "7308935500489801",
+    "data": {
+      "configurationId": "ec27c52d-8dcb-47a3-a829-32354957051c",
+      "updatedAtTime": "2025-05-26T23:07:14Z",
+      "happenedAtTime": "2025-05-26T23:06:43Z",
+      "isResolved": false,
+      "incidentUrl": "https://cloud.samsara.com/o/3000388/fleet/workflows/incidents/ec27c52d-8dcb-47a3-a829-32354957051c/5/52012120/1748300803067",
+      "conditions": [
+        {
+          "triggerId": 1018,
+          "description": "Driver HOS Violation",
+          "details": {
+            "hosViolation": {
+              "driver": {
+                "id": "52012120",
+                "name": "Damien De La Torre"
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}
+
+{
+  "timestamp": "2025-05-26T16:07:22.799987",
+  "event_type": "AlertIncident",
+  "event_id": "03cc26f4-6bcd-4316-bafc-258bc72d5e7b",
+  "org_id": 3000388,
+  "error_type": "Vehicle/Trailer ID extraction failed",
+  "error_message": "No vehicle/trailer ID found in payload",
+  "vehicle_info": {
+    "id": null,
+    "name": null
+  },
+  "trailer_info": {
+    "id": null,
+    "name": null
+  },
+  "conditions": [
+    {
+      "triggerId": 1018,
+      "description": "Driver HOS Violation",
+      "details": {
+        "hosViolation": {
+          "driver": {
+            "id": "52012120",
+            "name": "Damien De La Torre"
+          }
+        }
+      }
+    }
+  ],
+  "raw_data": {
+    "eventId": "03cc26f4-6bcd-4316-bafc-258bc72d5e7b",
+    "eventTime": "2025-05-26T23:06:43.067Z",
+    "eventType": "AlertIncident",
+    "orgId": 3000388,
+    "webhookId": "7308935500489801",
+    "data": {
+      "configurationId": "ec27c52d-8dcb-47a3-a829-32354957051c",
+      "updatedAtTime": "2025-05-26T23:07:14Z",
+      "happenedAtTime": "2025-05-26T23:06:43Z",
+      "isResolved": false,
+      "incidentUrl": "https://cloud.samsara.com/o/3000388/fleet/workflows/incidents/ec27c52d-8dcb-47a3-a829-32354957051c/5/52012120/1748300803067",
+      "conditions": [
+        {
+          "triggerId": 1018,
+          "description": "Driver HOS Violation",
+          "details": {
+            "hosViolation": {
+              "driver": {
+                "id": "52012120",
+                "name": "Damien De La Torre"
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}
+
+{
+  "timestamp": "2025-05-26T16:07:41.023445",
+  "event_type": "AlertIncident",
+  "event_id": "03cc26f4-6bcd-4316-bafc-258bc72d5e7b",
+  "org_id": 3000388,
+  "error_type": "Vehicle/Trailer ID extraction failed",
+  "error_message": "No vehicle/trailer ID found in payload",
+  "vehicle_info": {
+    "id": null,
+    "name": null
+  },
+  "trailer_info": {
+    "id": null,
+    "name": null
+  },
+  "conditions": [
+    {
+      "triggerId": 1018,
+      "description": "Driver HOS Violation",
+      "details": {
+        "hosViolation": {
+          "driver": {
+            "id": "52012120",
+            "name": "Damien De La Torre"
+          }
+        }
+      }
+    }
+  ],
+  "raw_data": {
+    "eventId": "03cc26f4-6bcd-4316-bafc-258bc72d5e7b",
+    "eventTime": "2025-05-26T23:06:43.067Z",
+    "eventType": "AlertIncident",
+    "orgId": 3000388,
+    "webhookId": "7308935500489801",
+    "data": {
+      "configurationId": "ec27c52d-8dcb-47a3-a829-32354957051c",
+      "updatedAtTime": "2025-05-26T23:07:14Z",
+      "happenedAtTime": "2025-05-26T23:06:43Z",
+      "isResolved": false,
+      "incidentUrl": "https://cloud.samsara.com/o/3000388/fleet/workflows/incidents/ec27c52d-8dcb-47a3-a829-32354957051c/5/52012120/1748300803067",
+      "conditions": [
+        {
+          "triggerId": 1018,
+          "description": "Driver HOS Violation",
+          "details": {
+            "hosViolation": {
+              "driver": {
+                "id": "52012120",
+                "name": "Damien De La Torre"
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}
+
+{
+  "timestamp": "2025-05-26T16:08:35.294883",
+  "event_type": "AlertIncident",
+  "event_id": "03cc26f4-6bcd-4316-bafc-258bc72d5e7b",
+  "org_id": 3000388,
+  "error_type": "Vehicle/Trailer ID extraction failed",
+  "error_message": "No vehicle/trailer ID found in payload",
+  "vehicle_info": {
+    "id": null,
+    "name": null
+  },
+  "trailer_info": {
+    "id": null,
+    "name": null
+  },
+  "conditions": [
+    {
+      "triggerId": 1018,
+      "description": "Driver HOS Violation",
+      "details": {
+        "hosViolation": {
+          "driver": {
+            "id": "52012120",
+            "name": "Damien De La Torre"
+          }
+        }
+      }
+    }
+  ],
+  "raw_data": {
+    "eventId": "03cc26f4-6bcd-4316-bafc-258bc72d5e7b",
+    "eventTime": "2025-05-26T23:06:43.067Z",
+    "eventType": "AlertIncident",
+    "orgId": 3000388,
+    "webhookId": "7308935500489801",
+    "data": {
+      "configurationId": "ec27c52d-8dcb-47a3-a829-32354957051c",
+      "updatedAtTime": "2025-05-26T23:07:14Z",
+      "happenedAtTime": "2025-05-26T23:06:43Z",
+      "isResolved": false,
+      "incidentUrl": "https://cloud.samsara.com/o/3000388/fleet/workflows/incidents/ec27c52d-8dcb-47a3-a829-32354957051c/5/52012120/1748300803067",
+      "conditions": [
+        {
+          "triggerId": 1018,
+          "description": "Driver HOS Violation",
+          "details": {
+            "hosViolation": {
+              "driver": {
+                "id": "52012120",
+                "name": "Damien De La Torre"
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}
+
+{
+  "timestamp": "2025-05-26T16:16:33.965625",
+  "event_type": "AlertIncident",
+  "event_id": "9ef402e3-eebe-4bc1-a5b8-551ff5ee671b",
+  "org_id": 3000388,
+  "error_type": "Vehicle/Trailer ID extraction failed",
+  "error_message": "No vehicle/trailer ID found in payload",
+  "vehicle_info": {
+    "id": null,
+    "name": null
+  },
+  "trailer_info": {
+    "id": null,
+    "name": null
+  },
+  "conditions": [
+    {
+      "triggerId": 1018,
+      "description": "Driver HOS Violation",
+      "details": {
+        "hosViolation": {
+          "driver": {
+            "id": "7752937",
+            "name": "Adelina  Martinez",
+            "tags": [
+              {
+                "id": "3155282",
+                "name": "Reefer",
+                "parentTagId": "3265239"
+              },
+              {
+                "id": "3155283",
+                "name": "Multi-Temp",
+                "parentTagId": "3265239"
+              },
+              {
+                "id": "3155284",
+                "name": "Dry Van",
+                "parentTagId": "3265239"
+              },
+              {
+                "id": "3155610",
+                "name": "Sleeper",
+                "parentTagId": "3265240"
+              },
+              {
+                "id": "3155611",
+                "name": "Tanker",
+                "parentTagId": "3265239"
+              },
+              {
+                "id": "3265251",
+                "name": "Napa/Central Valley",
+                "parentTagId": "3265236"
+              }
+            ]
+          }
+        }
+      }
+    }
+  ],
+  "raw_data": {
+    "eventId": "9ef402e3-eebe-4bc1-a5b8-551ff5ee671b",
+    "eventTime": "2025-05-26T23:15:33.399Z",
+    "eventType": "AlertIncident",
+    "orgId": 3000388,
+    "webhookId": "7308935500489801",
+    "data": {
+      "configurationId": "4b527987-53ad-460c-af0d-4b8f73a7fb61",
+      "updatedAtTime": "2025-05-26T23:16:33Z",
+      "happenedAtTime": "2025-05-26T23:15:33Z",
+      "isResolved": false,
+      "incidentUrl": "https://cloud.samsara.com/o/3000388/fleet/workflows/incidents/4b527987-53ad-460c-af0d-4b8f73a7fb61/5/7752937/1748301333399",
+      "conditions": [
+        {
+          "triggerId": 1018,
+          "description": "Driver HOS Violation",
+          "details": {
+            "hosViolation": {
+              "driver": {
+                "id": "7752937",
+                "name": "Adelina  Martinez",
+                "tags": [
+                  {
+                    "id": "3155282",
+                    "name": "Reefer",
+                    "parentTagId": "3265239"
+                  },
+                  {
+                    "id": "3155283",
+                    "name": "Multi-Temp",
+                    "parentTagId": "3265239"
+                  },
+                  {
+                    "id": "3155284",
+                    "name": "Dry Van",
+                    "parentTagId": "3265239"
+                  },
+                  {
+                    "id": "3155610",
+                    "name": "Sleeper",
+                    "parentTagId": "3265240"
+                  },
+                  {
+                    "id": "3155611",
+                    "name": "Tanker",
+                    "parentTagId": "3265239"
+                  },
+                  {
+                    "id": "3265251",
+                    "name": "Napa/Central Valley",
+                    "parentTagId": "3265236"
+                  }
+                ]
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}
+
+{
+  "timestamp": "2025-05-26T16:16:36.176992",
+  "event_type": "AlertIncident",
+  "event_id": "9ef402e3-eebe-4bc1-a5b8-551ff5ee671b",
+  "org_id": 3000388,
+  "error_type": "Vehicle/Trailer ID extraction failed",
+  "error_message": "No vehicle/trailer ID found in payload",
+  "vehicle_info": {
+    "id": null,
+    "name": null
+  },
+  "trailer_info": {
+    "id": null,
+    "name": null
+  },
+  "conditions": [
+    {
+      "triggerId": 1018,
+      "description": "Driver HOS Violation",
+      "details": {
+        "hosViolation": {
+          "driver": {
+            "id": "7752937",
+            "name": "Adelina  Martinez",
+            "tags": [
+              {
+                "id": "3155282",
+                "name": "Reefer",
+                "parentTagId": "3265239"
+              },
+              {
+                "id": "3155283",
+                "name": "Multi-Temp",
+                "parentTagId": "3265239"
+              },
+              {
+                "id": "3155284",
+                "name": "Dry Van",
+                "parentTagId": "3265239"
+              },
+              {
+                "id": "3155610",
+                "name": "Sleeper",
+                "parentTagId": "3265240"
+              },
+              {
+                "id": "3155611",
+                "name": "Tanker",
+                "parentTagId": "3265239"
+              },
+              {
+                "id": "3265251",
+                "name": "Napa/Central Valley",
+                "parentTagId": "3265236"
+              }
+            ]
+          }
+        }
+      }
+    }
+  ],
+  "raw_data": {
+    "eventId": "9ef402e3-eebe-4bc1-a5b8-551ff5ee671b",
+    "eventTime": "2025-05-26T23:15:33.399Z",
+    "eventType": "AlertIncident",
+    "orgId": 3000388,
+    "webhookId": "7308935500489801",
+    "data": {
+      "configurationId": "4b527987-53ad-460c-af0d-4b8f73a7fb61",
+      "updatedAtTime": "2025-05-26T23:16:33Z",
+      "happenedAtTime": "2025-05-26T23:15:33Z",
+      "isResolved": false,
+      "incidentUrl": "https://cloud.samsara.com/o/3000388/fleet/workflows/incidents/4b527987-53ad-460c-af0d-4b8f73a7fb61/5/7752937/1748301333399",
+      "conditions": [
+        {
+          "triggerId": 1018,
+          "description": "Driver HOS Violation",
+          "details": {
+            "hosViolation": {
+              "driver": {
+                "id": "7752937",
+                "name": "Adelina  Martinez",
+                "tags": [
+                  {
+                    "id": "3155282",
+                    "name": "Reefer",
+                    "parentTagId": "3265239"
+                  },
+                  {
+                    "id": "3155283",
+                    "name": "Multi-Temp",
+                    "parentTagId": "3265239"
+                  },
+                  {
+                    "id": "3155284",
+                    "name": "Dry Van",
+                    "parentTagId": "3265239"
+                  },
+                  {
+                    "id": "3155610",
+                    "name": "Sleeper",
+                    "parentTagId": "3265240"
+                  },
+                  {
+                    "id": "3155611",
+                    "name": "Tanker",
+                    "parentTagId": "3265239"
+                  },
+                  {
+                    "id": "3265251",
+                    "name": "Napa/Central Valley",
+                    "parentTagId": "3265236"
+                  }
+                ]
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}
+
+{
+  "timestamp": "2025-05-26T16:16:42.462701",
+  "event_type": "AlertIncident",
+  "event_id": "9ef402e3-eebe-4bc1-a5b8-551ff5ee671b",
+  "org_id": 3000388,
+  "error_type": "Vehicle/Trailer ID extraction failed",
+  "error_message": "No vehicle/trailer ID found in payload",
+  "vehicle_info": {
+    "id": null,
+    "name": null
+  },
+  "trailer_info": {
+    "id": null,
+    "name": null
+  },
+  "conditions": [
+    {
+      "triggerId": 1018,
+      "description": "Driver HOS Violation",
+      "details": {
+        "hosViolation": {
+          "driver": {
+            "id": "7752937",
+            "name": "Adelina  Martinez",
+            "tags": [
+              {
+                "id": "3155282",
+                "name": "Reefer",
+                "parentTagId": "3265239"
+              },
+              {
+                "id": "3155283",
+                "name": "Multi-Temp",
+                "parentTagId": "3265239"
+              },
+              {
+                "id": "3155284",
+                "name": "Dry Van",
+                "parentTagId": "3265239"
+              },
+              {
+                "id": "3155610",
+                "name": "Sleeper",
+                "parentTagId": "3265240"
+              },
+              {
+                "id": "3155611",
+                "name": "Tanker",
+                "parentTagId": "3265239"
+              },
+              {
+                "id": "3265251",
+                "name": "Napa/Central Valley",
+                "parentTagId": "3265236"
+              }
+            ]
+          }
+        }
+      }
+    }
+  ],
+  "raw_data": {
+    "eventId": "9ef402e3-eebe-4bc1-a5b8-551ff5ee671b",
+    "eventTime": "2025-05-26T23:15:33.399Z",
+    "eventType": "AlertIncident",
+    "orgId": 3000388,
+    "webhookId": "7308935500489801",
+    "data": {
+      "configurationId": "4b527987-53ad-460c-af0d-4b8f73a7fb61",
+      "updatedAtTime": "2025-05-26T23:16:33Z",
+      "happenedAtTime": "2025-05-26T23:15:33Z",
+      "isResolved": false,
+      "incidentUrl": "https://cloud.samsara.com/o/3000388/fleet/workflows/incidents/4b527987-53ad-460c-af0d-4b8f73a7fb61/5/7752937/1748301333399",
+      "conditions": [
+        {
+          "triggerId": 1018,
+          "description": "Driver HOS Violation",
+          "details": {
+            "hosViolation": {
+              "driver": {
+                "id": "7752937",
+                "name": "Adelina  Martinez",
+                "tags": [
+                  {
+                    "id": "3155282",
+                    "name": "Reefer",
+                    "parentTagId": "3265239"
+                  },
+                  {
+                    "id": "3155283",
+                    "name": "Multi-Temp",
+                    "parentTagId": "3265239"
+                  },
+                  {
+                    "id": "3155284",
+                    "name": "Dry Van",
+                    "parentTagId": "3265239"
+                  },
+                  {
+                    "id": "3155610",
+                    "name": "Sleeper",
+                    "parentTagId": "3265240"
+                  },
+                  {
+                    "id": "3155611",
+                    "name": "Tanker",
+                    "parentTagId": "3265239"
+                  },
+                  {
+                    "id": "3265251",
+                    "name": "Napa/Central Valley",
+                    "parentTagId": "3265236"
+                  }
+                ]
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}
+
+{
+  "timestamp": "2025-05-26T16:17:00.749839",
+  "event_type": "AlertIncident",
+  "event_id": "9ef402e3-eebe-4bc1-a5b8-551ff5ee671b",
+  "org_id": 3000388,
+  "error_type": "Vehicle/Trailer ID extraction failed",
+  "error_message": "No vehicle/trailer ID found in payload",
+  "vehicle_info": {
+    "id": null,
+    "name": null
+  },
+  "trailer_info": {
+    "id": null,
+    "name": null
+  },
+  "conditions": [
+    {
+      "triggerId": 1018,
+      "description": "Driver HOS Violation",
+      "details": {
+        "hosViolation": {
+          "driver": {
+            "id": "7752937",
+            "name": "Adelina  Martinez",
+            "tags": [
+              {
+                "id": "3155282",
+                "name": "Reefer",
+                "parentTagId": "3265239"
+              },
+              {
+                "id": "3155283",
+                "name": "Multi-Temp",
+                "parentTagId": "3265239"
+              },
+              {
+                "id": "3155284",
+                "name": "Dry Van",
+                "parentTagId": "3265239"
+              },
+              {
+                "id": "3155610",
+                "name": "Sleeper",
+                "parentTagId": "3265240"
+              },
+              {
+                "id": "3155611",
+                "name": "Tanker",
+                "parentTagId": "3265239"
+              },
+              {
+                "id": "3265251",
+                "name": "Napa/Central Valley",
+                "parentTagId": "3265236"
+              }
+            ]
+          }
+        }
+      }
+    }
+  ],
+  "raw_data": {
+    "eventId": "9ef402e3-eebe-4bc1-a5b8-551ff5ee671b",
+    "eventTime": "2025-05-26T23:15:33.399Z",
+    "eventType": "AlertIncident",
+    "orgId": 3000388,
+    "webhookId": "7308935500489801",
+    "data": {
+      "configurationId": "4b527987-53ad-460c-af0d-4b8f73a7fb61",
+      "updatedAtTime": "2025-05-26T23:16:33Z",
+      "happenedAtTime": "2025-05-26T23:15:33Z",
+      "isResolved": false,
+      "incidentUrl": "https://cloud.samsara.com/o/3000388/fleet/workflows/incidents/4b527987-53ad-460c-af0d-4b8f73a7fb61/5/7752937/1748301333399",
+      "conditions": [
+        {
+          "triggerId": 1018,
+          "description": "Driver HOS Violation",
+          "details": {
+            "hosViolation": {
+              "driver": {
+                "id": "7752937",
+                "name": "Adelina  Martinez",
+                "tags": [
+                  {
+                    "id": "3155282",
+                    "name": "Reefer",
+                    "parentTagId": "3265239"
+                  },
+                  {
+                    "id": "3155283",
+                    "name": "Multi-Temp",
+                    "parentTagId": "3265239"
+                  },
+                  {
+                    "id": "3155284",
+                    "name": "Dry Van",
+                    "parentTagId": "3265239"
+                  },
+                  {
+                    "id": "3155610",
+                    "name": "Sleeper",
+                    "parentTagId": "3265240"
+                  },
+                  {
+                    "id": "3155611",
+                    "name": "Tanker",
+                    "parentTagId": "3265239"
+                  },
+                  {
+                    "id": "3265251",
+                    "name": "Napa/Central Valley",
+                    "parentTagId": "3265236"
+                  }
+                ]
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}
+
+{
+  "timestamp": "2025-05-26T16:17:54.988489",
+  "event_type": "AlertIncident",
+  "event_id": "9ef402e3-eebe-4bc1-a5b8-551ff5ee671b",
+  "org_id": 3000388,
+  "error_type": "Vehicle/Trailer ID extraction failed",
+  "error_message": "No vehicle/trailer ID found in payload",
+  "vehicle_info": {
+    "id": null,
+    "name": null
+  },
+  "trailer_info": {
+    "id": null,
+    "name": null
+  },
+  "conditions": [
+    {
+      "triggerId": 1018,
+      "description": "Driver HOS Violation",
+      "details": {
+        "hosViolation": {
+          "driver": {
+            "id": "7752937",
+            "name": "Adelina  Martinez",
+            "tags": [
+              {
+                "id": "3155282",
+                "name": "Reefer",
+                "parentTagId": "3265239"
+              },
+              {
+                "id": "3155283",
+                "name": "Multi-Temp",
+                "parentTagId": "3265239"
+              },
+              {
+                "id": "3155284",
+                "name": "Dry Van",
+                "parentTagId": "3265239"
+              },
+              {
+                "id": "3155610",
+                "name": "Sleeper",
+                "parentTagId": "3265240"
+              },
+              {
+                "id": "3155611",
+                "name": "Tanker",
+                "parentTagId": "3265239"
+              },
+              {
+                "id": "3265251",
+                "name": "Napa/Central Valley",
+                "parentTagId": "3265236"
+              }
+            ]
+          }
+        }
+      }
+    }
+  ],
+  "raw_data": {
+    "eventId": "9ef402e3-eebe-4bc1-a5b8-551ff5ee671b",
+    "eventTime": "2025-05-26T23:15:33.399Z",
+    "eventType": "AlertIncident",
+    "orgId": 3000388,
+    "webhookId": "7308935500489801",
+    "data": {
+      "configurationId": "4b527987-53ad-460c-af0d-4b8f73a7fb61",
+      "updatedAtTime": "2025-05-26T23:16:33Z",
+      "happenedAtTime": "2025-05-26T23:15:33Z",
+      "isResolved": false,
+      "incidentUrl": "https://cloud.samsara.com/o/3000388/fleet/workflows/incidents/4b527987-53ad-460c-af0d-4b8f73a7fb61/5/7752937/1748301333399",
+      "conditions": [
+        {
+          "triggerId": 1018,
+          "description": "Driver HOS Violation",
+          "details": {
+            "hosViolation": {
+              "driver": {
+                "id": "7752937",
+                "name": "Adelina  Martinez",
+                "tags": [
+                  {
+                    "id": "3155282",
+                    "name": "Reefer",
+                    "parentTagId": "3265239"
+                  },
+                  {
+                    "id": "3155283",
+                    "name": "Multi-Temp",
+                    "parentTagId": "3265239"
+                  },
+                  {
+                    "id": "3155284",
+                    "name": "Dry Van",
+                    "parentTagId": "3265239"
+                  },
+                  {
+                    "id": "3155610",
+                    "name": "Sleeper",
+                    "parentTagId": "3265240"
+                  },
+                  {
+                    "id": "3155611",
+                    "name": "Tanker",
+                    "parentTagId": "3265239"
+                  },
+                  {
+                    "id": "3265251",
+                    "name": "Napa/Central Valley",
+                    "parentTagId": "3265236"
+                  }
+                ]
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}
+
+{
+  "timestamp": "2025-05-26T16:51:26.959687",
+  "event_type": "AlertIncident",
+  "event_id": "35c503bb-3a67-4884-949d-1edb21a37d7a",
+  "org_id": 3000388,
+  "error_type": "Vehicle/Trailer ID extraction failed",
+  "error_message": "No vehicle/trailer ID found in payload",
+  "vehicle_info": {
+    "id": null,
+    "name": null
+  },
+  "trailer_info": {
+    "id": null,
+    "name": null
+  },
+  "conditions": [
+    {
+      "triggerId": 1018,
+      "description": "Driver HOS Violation",
+      "details": {
+        "hosViolation": {
+          "driver": {
+            "id": "7752969",
+            "name": "Armando Lopez",
+            "tags": [
+              {
+                "id": "3155282",
+                "name": "Reefer",
+                "parentTagId": "3265239"
+              },
+              {
+                "id": "3155283",
+                "name": "Multi-Temp",
+                "parentTagId": "3265239"
+              },
+              {
+                "id": "3155284",
+                "name": "Dry Van",
+                "parentTagId": "3265239"
+              },
+              {
+                "id": "3155609",
+                "name": "Day Cab",
+                "parentTagId": "3265240"
+              },
+              {
+                "id": "3155610",
+                "name": "Sleeper",
+                "parentTagId": "3265240"
+              },
+              {
+                "id": "3155611",
+                "name": "Tanker",
+                "parentTagId": "3265239"
+              },
+              {
+                "id": "3265251",
+                "name": "Napa/Central Valley",
+                "parentTagId": "3265236"
+              }
+            ]
+          }
+        }
+      }
+    }
+  ],
+  "raw_data": {
+    "eventId": "35c503bb-3a67-4884-949d-1edb21a37d7a",
+    "eventTime": "2025-05-26T23:51:08.586Z",
+    "eventType": "AlertIncident",
+    "orgId": 3000388,
+    "webhookId": "7308935500489801",
+    "data": {
+      "configurationId": "ec27c52d-8dcb-47a3-a829-32354957051c",
+      "updatedAtTime": "2025-05-26T23:51:26Z",
+      "happenedAtTime": "2025-05-26T23:51:08Z",
+      "isResolved": false,
+      "incidentUrl": "https://cloud.samsara.com/o/3000388/fleet/workflows/incidents/ec27c52d-8dcb-47a3-a829-32354957051c/5/7752969/1748303468586",
+      "conditions": [
+        {
+          "triggerId": 1018,
+          "description": "Driver HOS Violation",
+          "details": {
+            "hosViolation": {
+              "driver": {
+                "id": "7752969",
+                "name": "Armando Lopez",
+                "tags": [
+                  {
+                    "id": "3155282",
+                    "name": "Reefer",
+                    "parentTagId": "3265239"
+                  },
+                  {
+                    "id": "3155283",
+                    "name": "Multi-Temp",
+                    "parentTagId": "3265239"
+                  },
+                  {
+                    "id": "3155284",
+                    "name": "Dry Van",
+                    "parentTagId": "3265239"
+                  },
+                  {
+                    "id": "3155609",
+                    "name": "Day Cab",
+                    "parentTagId": "3265240"
+                  },
+                  {
+                    "id": "3155610",
+                    "name": "Sleeper",
+                    "parentTagId": "3265240"
+                  },
+                  {
+                    "id": "3155611",
+                    "name": "Tanker",
+                    "parentTagId": "3265239"
+                  },
+                  {
+                    "id": "3265251",
+                    "name": "Napa/Central Valley",
+                    "parentTagId": "3265236"
+                  }
+                ]
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}
+
+{
+  "timestamp": "2025-05-26T16:51:29.222385",
+  "event_type": "AlertIncident",
+  "event_id": "35c503bb-3a67-4884-949d-1edb21a37d7a",
+  "org_id": 3000388,
+  "error_type": "Vehicle/Trailer ID extraction failed",
+  "error_message": "No vehicle/trailer ID found in payload",
+  "vehicle_info": {
+    "id": null,
+    "name": null
+  },
+  "trailer_info": {
+    "id": null,
+    "name": null
+  },
+  "conditions": [
+    {
+      "triggerId": 1018,
+      "description": "Driver HOS Violation",
+      "details": {
+        "hosViolation": {
+          "driver": {
+            "id": "7752969",
+            "name": "Armando Lopez",
+            "tags": [
+              {
+                "id": "3155282",
+                "name": "Reefer",
+                "parentTagId": "3265239"
+              },
+              {
+                "id": "3155283",
+                "name": "Multi-Temp",
+                "parentTagId": "3265239"
+              },
+              {
+                "id": "3155284",
+                "name": "Dry Van",
+                "parentTagId": "3265239"
+              },
+              {
+                "id": "3155609",
+                "name": "Day Cab",
+                "parentTagId": "3265240"
+              },
+              {
+                "id": "3155610",
+                "name": "Sleeper",
+                "parentTagId": "3265240"
+              },
+              {
+                "id": "3155611",
+                "name": "Tanker",
+                "parentTagId": "3265239"
+              },
+              {
+                "id": "3265251",
+                "name": "Napa/Central Valley",
+                "parentTagId": "3265236"
+              }
+            ]
+          }
+        }
+      }
+    }
+  ],
+  "raw_data": {
+    "eventId": "35c503bb-3a67-4884-949d-1edb21a37d7a",
+    "eventTime": "2025-05-26T23:51:08.586Z",
+    "eventType": "AlertIncident",
+    "orgId": 3000388,
+    "webhookId": "7308935500489801",
+    "data": {
+      "configurationId": "ec27c52d-8dcb-47a3-a829-32354957051c",
+      "updatedAtTime": "2025-05-26T23:51:26Z",
+      "happenedAtTime": "2025-05-26T23:51:08Z",
+      "isResolved": false,
+      "incidentUrl": "https://cloud.samsara.com/o/3000388/fleet/workflows/incidents/ec27c52d-8dcb-47a3-a829-32354957051c/5/7752969/1748303468586",
+      "conditions": [
+        {
+          "triggerId": 1018,
+          "description": "Driver HOS Violation",
+          "details": {
+            "hosViolation": {
+              "driver": {
+                "id": "7752969",
+                "name": "Armando Lopez",
+                "tags": [
+                  {
+                    "id": "3155282",
+                    "name": "Reefer",
+                    "parentTagId": "3265239"
+                  },
+                  {
+                    "id": "3155283",
+                    "name": "Multi-Temp",
+                    "parentTagId": "3265239"
+                  },
+                  {
+                    "id": "3155284",
+                    "name": "Dry Van",
+                    "parentTagId": "3265239"
+                  },
+                  {
+                    "id": "3155609",
+                    "name": "Day Cab",
+                    "parentTagId": "3265240"
+                  },
+                  {
+                    "id": "3155610",
+                    "name": "Sleeper",
+                    "parentTagId": "3265240"
+                  },
+                  {
+                    "id": "3155611",
+                    "name": "Tanker",
+                    "parentTagId": "3265239"
+                  },
+                  {
+                    "id": "3265251",
+                    "name": "Napa/Central Valley",
+                    "parentTagId": "3265236"
+                  }
+                ]
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}
+
+{
+  "timestamp": "2025-05-26T16:51:35.484533",
+  "event_type": "AlertIncident",
+  "event_id": "35c503bb-3a67-4884-949d-1edb21a37d7a",
+  "org_id": 3000388,
+  "error_type": "Vehicle/Trailer ID extraction failed",
+  "error_message": "No vehicle/trailer ID found in payload",
+  "vehicle_info": {
+    "id": null,
+    "name": null
+  },
+  "trailer_info": {
+    "id": null,
+    "name": null
+  },
+  "conditions": [
+    {
+      "triggerId": 1018,
+      "description": "Driver HOS Violation",
+      "details": {
+        "hosViolation": {
+          "driver": {
+            "id": "7752969",
+            "name": "Armando Lopez",
+            "tags": [
+              {
+                "id": "3155282",
+                "name": "Reefer",
+                "parentTagId": "3265239"
+              },
+              {
+                "id": "3155283",
+                "name": "Multi-Temp",
+                "parentTagId": "3265239"
+              },
+              {
+                "id": "3155284",
+                "name": "Dry Van",
+                "parentTagId": "3265239"
+              },
+              {
+                "id": "3155609",
+                "name": "Day Cab",
+                "parentTagId": "3265240"
+              },
+              {
+                "id": "3155610",
+                "name": "Sleeper",
+                "parentTagId": "3265240"
+              },
+              {
+                "id": "3155611",
+                "name": "Tanker",
+                "parentTagId": "3265239"
+              },
+              {
+                "id": "3265251",
+                "name": "Napa/Central Valley",
+                "parentTagId": "3265236"
+              }
+            ]
+          }
+        }
+      }
+    }
+  ],
+  "raw_data": {
+    "eventId": "35c503bb-3a67-4884-949d-1edb21a37d7a",
+    "eventTime": "2025-05-26T23:51:08.586Z",
+    "eventType": "AlertIncident",
+    "orgId": 3000388,
+    "webhookId": "7308935500489801",
+    "data": {
+      "configurationId": "ec27c52d-8dcb-47a3-a829-32354957051c",
+      "updatedAtTime": "2025-05-26T23:51:26Z",
+      "happenedAtTime": "2025-05-26T23:51:08Z",
+      "isResolved": false,
+      "incidentUrl": "https://cloud.samsara.com/o/3000388/fleet/workflows/incidents/ec27c52d-8dcb-47a3-a829-32354957051c/5/7752969/1748303468586",
+      "conditions": [
+        {
+          "triggerId": 1018,
+          "description": "Driver HOS Violation",
+          "details": {
+            "hosViolation": {
+              "driver": {
+                "id": "7752969",
+                "name": "Armando Lopez",
+                "tags": [
+                  {
+                    "id": "3155282",
+                    "name": "Reefer",
+                    "parentTagId": "3265239"
+                  },
+                  {
+                    "id": "3155283",
+                    "name": "Multi-Temp",
+                    "parentTagId": "3265239"
+                  },
+                  {
+                    "id": "3155284",
+                    "name": "Dry Van",
+                    "parentTagId": "3265239"
+                  },
+                  {
+                    "id": "3155609",
+                    "name": "Day Cab",
+                    "parentTagId": "3265240"
+                  },
+                  {
+                    "id": "3155610",
+                    "name": "Sleeper",
+                    "parentTagId": "3265240"
+                  },
+                  {
+                    "id": "3155611",
+                    "name": "Tanker",
+                    "parentTagId": "3265239"
+                  },
+                  {
+                    "id": "3265251",
+                    "name": "Napa/Central Valley",
+                    "parentTagId": "3265236"
+                  }
+                ]
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}
+
+{
+  "timestamp": "2025-05-26T16:51:53.780062",
+  "event_type": "AlertIncident",
+  "event_id": "35c503bb-3a67-4884-949d-1edb21a37d7a",
+  "org_id": 3000388,
+  "error_type": "Vehicle/Trailer ID extraction failed",
+  "error_message": "No vehicle/trailer ID found in payload",
+  "vehicle_info": {
+    "id": null,
+    "name": null
+  },
+  "trailer_info": {
+    "id": null,
+    "name": null
+  },
+  "conditions": [
+    {
+      "triggerId": 1018,
+      "description": "Driver HOS Violation",
+      "details": {
+        "hosViolation": {
+          "driver": {
+            "id": "7752969",
+            "name": "Armando Lopez",
+            "tags": [
+              {
+                "id": "3155282",
+                "name": "Reefer",
+                "parentTagId": "3265239"
+              },
+              {
+                "id": "3155283",
+                "name": "Multi-Temp",
+                "parentTagId": "3265239"
+              },
+              {
+                "id": "3155284",
+                "name": "Dry Van",
+                "parentTagId": "3265239"
+              },
+              {
+                "id": "3155609",
+                "name": "Day Cab",
+                "parentTagId": "3265240"
+              },
+              {
+                "id": "3155610",
+                "name": "Sleeper",
+                "parentTagId": "3265240"
+              },
+              {
+                "id": "3155611",
+                "name": "Tanker",
+                "parentTagId": "3265239"
+              },
+              {
+                "id": "3265251",
+                "name": "Napa/Central Valley",
+                "parentTagId": "3265236"
+              }
+            ]
+          }
+        }
+      }
+    }
+  ],
+  "raw_data": {
+    "eventId": "35c503bb-3a67-4884-949d-1edb21a37d7a",
+    "eventTime": "2025-05-26T23:51:08.586Z",
+    "eventType": "AlertIncident",
+    "orgId": 3000388,
+    "webhookId": "7308935500489801",
+    "data": {
+      "configurationId": "ec27c52d-8dcb-47a3-a829-32354957051c",
+      "updatedAtTime": "2025-05-26T23:51:26Z",
+      "happenedAtTime": "2025-05-26T23:51:08Z",
+      "isResolved": false,
+      "incidentUrl": "https://cloud.samsara.com/o/3000388/fleet/workflows/incidents/ec27c52d-8dcb-47a3-a829-32354957051c/5/7752969/1748303468586",
+      "conditions": [
+        {
+          "triggerId": 1018,
+          "description": "Driver HOS Violation",
+          "details": {
+            "hosViolation": {
+              "driver": {
+                "id": "7752969",
+                "name": "Armando Lopez",
+                "tags": [
+                  {
+                    "id": "3155282",
+                    "name": "Reefer",
+                    "parentTagId": "3265239"
+                  },
+                  {
+                    "id": "3155283",
+                    "name": "Multi-Temp",
+                    "parentTagId": "3265239"
+                  },
+                  {
+                    "id": "3155284",
+                    "name": "Dry Van",
+                    "parentTagId": "3265239"
+                  },
+                  {
+                    "id": "3155609",
+                    "name": "Day Cab",
+                    "parentTagId": "3265240"
+                  },
+                  {
+                    "id": "3155610",
+                    "name": "Sleeper",
+                    "parentTagId": "3265240"
+                  },
+                  {
+                    "id": "3155611",
+                    "name": "Tanker",
+                    "parentTagId": "3265239"
+                  },
+                  {
+                    "id": "3265251",
+                    "name": "Napa/Central Valley",
+                    "parentTagId": "3265236"
+                  }
+                ]
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}
+
+{
+  "timestamp": "2025-05-26T16:52:48.024105",
+  "event_type": "AlertIncident",
+  "event_id": "35c503bb-3a67-4884-949d-1edb21a37d7a",
+  "org_id": 3000388,
+  "error_type": "Vehicle/Trailer ID extraction failed",
+  "error_message": "No vehicle/trailer ID found in payload",
+  "vehicle_info": {
+    "id": null,
+    "name": null
+  },
+  "trailer_info": {
+    "id": null,
+    "name": null
+  },
+  "conditions": [
+    {
+      "triggerId": 1018,
+      "description": "Driver HOS Violation",
+      "details": {
+        "hosViolation": {
+          "driver": {
+            "id": "7752969",
+            "name": "Armando Lopez",
+            "tags": [
+              {
+                "id": "3155282",
+                "name": "Reefer",
+                "parentTagId": "3265239"
+              },
+              {
+                "id": "3155283",
+                "name": "Multi-Temp",
+                "parentTagId": "3265239"
+              },
+              {
+                "id": "3155284",
+                "name": "Dry Van",
+                "parentTagId": "3265239"
+              },
+              {
+                "id": "3155609",
+                "name": "Day Cab",
+                "parentTagId": "3265240"
+              },
+              {
+                "id": "3155610",
+                "name": "Sleeper",
+                "parentTagId": "3265240"
+              },
+              {
+                "id": "3155611",
+                "name": "Tanker",
+                "parentTagId": "3265239"
+              },
+              {
+                "id": "3265251",
+                "name": "Napa/Central Valley",
+                "parentTagId": "3265236"
+              }
+            ]
+          }
+        }
+      }
+    }
+  ],
+  "raw_data": {
+    "eventId": "35c503bb-3a67-4884-949d-1edb21a37d7a",
+    "eventTime": "2025-05-26T23:51:08.586Z",
+    "eventType": "AlertIncident",
+    "orgId": 3000388,
+    "webhookId": "7308935500489801",
+    "data": {
+      "configurationId": "ec27c52d-8dcb-47a3-a829-32354957051c",
+      "updatedAtTime": "2025-05-26T23:51:26Z",
+      "happenedAtTime": "2025-05-26T23:51:08Z",
+      "isResolved": false,
+      "incidentUrl": "https://cloud.samsara.com/o/3000388/fleet/workflows/incidents/ec27c52d-8dcb-47a3-a829-32354957051c/5/7752969/1748303468586",
+      "conditions": [
+        {
+          "triggerId": 1018,
+          "description": "Driver HOS Violation",
+          "details": {
+            "hosViolation": {
+              "driver": {
+                "id": "7752969",
+                "name": "Armando Lopez",
+                "tags": [
+                  {
+                    "id": "3155282",
+                    "name": "Reefer",
+                    "parentTagId": "3265239"
+                  },
+                  {
+                    "id": "3155283",
+                    "name": "Multi-Temp",
+                    "parentTagId": "3265239"
+                  },
+                  {
+                    "id": "3155284",
+                    "name": "Dry Van",
+                    "parentTagId": "3265239"
+                  },
+                  {
+                    "id": "3155609",
+                    "name": "Day Cab",
+                    "parentTagId": "3265240"
+                  },
+                  {
+                    "id": "3155610",
+                    "name": "Sleeper",
+                    "parentTagId": "3265240"
+                  },
+                  {
+                    "id": "3155611",
+                    "name": "Tanker",
+                    "parentTagId": "3265239"
+                  },
+                  {
+                    "id": "3265251",
+                    "name": "Napa/Central Valley",
+                    "parentTagId": "3265236"
+                  }
+                ]
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}
+

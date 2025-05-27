@@ -44,6 +44,14 @@
                         {{ render_query_select_field(form.crm_account, html_class="form-select") }}
                     </div>
 
+                    {# ADDED: Primary Contact Checkbox #}
+                    <div class="mb-3">
+                        <div class="form-check">
+                            {{ form.is_primary_for_account(class="form-check-input") }}
+                            {{ form.is_primary_for_account.label(class="form-check-label") }}
+                        </div>
+                    </div>
+
                     <div class="row mb-3">
                         <div class="col-md-6">
                             {{ render_field(form.status, html_class="form-select") }}

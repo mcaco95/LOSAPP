@@ -183,6 +183,7 @@ ACCOUNT_IMPORT_FIELDS = {
     'name': 'Account Name',
     'email': 'Email',
     'phone_number': 'Phone Number',
+    'dot_number': 'DOT Number',
     'website': 'Website',
     'industry': 'Industry',
     'address_street': 'Street Address',
@@ -190,6 +191,7 @@ ACCOUNT_IMPORT_FIELDS = {
     'address_state': 'State/Province',
     'address_zip': 'ZIP/Postal Code',
     'address_country': 'Country',
+    'contact_full_name': 'Primary Contact Full Name (for linking/creating)', # ADDED
     'custom_data': 'Custom Data (JSON or Text)'
 }
 
@@ -615,7 +617,19 @@ def create_contact():
                 sales_rep_id=current_user.sales_profile.id
             )
             db.session.add(new_contact)
-            db.session.commit() # Commit the contact first to get its ID
+            db.session.flush() # Commit the contact first to get its ID
+
+            # Handle primary contact designation
+            if form.is_primary_for_account.data and new_contact.crm_account_id:
+                # Demote any other primary contact for this account
+                Contact.query.filter(
+                    Contact.crm_account_id == new_contact.crm_account_id,
+                    Contact.id != new_contact.id, # Don't demote self
+                    Contact.is_primary_for_account == True
+                ).update({'is_primary_for_account': False}, synchronize_session='fetch')
+                new_contact.is_primary_for_account = True
+            elif not form.is_primary_for_account.data: # Ensure it's False if unchecked
+                 new_contact.is_primary_for_account = False
 
             # --- ADDED: Process and save custom field values ---
             for field_name, definition in dynamic_fields:
@@ -804,6 +818,19 @@ def edit_contact(contact_id):
                     contact.sales_rep = None 
             elif not is_manager and hasattr(form, 'sales_rep_id_hidden'):
                 pass 
+
+            # Handle primary contact designation
+            if form.is_primary_for_account.data and contact.crm_account_id:
+                # Demote any other primary contact for this account
+                Contact.query.filter(
+                    Contact.crm_account_id == contact.crm_account_id,
+                    Contact.id != contact.id, # Don't demote self
+                    Contact.is_primary_for_account == True
+                ).update({'is_primary_for_account': False}, synchronize_session='fetch')
+                contact.is_primary_for_account = True
+            elif contact.crm_account_id: # Only change if linked to an account
+                contact.is_primary_for_account = form.is_primary_for_account.data
+            # If not linked to an account, is_primary_for_account should remain False (its default or current state)
 
             db.session.add(contact)
             save_custom_field_values(form, CustomFieldAppliesTo.CONTACT, contact, dynamic_fields)
@@ -1248,6 +1275,7 @@ def create_account():
                 website=form.website.data.strip() if form.website.data else None,
                 industry=form.industry.data.strip() if form.industry.data else None,
                 phone_number=form.phone_number.data.strip() if form.phone_number.data else None,
+                dot_number=form.dot_number.data.strip() if form.dot_number.data else None, # ADDED
                 address = form.address.data.strip() if form.address.data else None, # Keep general address
                 status=selected_status, 
                 # custom_data=custom_data_to_save, # <-- REMOVED old custom data
@@ -1361,6 +1389,7 @@ def edit_account(account_id):
             account.website = form.website.data.strip() if form.website.data else None
             account.industry = form.industry.data.strip() if form.industry.data else None
             account.phone_number = form.phone_number.data.strip() if form.phone_number.data else None
+            account.dot_number = form.dot_number.data.strip() if form.dot_number.data else None # ADDED
             account.address = form.address.data.strip() if form.address.data else None
             
             selected_status = form.status.data if form.status.data and form.status.data != '-' else None
@@ -1882,6 +1911,19 @@ def process_mapped_import():
     errors_details = [] # Store details about errors
     processed_rows = 0
 
+    # Helper function to parse full name
+    def parse_full_name(full_name_str):
+        if not full_name_str:
+            return None, None
+        parts = full_name_str.strip().split()
+        if not parts:
+            return None, None
+        if len(parts) == 1:
+            return parts[0], None # Or handle as error/skip
+        last_name = parts[-1]
+        first_name = " ".join(parts[:-1])
+        return first_name, last_name
+
     try:
         with open(temp_filepath, 'r', encoding='utf-8-sig') as f:
             reader = csv.DictReader(f) # Use DictReader for easier access by header name
@@ -2065,12 +2107,77 @@ def process_mapped_import():
                             error_count += 1
                             continue
                         
-                        existing_account = CrmAccount.query.filter_by(name=data_to_import['name'], sales_rep_id=sales_rep_id).first()
+                        existing_account = None
+                        # Prioritize DOT number for duplicate check if provided
+                        if 'dot_number' in data_to_import and data_to_import['dot_number']:
+                            existing_account = CrmAccount.query.filter_by(dot_number=data_to_import['dot_number']).first()
                         if existing_account:
-                            errors_details.append(f"Row {row_num+1}: Account with name '{data_to_import['name']}' already exists. Skipped.")
+                                errors_details.append(f"Row {row_num+1}: Account with DOT Number '{data_to_import['dot_number']}' (ID: {existing_account.id}, Name: {existing_account.name}) already exists. Skipped.")
+                        
+                        # If not found by DOT number (or DOT not provided), check by name globally
+                        if not existing_account and data_to_import.get('name'):
+                            # Ensure this is case-insensitive comparison for the name
+                            existing_account = CrmAccount.query.filter(func.lower(CrmAccount.name) == func.lower(data_to_import['name'])).first()
+                            if existing_account:
+                                errors_details.append(f"Row {row_num+1}: Account with name '{data_to_import['name']}' (ID: {existing_account.id}, Owner ID: {existing_account.sales_rep_id}) already exists. Skipped. (DOT number was not matched or not provided).")
+
+                        if existing_account:
                             skipped_count += 1
                             continue
                             # TODO: Add update logic if desired in future
+
+                        # --- Consolidate Address Fields --- Start ---
+                        consolidated_address_parts = []
+                        address_fields_to_pop = [] 
+                        # Check for old specific address fields if they were mapped and pop them
+                        # while constructing a consolidated address string.
+                        if data_to_import.get('address_street'):
+                            consolidated_address_parts.append(data_to_import.pop('address_street'))
+                            address_fields_to_pop.append('address_street') # Should already be popped but good for clarity
+                        if data_to_import.get('address_city'):
+                            city_part = data_to_import.pop('address_city')
+                            if data_to_import.get('address_state'):
+                                state_part = data_to_import.pop('address_state')
+                                city_part += f", {state_part}"
+                                address_fields_to_pop.append('address_state')
+                            if data_to_import.get('address_zip'):
+                                city_part += f" {data_to_import.pop('address_zip')}"
+                                address_fields_to_pop.append('address_zip')
+                            consolidated_address_parts.append(city_part)
+                            address_fields_to_pop.append('address_city')
+                        elif data_to_import.get('address_state'): # If city wasn't there but state is
+                            consolidated_address_parts.append(data_to_import.pop('address_state'))
+                            address_fields_to_pop.append('address_state')
+                        elif data_to_import.get('address_zip'): # If only zip was there out of city/state/zip
+                             consolidated_address_parts.append(data_to_import.pop('address_zip'))
+                             address_fields_to_pop.append('address_zip')
+
+                        if data_to_import.get('address_country'):
+                            consolidated_address_parts.append(data_to_import.pop('address_country'))
+                            address_fields_to_pop.append('address_country')
+                        
+                        # If any parts were consolidated, join them. 
+                        # This prioritizes individually mapped address parts over a direct mapping to 'address' if both exist.
+                        # Or, if 'address' was directly mapped and contains data, and no specific parts were, it will be used.
+                        if consolidated_address_parts:
+                            data_to_import['address'] = ", ".join(filter(None, consolidated_address_parts))
+                        elif 'address' in data_to_import and data_to_import['address']: # If 'address' was directly mapped
+                            pass # It's already in data_to_import['address']
+                        else: # No address info provided through specific or general field
+                            data_to_import['address'] = None
+                        
+                        # Clean up any other mapped address fields that weren't popped if they existed (belt and suspenders)
+                        # This is mostly to handle if a user maps to e.g. 'address_state' but there's no CrmAccount.address_state field
+                        # The earlier .pop() should handle this, but this is a safeguard.
+                        all_old_address_keys = ['address_street', 'address_city', 'address_state', 'address_zip', 'address_country']
+                        for key_to_remove in all_old_address_keys:
+                            if key_to_remove in data_to_import and key_to_remove not in address_fields_to_pop: # Only pop if not already popped
+                                data_to_import.pop(key_to_remove, None)
+                        # --- Consolidate Address Fields --- End ---
+
+                        # Pop 'contact_full_name' as it's handled separately for contact linking/creation
+                        # and is not a direct field of the CrmAccount model.
+                        contact_name_for_linking = data_to_import.pop('contact_full_name', None)
 
                         account = CrmAccount(
                             sales_rep_id=final_sales_rep_id_for_import, # Assign determined owner
@@ -2079,11 +2186,84 @@ def process_mapped_import():
                         db.session.add(account)
                         db.session.flush() # Flush to get account.id
 
-                        # Create CustomFieldValue entries
+                        # --- BEGIN: Link or Create Contact for Account ---
+                        # Use the contact_name_for_linking variable obtained from popping data_to_import
+                        if contact_name_for_linking:
+                            contact_name_str = contact_name_for_linking 
+                            parsed_first_name, parsed_last_name = parse_full_name(contact_name_str)
+
+                            if parsed_first_name or parsed_last_name: 
+                                query_filter_conditions = []
+                                if parsed_first_name:
+                                    query_filter_conditions.append(func.lower(Contact.first_name) == func.lower(parsed_first_name))
+                                else: 
+                                    query_filter_conditions.append(Contact.first_name.is_(None) | (Contact.first_name == '')) # Check for None or empty
+
+                                if parsed_last_name:
+                                    query_filter_conditions.append(func.lower(Contact.last_name) == func.lower(parsed_last_name))
+                                else:
+                                    query_filter_conditions.append(Contact.last_name.is_(None) | (Contact.last_name == '')) # Check for None or empty
+                                
+                                # Add a condition to prefer contacts already owned by the account's sales_rep_id, if multiple matches exist.
+                                # This is a soft preference, the main filter above is primary.
+                                # Could also filter globally if that's preferred for finding existing contacts.
+                                # For now, let's assume the name match is the primary concern for finding.
+                                existing_contact = Contact.query.filter(*query_filter_conditions).first()
+
+                                if existing_contact:
+                                    # MODIFIED BLOCK START
+                                    existing_contact.crm_account_id = account.id
+                                    existing_contact.sales_rep_id = account.sales_rep_id # Ensure ownership alignment
+
+                                    # Set as primary and demote others if necessary
+                                    if not existing_contact.is_primary_for_account or existing_contact.crm_account_id != account.id:
+                                        # Demote other primary contacts for this specific account
+                                        Contact.query.filter(
+                                            Contact.crm_account_id == account.id,
+                                            Contact.id != existing_contact.id, # Don't demote self
+                                            Contact.is_primary_for_account == True
+                                        ).update({'is_primary_for_account': False}, synchronize_session='fetch')
+                                        existing_contact.is_primary_for_account = True
+                                    
+                                    db.session.add(existing_contact)
+                                    # MODIFIED BLOCK END
+                                    current_app.logger.info(f"Row {row_num+1}: Linked existing contact '{existing_contact.full_name}' (ID: {existing_contact.id}) to account '{account.name}' and set as primary. Contact owner updated to account owner (ID: {account.sales_rep_id}).")
+
+                                else:
+                                    # Attempt to use the parent account's phone number for the new contact
+                                    contact_phone_number_to_use = account.phone_number
+                                    
+                                    if contact_phone_number_to_use:
+                                        # Demote any existing primary contact for this account first
+                                        Contact.query.filter_by(crm_account_id=account.id, is_primary_for_account=True).update({'is_primary_for_account': False})
+                                        new_contact_for_account = Contact(
+                                            first_name=parsed_first_name,
+                                            last_name=parsed_last_name,
+                                            crm_account_id=account.id,
+                                            sales_rep_id=final_sales_rep_id_for_import, 
+                                            status=CONTACT_STATUSES[0][0] if CONTACT_STATUSES else 'New', # Use first status value
+                                            source='CSV Import - Account Linked',
+                                            phone_number=contact_phone_number_to_use, # Assign account's phone number
+                                            is_primary_for_account=True # Set as primary
+                                        )
+                                        db.session.add(new_contact_for_account)
+                                        # flash(f"New contact '{new_contact_for_account.full_name}' created and linked to account '{account.name}'.", "success-auto-create")
+                                    else:
+                                        err_msg = f"Row {row_num+1}: Account '{account.name}' imported, but linked contact '{contact_name_str}' could not be auto-created because the account has no phone number, and contact phone number is a required field. Please add the contact manually or ensure the account has a phone number in the CSV."
+                                        errors_details.append(err_msg)
+                                        current_app.logger.warning(err_msg)
+                            else: 
+                                errors_details.append(f"Row {row_num+1}: Contact name '{contact_name_str}' provided for account '{account.name}' was empty or could not be parsed. Contact not created/linked.")
+                        # --- END: Link or Create Contact for Account ---
+
+                        # Create CustomFieldValue entries for Account
                         for cf_data in custom_field_values_to_create:
                             cf_def_check = CustomFieldDefinition.query.get(cf_data['definition_id'])
-                            if not cf_def_check:
-                                errors_details.append(f"Row {row_num+1}: Custom field definition ID {cf_data['definition_id']} not found for account. Skipping custom field.")
+                            if not cf_def_check or cf_def_check.applies_to != CustomFieldAppliesTo.ACCOUNT:
+                                if cf_def_check:
+                                    errors_details.append(f"Row {row_num+1}: Custom field '{cf_def_check.name}' (ID {cf_data['definition_id']}) does not apply to Accounts. Skipping for this account '{account.name}'.")
+                                else:
+                                    errors_details.append(f"Row {row_num+1}: Custom field definition ID {cf_data['definition_id']} not found for account '{account.name}'. Skipping custom field.")
                                 continue
                             
                             processed_value_for_cf = str(cf_data['value'])
@@ -2098,23 +2278,17 @@ def process_mapped_import():
                                         dt_obj = datetime.strptime(str(cf_data['value']), '%m/%d/%Y')
                                         processed_value_for_cf = dt_obj.date().isoformat()
                                     except ValueError:
-                                        errors_details.append(f"Row {row_num+1}: Date format for custom field '{cf_def_check.name}' ('{cf_data['value']}') not recognized for account. Stored as text.")
-                                        processed_value_for_cf = str(cf_data['value'])
+                                        errors_details.append(f"Row {row_num+1}: Date format for custom field '{cf_def_check.name}' ('{cf_data['value']}') not recognized for account '{account.name}'. Stored as text.")
                             elif cf_def_check.field_type == CustomFieldType.NUMBER:
                                 try:
                                     int(cf_data['value'])
-                                    processed_value_for_cf = str(cf_data['value'])
                                 except ValueError:
-                                     errors_details.append(f"Row {row_num+1}: Value for custom number field '{cf_def_check.name}' ('{cf_data['value']}') not valid for account. Stored as text.")
-                                     processed_value_for_cf = str(cf_data['value'])
+                                     errors_details.append(f"Row {row_num+1}: Value for custom number field '{cf_def_check.name}' ('{cf_data['value']}') not valid for account '{account.name}'. Stored as text.")
                             
                             if cf_def_check.field_type == CustomFieldType.DROPDOWN:
                                 if cf_def_check.options and 'options' in cf_def_check.options:
                                     if str(cf_data['value']) not in cf_def_check.options['options']:
-                                        errors_details.append(f"Row {row_num+1}: Value '{cf_data['value']}' for dropdown custom field '{cf_def_check.name}' is not a valid option for account. Stored as provided.")
-                                        processed_value_for_cf = str(cf_data['value'])
-                                else:
-                                    processed_value_for_cf = str(cf_data['value'])
+                                        errors_details.append(f"Row {row_num+1}: Value '{cf_data['value']}' for dropdown custom field '{cf_def_check.name}' is not a valid option for account '{account.name}'. Stored as provided.")
 
                             new_val = CustomFieldValue(
                                 definition_id=cf_data['definition_id'],
@@ -2125,8 +2299,7 @@ def process_mapped_import():
                             
                         imported_count += 1
                    
-                    # Commit per row or in batches? For simplicity, per row with try-except.
-                    # Consider batch commits for very large files later.
+                    # Commit per row or in batches.
                     try:
                         db.session.commit() 
                     except Exception as e_commit:
@@ -2134,30 +2307,28 @@ def process_mapped_import():
                         current_app.logger.error(f"Error committing row {row_num+1} during CSV import: {e_commit}")
                         errors_details.append(f"Row {row_num+1}: Database error - {str(e_commit)[:100]}. Skipping.")
                         error_count += 1
-                        # Reset imported_count for this row if it was incremented optimistically
-                        if import_type == 'contacts' and 'contact' in locals(): imported_count -=1
-                        if import_type == 'accounts' and 'account' in locals(): imported_count -=1 
+                        if 'account' in locals() and account and account.id: 
+                            imported_count -=1 
                         
                 except Exception as e_row:
-                    # Catch errors for a specific row, log, and continue with the next row
                     current_app.logger.error(f"Error processing row {row_num+1} in {original_filename}: {e_row}")
-                    # errors_details.append(f"Row {row_num+1}: {str(e_row)}. Skipped.") # Already handled if specific error
                     if not any(f"Row {row_num+1}" in err_detail for err_detail in errors_details):
                          errors_details.append(f"Row {row_num+1}: General processing error - {str(e_row)[:100]}. Skipped.")
                     error_count += 1
-                    db.session.rollback() # Ensure rollback for this row's transaction
+                    db.session.rollback()
 
         flash(f'CSV Import Summary for "{original_filename}" ({import_type}):', 'info')
-        flash(f'- Successfully imported: {imported_count}', 'success' if imported_count > 0 else 'info')
-        flash(f'- Skipped (e.g., duplicates, missing required fields, or empty rows): {skipped_count + (processed_rows - imported_count - error_count)}', 'warning' if skipped_count > 0 else 'info')
+        flash(f'- Successfully imported records (accounts/contacts created/linked): {imported_count}', 'success' if imported_count > 0 else 'info')
+        skipped_calc = processed_rows - imported_count - error_count
+        flash(f'- Skipped (e.g., duplicates, missing fields, empty rows): {max(0, skipped_calc)}', 'warning' if max(0, skipped_calc) > 0 else 'info')
         flash(f'- Errors encountered: {error_count}', 'danger' if error_count > 0 else 'info')
 
         if errors_details:
-            flash('Error Details:', 'secondary')
-            for err_detail in errors_details[:10]: # Show first 10 errors
+            flash('Error/Warning Details (first 10):', 'secondary')
+            for err_detail in errors_details[:10]: 
                 flash(err_detail, 'danger')
             if len(errors_details) > 10:
-                flash(f'...and {len(errors_details) - 10} more errors (check logs for full details).', 'warning')
+                flash(f'...and {len(errors_details) - 10} more (check logs for full details).', 'warning')
         
     except FileNotFoundError:
         current_app.logger.error(f"Temporary import file {temp_filepath} not found during processing.")
@@ -2771,36 +2942,52 @@ def list_deals():
 @login_required
 @sales_required
 def create_deal():
-    form = DealForm()
     sales_rep_id = get_current_sales_rep_id()
-    
     if sales_rep_id is None:
         flash("Sales profile not found. Cannot create deal.", "error")
         return redirect(url_for('crm.list_deals'))
 
-    # Check for pre-selected contact and/or account from query args
-    preselected_contact_id = request.args.get('contact_id', type=int)
-    preselected_account_id = request.args.get('account_id', type=int)
+    preselected_contact_id_arg = request.args.get('contact_id', type=int)
+    preselected_account_id_arg = request.args.get('account_id', type=int)
 
+    # Initialize IDs to be passed to the form
+    form_current_contact_id = None
+    form_current_account_id = None
+
+    preselected_contact_obj = None
+    preselected_account_obj = None
+
+    if preselected_contact_id_arg:
+        preselected_contact_obj = Contact.query.get(preselected_contact_id_arg)
+        if preselected_contact_obj:
+            form_current_contact_id = preselected_contact_obj.id
+            if preselected_contact_obj.crm_account_id:
+                # If contact has an account, this ID will be used by DealForm __init__ to ensure it's in the choices
+                form_current_account_id = preselected_contact_obj.crm_account_id 
+                # Also fetch the account object if we are to pre-fill the form field with it
+                if not preselected_account_id_arg: # Only if account wasn't directly specified in URL
+                    preselected_account_obj = CrmAccount.query.get(preselected_contact_obj.crm_account_id)
+        else:
+            flash("Specified contact for new deal not found.", "warning")
+
+    # If an account_id was passed directly, it takes precedence or fills if contact didn't provide one
+    if preselected_account_id_arg:
+        acc_obj = CrmAccount.query.get(preselected_account_id_arg)
+        if acc_obj:
+            preselected_account_obj = acc_obj
+            form_current_account_id = acc_obj.id 
+        elif not form_current_account_id: # Only flash if not already set by contact and this one also failed
+            flash("Specified account for new deal not found.", "warning")
+    
+    # Instantiate the form, passing the current IDs for query construction
+    form = DealForm(current_account_id=form_current_account_id, current_contact_id=form_current_contact_id)
+
+    # Pre-populate form fields if objects were successfully fetched (for GET request display)
     if request.method == 'GET':
-        if preselected_contact_id:
-            contact_obj = Contact.query.filter_by(id=preselected_contact_id, sales_rep_id=sales_rep_id).first()
-            if contact_obj:
-                form.contact_id.data = contact_obj
-                # If contact has an account, pre-select it as well, unless an account_id was also passed explicitly
-                if contact_obj.crm_account and not preselected_account_id:
-                    form.crm_account_id.data = contact_obj.crm_account
-            else:
-                flash("Specified contact for new deal not found or not accessible.", "warning")
-        
-        if preselected_account_id:
-            account_obj = CrmAccount.query.filter_by(id=preselected_account_id, sales_rep_id=sales_rep_id).first()
-            if account_obj:
-                form.crm_account_id.data = account_obj
-            elif not form.crm_account_id.data: # Only flash if not already set by contact
-                flash("Specified account for new deal not found or not accessible.", "warning")
-
-    # Query factories for dropdowns are already set in DealForm to filter by sales_rep_id
+        if preselected_contact_obj:
+            form.contact_id.data = preselected_contact_obj
+        if preselected_account_obj: # This uses the account from arg or from contact
+            form.crm_account_id.data = preselected_account_obj
     
     if form.validate_on_submit():
         try:
@@ -2819,7 +3006,7 @@ def create_deal():
             db.session.commit()
             flash(f'Deal "{new_deal.name}" created successfully!', 'success')
             return redirect(url_for('crm.list_deals'))
-        except Exception as e: # Added except block
+        except Exception as e:
             db.session.rollback()
             current_app.logger.error(f"Error creating deal: {e}")
             flash(f'Error creating deal: {str(e)}. Please check your input and try again.', 'error')
@@ -2883,14 +3070,18 @@ def edit_deal(deal_id):
         query = query.filter_by(sales_rep_id=current_sales_profile_id)
     
     deal = query.first_or_404()
-    form = DealForm(obj=deal)
+    form = DealForm(obj=deal,
+                    current_account_id=deal.crm_account_id, 
+                    current_contact_id=deal.contact_id)
     
-    if is_sales_manager:
-        form.crm_account_id.query_factory = lambda: CrmAccount.query.order_by(CrmAccount.name).all()
-        form.contact_id.query_factory = lambda: Contact.query.order_by(Contact.first_name).all()
-    else:
-        # Defaults in DealForm filter by sales_rep_id of the current_user, which is correct for non-managers
-        pass 
+    # The __init__ in DealForm now handles setting the .query for crm_account_id and contact_id fields.
+    # No need for explicit query_factory settings here anymore if __init__ is comprehensive.
+    # if is_sales_manager:
+    #     form.crm_account_id.query_factory = lambda: CrmAccount.query.order_by(CrmAccount.name).all()
+    #     form.contact_id.query_factory = lambda: Contact.query.order_by(Contact.first_name).all()
+    # else:
+    #     # Defaults in DealForm filter by sales_rep_id of the current_user, which is correct for non-managers
+    #     pass 
 
     if form.validate_on_submit():
         try:
@@ -2916,8 +3107,14 @@ def edit_deal(deal_id):
     # This is usually handled by WTForms if `obj` is passed correctly and field names match.
     # However, for QuerySelectField, you might need to explicitly set the data if it's not working automatically.
     if request.method == 'GET':
-        form.crm_account_id.data = deal.crm_account # Pre-select the CrmAccount object
-        form.contact_id.data = deal.contact       # Pre-select the Contact object
+        # Form fields are now populated by obj=deal and the custom __init__ will ensure
+        # the correct query is set for the dropdowns, including the current selections.
+        # Explicitly setting .data here after form instantiation with obj can sometimes be redundant
+        # or interfere if not done carefully. The primary role of passing current_X_id to __init__
+        # is to ensure the *choices* in the dropdown are correct.
+        # WTForms' obj population should handle setting the *selected value*.
+        pass # form.crm_account_id.data = deal.crm_account 
+        # pass # form.contact_id.data = deal.contact       
 
     return render_template('crm/deal_form.html',
                            form=form,

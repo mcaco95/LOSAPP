@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, redirect, url_for, flash, request, current_app
+from flask import Blueprint, render_template, redirect, url_for, flash, request, current_app, jsonify
 from flask_login import login_required, current_user
 from werkzeug.utils import secure_filename
 import os
@@ -9,7 +9,7 @@ from qrcode.image.styles.colormasks import RadialGradiantColorMask
 from PIL import Image, ImageDraw
 from io import BytesIO
 import base64
-from ..decorators import admin_required
+from ..decorators import admin_required, operations_required
 from ..models.user import User, db
 from ..forms import AdminUserForm, AdminUserEditForm, ChangePasswordForm, ProfilePictureForm
 from ..models.operations_user import OperationsUser
@@ -249,3 +249,27 @@ def update_profile_picture():
     else:
         flash('Invalid file type. Please upload an image file.', 'error')
     return redirect(url_for('users.profile'))
+
+@users.route('/users/operations', methods=['GET'])
+@login_required
+@operations_required
+def get_operations_users():
+    """Get all users with operations access"""
+    try:
+        users = User.query.join(OperationsUser).all()
+        
+        return jsonify({
+            'status': 'success',
+            'users': [{
+                'id': user.id,
+                'name': user.name,
+                'email': user.email
+            } for user in users]
+        })
+        
+    except Exception as e:
+        current_app.logger.error(f"Error fetching operations users: {str(e)}", exc_info=True)
+        return jsonify({
+            'status': 'error',
+            'message': 'Failed to fetch operations users'
+        }), 500

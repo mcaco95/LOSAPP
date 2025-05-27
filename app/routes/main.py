@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, redirect, request, url_for, jsonify, flash, current_app, abort
 from flask_login import login_required, current_user
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from sqlalchemy import func, text
 from app.services.points import PointService
 from app.services.company import CompanyService
@@ -452,5 +452,6 @@ def operations_dashboard():
     return render_template('dashboard/operations/index.html',
         user=current_user,
         role=current_user.operations_profile.role,
-        extension=current_user.operations_profile.extension
+        extension=current_user.operations_profile.extension,
+        timezone=timezone
     )

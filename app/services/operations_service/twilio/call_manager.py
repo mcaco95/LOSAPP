@@ -3,6 +3,7 @@ from twilio.twiml.voice_response import VoiceResponse
 from flask import current_app
 import redis
 from datetime import datetime
+from .... import db
 
 class CallManager:
     """Service for managing Twilio calls"""

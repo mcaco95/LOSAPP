@@ -1,0 +1,1626 @@
+{
+  "timestamp": "2025-05-26T14:15:02.047538",
+  "event_type": "AlertIncident",
+  "event_id": "dcc949ff-4d5e-49d8-9728-1767ed2f8c06",
+  "org_id": 3000388,
+  "vehicle_info": {
+    "id": null,
+    "name": null
+  },
+  "trailer_info": {
+    "id": null,
+    "name": null
+  },
+  "conditions": [
+    {
+      "triggerId": 1031,
+      "description": "Asset stops moving",
+      "details": {
+        "deviceMovementStopped": {
+          "vehicle": {
+            "id": "281474985961492",
+            "externalIds": {
+              "samsara.serial": "G3GK5RGPZ4",
+              "samsara.vin": "3AKJHTDV3RSUX4540"
+            },
+            "name": "1045",
+            "tags": [
+              {
+                "id": "3155609",
+                "name": "Day Cab",
+                "parentTagId": "3265240"
+              },
+              {
+                "id": "4674563",
+                "name": "IFTA Reporting"
+              }
+            ],
+            "serial": "G3GK5RGPZ4"
+          },
+          "driver": {
+            "id": "7752944",
+            "name": "Ray  Phipps",
+            "tags": [
+              {
+                "id": "3155282",
+                "name": "Reefer",
+                "parentTagId": "3265239"
+              },
+              {
+                "id": "3155283",
+                "name": "Multi-Temp",
+                "parentTagId": "3265239"
+              },
+              {
+                "id": "3155284",
+                "name": "Dry Van",
+                "parentTagId": "3265239"
+              },
+              {
+                "id": "3155609",
+                "name": "Day Cab",
+                "parentTagId": "3265240"
+              },
+              {
+                "id": "3155610",
+                "name": "Sleeper",
+                "parentTagId": "3265240"
+              },
+              {
+                "id": "3155611",
+                "name": "Tanker",
+                "parentTagId": "3265239"
+              },
+              {
+                "id": "3265249",
+                "name": "Santa Rosa",
+                "parentTagId": "3265236"
+              }
+            ]
+          }
+        }
+      }
+    }
+  ],
+  "processing_details": {
+    "message": "Alert processed successfully"
+  },
+  "raw_data": {
+    "eventId": "dcc949ff-4d5e-49d8-9728-1767ed2f8c06",
+    "eventTime": "2025-05-26T20:14:13.047Z",
+    "eventType": "AlertIncident",
+    "orgId": 3000388,
+    "webhookId": "7308935500489801",
+    "data": {
+      "configurationId": "73256f19-aa50-4a9e-8248-5064ce256ebd",
+      "updatedAtTime": "2025-05-26T21:15:01Z",
+      "happenedAtTime": "2025-05-26T20:14:13Z",
+      "isResolved": false,
+      "incidentUrl": "https://cloud.samsara.com/o/3000388/fleet/workflows/incidents/73256f19-aa50-4a9e-8248-5064ce256ebd/1/281474985961492/1748290453047",
+      "conditions": [
+        {
+          "triggerId": 1031,
+          "description": "Asset stops moving",
+          "details": {
+            "deviceMovementStopped": {
+              "vehicle": {
+                "id": "281474985961492",
+                "externalIds": {
+                  "samsara.serial": "G3GK5RGPZ4",
+                  "samsara.vin": "3AKJHTDV3RSUX4540"
+                },
+                "name": "1045",
+                "tags": [
+                  {
+                    "id": "3155609",
+                    "name": "Day Cab",
+                    "parentTagId": "3265240"
+                  },
+                  {
+                    "id": "4674563",
+                    "name": "IFTA Reporting"
+                  }
+                ],
+                "serial": "G3GK5RGPZ4"
+              },
+              "driver": {
+                "id": "7752944",
+                "name": "Ray  Phipps",
+                "tags": [
+                  {
+                    "id": "3155282",
+                    "name": "Reefer",
+                    "parentTagId": "3265239"
+                  },
+                  {
+                    "id": "3155283",
+                    "name": "Multi-Temp",
+                    "parentTagId": "3265239"
+                  },
+                  {
+                    "id": "3155284",
+                    "name": "Dry Van",
+                    "parentTagId": "3265239"
+                  },
+                  {
+                    "id": "3155609",
+                    "name": "Day Cab",
+                    "parentTagId": "3265240"
+                  },
+                  {
+                    "id": "3155610",
+                    "name": "Sleeper",
+                    "parentTagId": "3265240"
+                  },
+                  {
+                    "id": "3155611",
+                    "name": "Tanker",
+                    "parentTagId": "3265239"
+                  },
+                  {
+                    "id": "3265249",
+                    "name": "Santa Rosa",
+                    "parentTagId": "3265236"
+                  }
+                ]
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}
+
+{
+  "timestamp": "2025-05-26T15:12:32.766493",
+  "event_type": "AlertIncident",
+  "event_id": "26e5987f-1bdb-46ee-b7e7-bba5f30f6017",
+  "org_id": 3000388,
+  "vehicle_info": {
+    "id": null,
+    "name": null
+  },
+  "trailer_info": {
+    "id": null,
+    "name": null
+  },
+  "conditions": [
+    {
+      "triggerId": 1031,
+      "description": "Asset stops moving",
+      "details": {
+        "deviceMovementStopped": {
+          "vehicle": {
+            "id": "281474979495771",
+            "externalIds": {
+              "samsara.serial": "GNBTYWY2V6",
+              "samsara.vin": "3AKJHPDV3PSNX9230"
+            },
+            "name": "2091",
+            "tags": [
+              {
+                "id": "3155610",
+                "name": "Sleeper",
+                "parentTagId": "3265240"
+              },
+              {
+                "id": "4674563",
+                "name": "IFTA Reporting"
+              }
+            ],
+            "attributes": [
+              {
+                "id": "38c1b7d0-3b1b-42d5-b246-456a79dd3c9a",
+                "name": "Trailer Status",
+                "stringValues": [
+                  "Empty",
+                  "Out of Service",
+                  "Loaded"
+                ]
+              }
+            ],
+            "serial": "GNBTYWY2V6"
+          },
+          "driver": {
+            "id": "34604494",
+            "name": "John Oliver"
+          }
+        }
+      }
+    }
+  ],
+  "processing_details": {
+    "message": "Alert processed successfully"
+  },
+  "raw_data": {
+    "eventId": "26e5987f-1bdb-46ee-b7e7-bba5f30f6017",
+    "eventTime": "2025-05-26T21:07:46.017Z",
+    "eventType": "AlertIncident",
+    "orgId": 3000388,
+    "webhookId": "7308935500489801",
+    "data": {
+      "configurationId": "73256f19-aa50-4a9e-8248-5064ce256ebd",
+      "updatedAtTime": "2025-05-26T22:12:32Z",
+      "happenedAtTime": "2025-05-26T21:07:46Z",
+      "isResolved": false,
+      "incidentUrl": "https://cloud.samsara.com/o/3000388/fleet/workflows/incidents/73256f19-aa50-4a9e-8248-5064ce256ebd/1/281474979495771/1748293666017",
+      "conditions": [
+        {
+          "triggerId": 1031,
+          "description": "Asset stops moving",
+          "details": {
+            "deviceMovementStopped": {
+              "vehicle": {
+                "id": "281474979495771",
+                "externalIds": {
+                  "samsara.serial": "GNBTYWY2V6",
+                  "samsara.vin": "3AKJHPDV3PSNX9230"
+                },
+                "name": "2091",
+                "tags": [
+                  {
+                    "id": "3155610",
+                    "name": "Sleeper",
+                    "parentTagId": "3265240"
+                  },
+                  {
+                    "id": "4674563",
+                    "name": "IFTA Reporting"
+                  }
+                ],
+                "attributes": [
+                  {
+                    "id": "38c1b7d0-3b1b-42d5-b246-456a79dd3c9a",
+                    "name": "Trailer Status",
+                    "stringValues": [
+                      "Empty",
+                      "Out of Service",
+                      "Loaded"
+                    ]
+                  }
+                ],
+                "serial": "GNBTYWY2V6"
+              },
+              "driver": {
+                "id": "34604494",
+                "name": "John Oliver"
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}
+
+{
+  "timestamp": "2025-05-26T15:18:28.004453",
+  "event_type": "SevereSpeedingStarted",
+  "event_id": "f216dc1f-106e-40e6-88d3-c4b6c2bfe082",
+  "org_id": 3000388,
+  "vehicle_info": {
+    "id": null,
+    "name": null
+  },
+  "trailer_info": {
+    "id": null,
+    "name": null
+  },
+  "conditions": [],
+  "processing_details": {
+    "message": "Speeding event processed successfully"
+  },
+  "raw_data": {
+    "eventId": "f216dc1f-106e-40e6-88d3-c4b6c2bfe082",
+    "eventTime": "2025-05-26T22:16:01.705Z",
+    "eventType": "SevereSpeedingStarted",
+    "orgId": 3000388,
+    "webhookId": "7308935500489801",
+    "data": {
+      "data": {
+        "tripStartTime": "2025-05-26T20:59:24.295Z",
+        "startTime": "2025-05-26T22:16:01.705Z",
+        "vehicle": {
+          "id": "281474987971587"
+        }
+      }
+    }
+  }
+}
+
+{
+  "timestamp": "2025-05-26T15:18:30.158506",
+  "event_type": "SevereSpeedingEnded",
+  "event_id": "893d7a14-4db2-4303-afba-f9713376cfeb",
+  "org_id": 3000388,
+  "vehicle_info": {
+    "id": null,
+    "name": null
+  },
+  "trailer_info": {
+    "id": null,
+    "name": null
+  },
+  "conditions": [],
+  "processing_details": {
+    "message": "Speeding event processed successfully"
+  },
+  "raw_data": {
+    "eventId": "893d7a14-4db2-4303-afba-f9713376cfeb",
+    "eventTime": "2025-05-26T22:17:11.834Z",
+    "eventType": "SevereSpeedingEnded",
+    "orgId": 3000388,
+    "webhookId": "7308935500489801",
+    "data": {
+      "data": {
+        "tripStartTime": "2025-05-26T20:59:24.295Z",
+        "startTime": "2025-05-26T22:16:01.705Z",
+        "endTime": "2025-05-26T22:17:11.834Z",
+        "vehicle": {
+          "id": "281474987971587"
+        }
+      }
+    }
+  }
+}
+
+{
+  "timestamp": "2025-05-26T15:38:42.112217",
+  "event_type": "AlertIncident",
+  "event_id": "fa1fdc89-abd5-4d6b-b9c5-b3370027fe4e",
+  "org_id": 3000388,
+  "vehicle_info": {
+    "id": null,
+    "name": null
+  },
+  "trailer_info": {
+    "id": null,
+    "name": null
+  },
+  "conditions": [
+    {
+      "triggerId": 1031,
+      "description": "Asset stops moving",
+      "details": {
+        "deviceMovementStopped": {
+          "vehicle": {
+            "id": "281474994315026",
+            "externalIds": {
+              "samsara.serial": "GZRDRG5AEZ",
+              "samsara.vin": "3AKJHPDV6SSVW7582"
+            },
+            "name": "2146",
+            "tags": [
+              {
+                "id": "3155610",
+                "name": "Sleeper",
+                "parentTagId": "3265240"
+              }
+            ],
+            "serial": "GZRDRG5AEZ"
+          },
+          "driver": {
+            "id": "52985520",
+            "name": "Roberto Suarez"
+          }
+        }
+      }
+    }
+  ],
+  "processing_details": {
+    "message": "Alert processed successfully"
+  },
+  "raw_data": {
+    "eventId": "fa1fdc89-abd5-4d6b-b9c5-b3370027fe4e",
+    "eventTime": "2025-05-26T21:37:19.004Z",
+    "eventType": "AlertIncident",
+    "orgId": 3000388,
+    "webhookId": "7308935500489801",
+    "data": {
+      "configurationId": "73256f19-aa50-4a9e-8248-5064ce256ebd",
+      "updatedAtTime": "2025-05-26T22:38:41Z",
+      "happenedAtTime": "2025-05-26T21:37:19Z",
+      "isResolved": false,
+      "incidentUrl": "https://cloud.samsara.com/o/3000388/fleet/workflows/incidents/73256f19-aa50-4a9e-8248-5064ce256ebd/1/281474994315026/1748295439004",
+      "conditions": [
+        {
+          "triggerId": 1031,
+          "description": "Asset stops moving",
+          "details": {
+            "deviceMovementStopped": {
+              "vehicle": {
+                "id": "281474994315026",
+                "externalIds": {
+                  "samsara.serial": "GZRDRG5AEZ",
+                  "samsara.vin": "3AKJHPDV6SSVW7582"
+                },
+                "name": "2146",
+                "tags": [
+                  {
+                    "id": "3155610",
+                    "name": "Sleeper",
+                    "parentTagId": "3265240"
+                  }
+                ],
+                "serial": "GZRDRG5AEZ"
+              },
+              "driver": {
+                "id": "52985520",
+                "name": "Roberto Suarez"
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}
+
+{
+  "timestamp": "2025-05-26T15:40:09.169173",
+  "event_type": "SevereSpeedingEnded",
+  "event_id": "12c8e2b2-df2d-44f1-b49d-077407df219b",
+  "org_id": 3000388,
+  "vehicle_info": {
+    "id": null,
+    "name": null
+  },
+  "trailer_info": {
+    "id": null,
+    "name": null
+  },
+  "conditions": [],
+  "processing_details": {
+    "message": "Speeding event processed successfully"
+  },
+  "raw_data": {
+    "eventId": "12c8e2b2-df2d-44f1-b49d-077407df219b",
+    "eventTime": "2025-05-26T22:39:31.006Z",
+    "eventType": "SevereSpeedingEnded",
+    "orgId": 3000388,
+    "webhookId": "7308935500489801",
+    "data": {
+      "data": {
+        "tripStartTime": "2025-05-26T22:26:12.261Z",
+        "startTime": "2025-05-26T22:38:26.009Z",
+        "endTime": "2025-05-26T22:39:31.006Z",
+        "vehicle": {
+          "id": "281474978767088"
+        }
+      }
+    }
+  }
+}
+
+{
+  "timestamp": "2025-05-26T15:40:11.257093",
+  "event_type": "SevereSpeedingStarted",
+  "event_id": "be7de649-0c96-4a25-8711-25488dcaa142",
+  "org_id": 3000388,
+  "vehicle_info": {
+    "id": null,
+    "name": null
+  },
+  "trailer_info": {
+    "id": null,
+    "name": null
+  },
+  "conditions": [],
+  "processing_details": {
+    "message": "Speeding event processed successfully"
+  },
+  "raw_data": {
+    "eventId": "be7de649-0c96-4a25-8711-25488dcaa142",
+    "eventTime": "2025-05-26T22:38:26.009Z",
+    "eventType": "SevereSpeedingStarted",
+    "orgId": 3000388,
+    "webhookId": "7308935500489801",
+    "data": {
+      "data": {
+        "tripStartTime": "2025-05-26T22:26:12.261Z",
+        "startTime": "2025-05-26T22:38:26.009Z",
+        "vehicle": {
+          "id": "281474978767088"
+        }
+      }
+    }
+  }
+}
+
+{
+  "timestamp": "2025-05-26T16:01:27.968862",
+  "event_type": "AlertIncident",
+  "event_id": "fa1dd11e-302d-42b7-9368-8a9ca53d6c70",
+  "org_id": 3000388,
+  "vehicle_info": {
+    "id": null,
+    "name": null
+  },
+  "trailer_info": {
+    "id": null,
+    "name": null
+  },
+  "conditions": [
+    {
+      "triggerId": 1031,
+      "description": "Asset stops moving",
+      "details": {
+        "deviceMovementStopped": {
+          "vehicle": {
+            "id": "281474988058195",
+            "externalIds": {
+              "samsara.serial": "GX9JPW63BX",
+              "samsara.vin": "1XKYD49XXRJ353355"
+            },
+            "name": "2118",
+            "tags": [
+              {
+                "id": "3155610",
+                "name": "Sleeper",
+                "parentTagId": "3265240"
+              },
+              {
+                "id": "4674563",
+                "name": "IFTA Reporting"
+              }
+            ],
+            "serial": "GX9JPW63BX"
+          },
+          "driver": {
+            "id": "52796185",
+            "name": "Marvin Williams"
+          }
+        }
+      }
+    }
+  ],
+  "processing_details": {
+    "message": "Alert processed successfully"
+  },
+  "raw_data": {
+    "eventId": "fa1dd11e-302d-42b7-9368-8a9ca53d6c70",
+    "eventTime": "2025-05-26T22:00:24.100Z",
+    "eventType": "AlertIncident",
+    "orgId": 3000388,
+    "webhookId": "7308935500489801",
+    "data": {
+      "configurationId": "73256f19-aa50-4a9e-8248-5064ce256ebd",
+      "updatedAtTime": "2025-05-26T23:01:27Z",
+      "happenedAtTime": "2025-05-26T22:00:24Z",
+      "isResolved": false,
+      "incidentUrl": "https://cloud.samsara.com/o/3000388/fleet/workflows/incidents/73256f19-aa50-4a9e-8248-5064ce256ebd/1/281474988058195/1748296824100",
+      "conditions": [
+        {
+          "triggerId": 1031,
+          "description": "Asset stops moving",
+          "details": {
+            "deviceMovementStopped": {
+              "vehicle": {
+                "id": "281474988058195",
+                "externalIds": {
+                  "samsara.serial": "GX9JPW63BX",
+                  "samsara.vin": "1XKYD49XXRJ353355"
+                },
+                "name": "2118",
+                "tags": [
+                  {
+                    "id": "3155610",
+                    "name": "Sleeper",
+                    "parentTagId": "3265240"
+                  },
+                  {
+                    "id": "4674563",
+                    "name": "IFTA Reporting"
+                  }
+                ],
+                "serial": "GX9JPW63BX"
+              },
+              "driver": {
+                "id": "52796185",
+                "name": "Marvin Williams"
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}
+
+{
+  "timestamp": "2025-05-26T16:10:08.884177",
+  "event_type": "SevereSpeedingStarted",
+  "event_id": "7bd139c9-cbfa-4264-9155-1db07394b8e0",
+  "org_id": 3000388,
+  "vehicle_info": {
+    "id": null,
+    "name": null
+  },
+  "trailer_info": {
+    "id": null,
+    "name": null
+  },
+  "conditions": [],
+  "processing_details": {
+    "message": "Speeding event processed successfully"
+  },
+  "raw_data": {
+    "eventId": "7bd139c9-cbfa-4264-9155-1db07394b8e0",
+    "eventTime": "2025-05-26T23:08:33.031Z",
+    "eventType": "SevereSpeedingStarted",
+    "orgId": 3000388,
+    "webhookId": "7308935500489801",
+    "data": {
+      "data": {
+        "tripStartTime": "2025-05-26T22:26:12.261Z",
+        "startTime": "2025-05-26T23:08:33.031Z",
+        "vehicle": {
+          "id": "281474978767088"
+        }
+      }
+    }
+  }
+}
+
+{
+  "timestamp": "2025-05-26T16:11:08.722563",
+  "event_type": "SevereSpeedingEnded",
+  "event_id": "cee8c8ec-b35f-4ea2-a148-93e50d26ab64",
+  "org_id": 3000388,
+  "vehicle_info": {
+    "id": null,
+    "name": null
+  },
+  "trailer_info": {
+    "id": null,
+    "name": null
+  },
+  "conditions": [],
+  "processing_details": {
+    "message": "Speeding event processed successfully"
+  },
+  "raw_data": {
+    "eventId": "cee8c8ec-b35f-4ea2-a148-93e50d26ab64",
+    "eventTime": "2025-05-26T23:10:17.024Z",
+    "eventType": "SevereSpeedingEnded",
+    "orgId": 3000388,
+    "webhookId": "7308935500489801",
+    "data": {
+      "data": {
+        "tripStartTime": "2025-05-26T22:26:12.261Z",
+        "startTime": "2025-05-26T23:08:33.031Z",
+        "endTime": "2025-05-26T23:10:17.024Z",
+        "vehicle": {
+          "id": "281474978767088"
+        }
+      }
+    }
+  }
+}
+
+{
+  "timestamp": "2025-05-26T16:12:08.666757",
+  "event_type": "SevereSpeedingStarted",
+  "event_id": "cd99577d-0556-4d79-b7f2-11d7d5a477a3",
+  "org_id": 3000388,
+  "vehicle_info": {
+    "id": null,
+    "name": null
+  },
+  "trailer_info": {
+    "id": null,
+    "name": null
+  },
+  "conditions": [],
+  "processing_details": {
+    "message": "Speeding event processed successfully"
+  },
+  "raw_data": {
+    "eventId": "cd99577d-0556-4d79-b7f2-11d7d5a477a3",
+    "eventTime": "2025-05-26T23:10:50.000Z",
+    "eventType": "SevereSpeedingStarted",
+    "orgId": 3000388,
+    "webhookId": "7308935500489801",
+    "data": {
+      "data": {
+        "tripStartTime": "2025-05-26T22:26:12.261Z",
+        "startTime": "2025-05-26T23:10:50.000Z",
+        "vehicle": {
+          "id": "281474978767088"
+        }
+      }
+    }
+  }
+}
+
+{
+  "timestamp": "2025-05-26T16:13:09.002722",
+  "event_type": "SevereSpeedingEnded",
+  "event_id": "1fab17b9-e8bf-4058-983a-dd47e5a99691",
+  "org_id": 3000388,
+  "vehicle_info": {
+    "id": null,
+    "name": null
+  },
+  "trailer_info": {
+    "id": null,
+    "name": null
+  },
+  "conditions": [],
+  "processing_details": {
+    "message": "Speeding event processed successfully"
+  },
+  "raw_data": {
+    "eventId": "1fab17b9-e8bf-4058-983a-dd47e5a99691",
+    "eventTime": "2025-05-26T23:12:36.005Z",
+    "eventType": "SevereSpeedingEnded",
+    "orgId": 3000388,
+    "webhookId": "7308935500489801",
+    "data": {
+      "data": {
+        "tripStartTime": "2025-05-26T22:26:12.261Z",
+        "startTime": "2025-05-26T23:10:50.000Z",
+        "endTime": "2025-05-26T23:12:36.005Z",
+        "vehicle": {
+          "id": "281474978767088"
+        }
+      }
+    }
+  }
+}
+
+{
+  "timestamp": "2025-05-26T16:15:44.442655",
+  "event_type": "AlertIncident",
+  "event_id": "d04e6d26-d1ab-4b55-be38-f4cbe49cf529",
+  "org_id": 3000388,
+  "vehicle_info": {
+    "id": null,
+    "name": null
+  },
+  "trailer_info": {
+    "id": null,
+    "name": null
+  },
+  "conditions": [
+    {
+      "triggerId": 1031,
+      "description": "Asset stops moving",
+      "details": {
+        "deviceMovementStopped": {
+          "vehicle": {
+            "id": "281474982779714",
+            "externalIds": {
+              "samsara.serial": "GC9KCJ48YM",
+              "samsara.vin": "3AKJHPDV7PSNX9232"
+            },
+            "name": "2093",
+            "tags": [
+              {
+                "id": "3155610",
+                "name": "Sleeper",
+                "parentTagId": "3265240"
+              },
+              {
+                "id": "4674563",
+                "name": "IFTA Reporting"
+              }
+            ],
+            "serial": "GC9KCJ48YM"
+          },
+          "driver": {
+            "id": "51216989",
+            "name": "David Williams"
+          }
+        }
+      }
+    }
+  ],
+  "processing_details": {
+    "message": "Alert processed successfully"
+  },
+  "raw_data": {
+    "eventId": "d04e6d26-d1ab-4b55-be38-f4cbe49cf529",
+    "eventTime": "2025-05-26T22:15:04.020Z",
+    "eventType": "AlertIncident",
+    "orgId": 3000388,
+    "webhookId": "7308935500489801",
+    "data": {
+      "configurationId": "73256f19-aa50-4a9e-8248-5064ce256ebd",
+      "updatedAtTime": "2025-05-26T23:15:43Z",
+      "happenedAtTime": "2025-05-26T22:15:04Z",
+      "isResolved": false,
+      "incidentUrl": "https://cloud.samsara.com/o/3000388/fleet/workflows/incidents/73256f19-aa50-4a9e-8248-5064ce256ebd/1/281474982779714/1748297704020",
+      "conditions": [
+        {
+          "triggerId": 1031,
+          "description": "Asset stops moving",
+          "details": {
+            "deviceMovementStopped": {
+              "vehicle": {
+                "id": "281474982779714",
+                "externalIds": {
+                  "samsara.serial": "GC9KCJ48YM",
+                  "samsara.vin": "3AKJHPDV7PSNX9232"
+                },
+                "name": "2093",
+                "tags": [
+                  {
+                    "id": "3155610",
+                    "name": "Sleeper",
+                    "parentTagId": "3265240"
+                  },
+                  {
+                    "id": "4674563",
+                    "name": "IFTA Reporting"
+                  }
+                ],
+                "serial": "GC9KCJ48YM"
+              },
+              "driver": {
+                "id": "51216989",
+                "name": "David Williams"
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}
+
+{
+  "timestamp": "2025-05-26T16:23:20.496915",
+  "event_type": "AlertIncident",
+  "event_id": "5cdc7f57-244c-412b-a903-c40710eb6ba3",
+  "org_id": 3000388,
+  "vehicle_info": {
+    "id": null,
+    "name": null
+  },
+  "trailer_info": {
+    "id": null,
+    "name": null
+  },
+  "conditions": [
+    {
+      "triggerId": 1031,
+      "description": "Asset stops moving",
+      "details": {
+        "deviceMovementStopped": {
+          "vehicle": {
+            "id": "281474987888558",
+            "externalIds": {
+              "samsara.serial": "GP3WY4R32E",
+              "samsara.vin": "1XKYDP9X6KJ227145"
+            },
+            "name": "2104",
+            "tags": [
+              {
+                "id": "3155610",
+                "name": "Sleeper",
+                "parentTagId": "3265240"
+              },
+              {
+                "id": "4674563",
+                "name": "IFTA Reporting"
+              }
+            ],
+            "serial": "GP3WY4R32E"
+          },
+          "driver": {
+            "id": "7752980",
+            "name": "Matthew  Schell",
+            "tags": [
+              {
+                "id": "3155282",
+                "name": "Reefer",
+                "parentTagId": "3265239"
+              },
+              {
+                "id": "3155283",
+                "name": "Multi-Temp",
+                "parentTagId": "3265239"
+              },
+              {
+                "id": "3155284",
+                "name": "Dry Van",
+                "parentTagId": "3265239"
+              },
+              {
+                "id": "3155609",
+                "name": "Day Cab",
+                "parentTagId": "3265240"
+              },
+              {
+                "id": "3155610",
+                "name": "Sleeper",
+                "parentTagId": "3265240"
+              },
+              {
+                "id": "3155611",
+                "name": "Tanker",
+                "parentTagId": "3265239"
+              },
+              {
+                "id": "3265249",
+                "name": "Santa Rosa",
+                "parentTagId": "3265236"
+              }
+            ]
+          }
+        }
+      }
+    }
+  ],
+  "processing_details": {
+    "message": "Alert processed successfully"
+  },
+  "raw_data": {
+    "eventId": "5cdc7f57-244c-412b-a903-c40710eb6ba3",
+    "eventTime": "2025-05-26T22:18:29.012Z",
+    "eventType": "AlertIncident",
+    "orgId": 3000388,
+    "webhookId": "7308935500489801",
+    "data": {
+      "configurationId": "73256f19-aa50-4a9e-8248-5064ce256ebd",
+      "updatedAtTime": "2025-05-26T23:23:20Z",
+      "happenedAtTime": "2025-05-26T22:18:29Z",
+      "isResolved": false,
+      "incidentUrl": "https://cloud.samsara.com/o/3000388/fleet/workflows/incidents/73256f19-aa50-4a9e-8248-5064ce256ebd/1/281474987888558/1748297909012",
+      "conditions": [
+        {
+          "triggerId": 1031,
+          "description": "Asset stops moving",
+          "details": {
+            "deviceMovementStopped": {
+              "vehicle": {
+                "id": "281474987888558",
+                "externalIds": {
+                  "samsara.serial": "GP3WY4R32E",
+                  "samsara.vin": "1XKYDP9X6KJ227145"
+                },
+                "name": "2104",
+                "tags": [
+                  {
+                    "id": "3155610",
+                    "name": "Sleeper",
+                    "parentTagId": "3265240"
+                  },
+                  {
+                    "id": "4674563",
+                    "name": "IFTA Reporting"
+                  }
+                ],
+                "serial": "GP3WY4R32E"
+              },
+              "driver": {
+                "id": "7752980",
+                "name": "Matthew  Schell",
+                "tags": [
+                  {
+                    "id": "3155282",
+                    "name": "Reefer",
+                    "parentTagId": "3265239"
+                  },
+                  {
+                    "id": "3155283",
+                    "name": "Multi-Temp",
+                    "parentTagId": "3265239"
+                  },
+                  {
+                    "id": "3155284",
+                    "name": "Dry Van",
+                    "parentTagId": "3265239"
+                  },
+                  {
+                    "id": "3155609",
+                    "name": "Day Cab",
+                    "parentTagId": "3265240"
+                  },
+                  {
+                    "id": "3155610",
+                    "name": "Sleeper",
+                    "parentTagId": "3265240"
+                  },
+                  {
+                    "id": "3155611",
+                    "name": "Tanker",
+                    "parentTagId": "3265239"
+                  },
+                  {
+                    "id": "3265249",
+                    "name": "Santa Rosa",
+                    "parentTagId": "3265236"
+                  }
+                ]
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}
+
+{
+  "timestamp": "2025-05-26T16:50:01.873587",
+  "event_type": "AlertIncident",
+  "event_id": "6df3c539-40ff-44e9-ad45-ccb00465bbd9",
+  "org_id": 3000388,
+  "vehicle_info": {
+    "id": null,
+    "name": null
+  },
+  "trailer_info": {
+    "id": null,
+    "name": null
+  },
+  "conditions": [
+    {
+      "triggerId": 1031,
+      "description": "Asset stops moving",
+      "details": {
+        "deviceMovementStopped": {
+          "vehicle": {
+            "id": "281474985179468",
+            "externalIds": {
+              "samsara.serial": "G5J8S6WCRH",
+              "samsara.vin": "3AKJHPDV1RSUX4012"
+            },
+            "name": "2095",
+            "tags": [
+              {
+                "id": "3155610",
+                "name": "Sleeper",
+                "parentTagId": "3265240"
+              },
+              {
+                "id": "4674563",
+                "name": "IFTA Reporting"
+              }
+            ],
+            "serial": "G5J8S6WCRH"
+          },
+          "driver": {
+            "id": "51944337",
+            "name": "Juan Romo Ruiz"
+          }
+        }
+      }
+    }
+  ],
+  "processing_details": {
+    "message": "Alert processed successfully"
+  },
+  "raw_data": {
+    "eventId": "6df3c539-40ff-44e9-ad45-ccb00465bbd9",
+    "eventTime": "2025-05-26T22:48:52.995Z",
+    "eventType": "AlertIncident",
+    "orgId": 3000388,
+    "webhookId": "7308935500489801",
+    "data": {
+      "configurationId": "73256f19-aa50-4a9e-8248-5064ce256ebd",
+      "updatedAtTime": "2025-05-26T23:50:01Z",
+      "happenedAtTime": "2025-05-26T22:48:52Z",
+      "isResolved": false,
+      "incidentUrl": "https://cloud.samsara.com/o/3000388/fleet/workflows/incidents/73256f19-aa50-4a9e-8248-5064ce256ebd/1/281474985179468/1748299732995",
+      "conditions": [
+        {
+          "triggerId": 1031,
+          "description": "Asset stops moving",
+          "details": {
+            "deviceMovementStopped": {
+              "vehicle": {
+                "id": "281474985179468",
+                "externalIds": {
+                  "samsara.serial": "G5J8S6WCRH",
+                  "samsara.vin": "3AKJHPDV1RSUX4012"
+                },
+                "name": "2095",
+                "tags": [
+                  {
+                    "id": "3155610",
+                    "name": "Sleeper",
+                    "parentTagId": "3265240"
+                  },
+                  {
+                    "id": "4674563",
+                    "name": "IFTA Reporting"
+                  }
+                ],
+                "serial": "G5J8S6WCRH"
+              },
+              "driver": {
+                "id": "51944337",
+                "name": "Juan Romo Ruiz"
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}
+
+{
+  "timestamp": "2025-05-26T22:54:47.046596",
+  "event_type": "AlertIncident",
+  "event_id": "93c843e4-2032-4f52-b973-5fb49135a363",
+  "org_id": 3000388,
+  "vehicle_info": {
+    "id": null,
+    "name": null
+  },
+  "trailer_info": {
+    "id": null,
+    "name": null
+  },
+  "conditions": [
+    {
+      "triggerId": 1031,
+      "description": "Asset stops moving",
+      "details": {
+        "deviceMovementStopped": {
+          "vehicle": {
+            "id": "281474979495793",
+            "externalIds": {
+              "samsara.serial": "GNG3P2M3XC",
+              "samsara.vin": "4V4NC9EH5LN256162"
+            },
+            "name": "2046",
+            "tags": [
+              {
+                "id": "3155610",
+                "name": "Sleeper",
+                "parentTagId": "3265240"
+              }
+            ],
+            "serial": "GNG3P2M3XC"
+          },
+          "driver": {
+            "id": "7752959",
+            "name": "Mario Diaz",
+            "tags": [
+              {
+                "id": "3265252",
+                "name": "Sub-Contractors",
+                "parentTagId": "3265236"
+              }
+            ]
+          }
+        }
+      }
+    }
+  ],
+  "processing_details": {
+    "message": "Alert processed successfully"
+  },
+  "raw_data": {
+    "eventId": "93c843e4-2032-4f52-b973-5fb49135a363",
+    "eventTime": "2025-05-27T04:53:10.916Z",
+    "eventType": "AlertIncident",
+    "orgId": 3000388,
+    "webhookId": "7308935500489801",
+    "data": {
+      "configurationId": "73256f19-aa50-4a9e-8248-5064ce256ebd",
+      "updatedAtTime": "2025-05-27T05:54:45Z",
+      "happenedAtTime": "2025-05-27T04:53:10Z",
+      "isResolved": false,
+      "incidentUrl": "https://cloud.samsara.com/o/3000388/fleet/workflows/incidents/73256f19-aa50-4a9e-8248-5064ce256ebd/1/281474979495793/1748321590916",
+      "conditions": [
+        {
+          "triggerId": 1031,
+          "description": "Asset stops moving",
+          "details": {
+            "deviceMovementStopped": {
+              "vehicle": {
+                "id": "281474979495793",
+                "externalIds": {
+                  "samsara.serial": "GNG3P2M3XC",
+                  "samsara.vin": "4V4NC9EH5LN256162"
+                },
+                "name": "2046",
+                "tags": [
+                  {
+                    "id": "3155610",
+                    "name": "Sleeper",
+                    "parentTagId": "3265240"
+                  }
+                ],
+                "serial": "GNG3P2M3XC"
+              },
+              "driver": {
+                "id": "7752959",
+                "name": "Mario Diaz",
+                "tags": [
+                  {
+                    "id": "3265252",
+                    "name": "Sub-Contractors",
+                    "parentTagId": "3265236"
+                  }
+                ]
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}
+
+{
+  "timestamp": "2025-05-26T22:56:28.905566",
+  "event_type": "AlertIncident",
+  "event_id": "32435927-3ab6-4500-bbc6-62489818f3a5",
+  "org_id": 3000388,
+  "vehicle_info": {
+    "id": null,
+    "name": null
+  },
+  "trailer_info": {
+    "id": null,
+    "name": null
+  },
+  "conditions": [
+    {
+      "triggerId": 1031,
+      "description": "Asset stops moving",
+      "details": {
+        "deviceMovementStopped": {
+          "vehicle": {
+            "id": "281474988044892",
+            "externalIds": {
+              "samsara.serial": "G296V9Z86N",
+              "samsara.vin": "1XKYD49X4RJ353352"
+            },
+            "name": "2115",
+            "tags": [
+              {
+                "id": "3155610",
+                "name": "Sleeper",
+                "parentTagId": "3265240"
+              },
+              {
+                "id": "4674563",
+                "name": "IFTA Reporting"
+              }
+            ],
+            "serial": "G296V9Z86N"
+          },
+          "driver": {
+            "id": "7752999",
+            "name": "Dennis McAnulty",
+            "tags": [
+              {
+                "id": "3155282",
+                "name": "Reefer",
+                "parentTagId": "3265239"
+              },
+              {
+                "id": "3155283",
+                "name": "Multi-Temp",
+                "parentTagId": "3265239"
+              },
+              {
+                "id": "3155284",
+                "name": "Dry Van",
+                "parentTagId": "3265239"
+              },
+              {
+                "id": "3155609",
+                "name": "Day Cab",
+                "parentTagId": "3265240"
+              },
+              {
+                "id": "3155610",
+                "name": "Sleeper",
+                "parentTagId": "3265240"
+              },
+              {
+                "id": "3155611",
+                "name": "Tanker",
+                "parentTagId": "3265239"
+              },
+              {
+                "id": "3265248",
+                "name": "Oregon",
+                "parentTagId": "3265236"
+              }
+            ]
+          }
+        }
+      }
+    }
+  ],
+  "processing_details": {
+    "message": "Alert processed successfully"
+  },
+  "raw_data": {
+    "eventId": "32435927-3ab6-4500-bbc6-62489818f3a5",
+    "eventTime": "2025-05-27T04:55:55.021Z",
+    "eventType": "AlertIncident",
+    "orgId": 3000388,
+    "webhookId": "7308935500489801",
+    "data": {
+      "configurationId": "73256f19-aa50-4a9e-8248-5064ce256ebd",
+      "updatedAtTime": "2025-05-27T05:56:27Z",
+      "happenedAtTime": "2025-05-27T04:55:55Z",
+      "isResolved": false,
+      "incidentUrl": "https://cloud.samsara.com/o/3000388/fleet/workflows/incidents/73256f19-aa50-4a9e-8248-5064ce256ebd/1/281474988044892/1748321755021",
+      "conditions": [
+        {
+          "triggerId": 1031,
+          "description": "Asset stops moving",
+          "details": {
+            "deviceMovementStopped": {
+              "vehicle": {
+                "id": "281474988044892",
+                "externalIds": {
+                  "samsara.serial": "G296V9Z86N",
+                  "samsara.vin": "1XKYD49X4RJ353352"
+                },
+                "name": "2115",
+                "tags": [
+                  {
+                    "id": "3155610",
+                    "name": "Sleeper",
+                    "parentTagId": "3265240"
+                  },
+                  {
+                    "id": "4674563",
+                    "name": "IFTA Reporting"
+                  }
+                ],
+                "serial": "G296V9Z86N"
+              },
+              "driver": {
+                "id": "7752999",
+                "name": "Dennis McAnulty",
+                "tags": [
+                  {
+                    "id": "3155282",
+                    "name": "Reefer",
+                    "parentTagId": "3265239"
+                  },
+                  {
+                    "id": "3155283",
+                    "name": "Multi-Temp",
+                    "parentTagId": "3265239"
+                  },
+                  {
+                    "id": "3155284",
+                    "name": "Dry Van",
+                    "parentTagId": "3265239"
+                  },
+                  {
+                    "id": "3155609",
+                    "name": "Day Cab",
+                    "parentTagId": "3265240"
+                  },
+                  {
+                    "id": "3155610",
+                    "name": "Sleeper",
+                    "parentTagId": "3265240"
+                  },
+                  {
+                    "id": "3155611",
+                    "name": "Tanker",
+                    "parentTagId": "3265239"
+                  },
+                  {
+                    "id": "3265248",
+                    "name": "Oregon",
+                    "parentTagId": "3265236"
+                  }
+                ]
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}
+
+{
+  "timestamp": "2025-05-26T23:05:08.649338",
+  "event_type": "AlertIncident",
+  "event_id": "da0d8981-ff50-4a18-93d1-a33c9bbd88aa",
+  "org_id": 3000388,
+  "vehicle_info": {
+    "id": null,
+    "name": null
+  },
+  "trailer_info": {
+    "id": null,
+    "name": null
+  },
+  "conditions": [
+    {
+      "triggerId": 1031,
+      "description": "Asset stops moving",
+      "details": {
+        "deviceMovementStopped": {
+          "vehicle": {
+            "id": "281474991709395",
+            "externalIds": {
+              "samsara.serial": "GJ68TT5NT4",
+              "samsara.vin": "3AKJHPDV9SSVW7575"
+            },
+            "name": "2139",
+            "tags": [
+              {
+                "id": "3155610",
+                "name": "Sleeper",
+                "parentTagId": "3265240"
+              },
+              {
+                "id": "4674563",
+                "name": "IFTA Reporting"
+              }
+            ],
+            "serial": "GJ68TT5NT4"
+          },
+          "driver": {
+            "id": "50960305",
+            "name": "Gabriel Pavich"
+          }
+        }
+      }
+    }
+  ],
+  "processing_details": {
+    "message": "Alert processed successfully"
+  },
+  "raw_data": {
+    "eventId": "da0d8981-ff50-4a18-93d1-a33c9bbd88aa",
+    "eventTime": "2025-05-27T05:03:36.028Z",
+    "eventType": "AlertIncident",
+    "orgId": 3000388,
+    "webhookId": "7308935500489801",
+    "data": {
+      "configurationId": "73256f19-aa50-4a9e-8248-5064ce256ebd",
+      "updatedAtTime": "2025-05-27T06:05:07Z",
+      "happenedAtTime": "2025-05-27T05:03:36Z",
+      "isResolved": false,
+      "incidentUrl": "https://cloud.samsara.com/o/3000388/fleet/workflows/incidents/73256f19-aa50-4a9e-8248-5064ce256ebd/1/281474991709395/1748322216028",
+      "conditions": [
+        {
+          "triggerId": 1031,
+          "description": "Asset stops moving",
+          "details": {
+            "deviceMovementStopped": {
+              "vehicle": {
+                "id": "281474991709395",
+                "externalIds": {
+                  "samsara.serial": "GJ68TT5NT4",
+                  "samsara.vin": "3AKJHPDV9SSVW7575"
+                },
+                "name": "2139",
+                "tags": [
+                  {
+                    "id": "3155610",
+                    "name": "Sleeper",
+                    "parentTagId": "3265240"
+                  },
+                  {
+                    "id": "4674563",
+                    "name": "IFTA Reporting"
+                  }
+                ],
+                "serial": "GJ68TT5NT4"
+              },
+              "driver": {
+                "id": "50960305",
+                "name": "Gabriel Pavich"
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}
+
+{
+  "timestamp": "2025-05-26T23:05:21.355758",
+  "event_type": "AlertIncident",
+  "event_id": "f302adf7-722c-45b1-ac9b-b729a873af78",
+  "org_id": 3000388,
+  "vehicle_info": {
+    "id": null,
+    "name": null
+  },
+  "trailer_info": {
+    "id": null,
+    "name": null
+  },
+  "conditions": [
+    {
+      "triggerId": 1031,
+      "description": "Asset stops moving",
+      "details": {
+        "deviceMovementStopped": {
+          "vehicle": {
+            "id": "281474986146365",
+            "externalIds": {
+              "samsara.serial": "GR9YB78BSR",
+              "samsara.vin": "3AKJHPDV5RSUX4014"
+            },
+            "name": "2097",
+            "tags": [
+              {
+                "id": "3155610",
+                "name": "Sleeper",
+                "parentTagId": "3265240"
+              },
+              {
+                "id": "4674563",
+                "name": "IFTA Reporting"
+              }
+            ],
+            "serial": "GR9YB78BSR"
+          },
+          "driver": {
+            "id": "30760192",
+            "name": "Feliciano Saucedo"
+          }
+        }
+      }
+    }
+  ],
+  "processing_details": {
+    "message": "Alert processed successfully"
+  },
+  "raw_data": {
+    "eventId": "f302adf7-722c-45b1-ac9b-b729a873af78",
+    "eventTime": "2025-05-27T05:03:18.131Z",
+    "eventType": "AlertIncident",
+    "orgId": 3000388,
+    "webhookId": "7308935500489801",
+    "data": {
+      "configurationId": "73256f19-aa50-4a9e-8248-5064ce256ebd",
+      "updatedAtTime": "2025-05-27T06:05:19Z",
+      "happenedAtTime": "2025-05-27T05:03:18Z",
+      "isResolved": false,
+      "incidentUrl": "https://cloud.samsara.com/o/3000388/fleet/workflows/incidents/73256f19-aa50-4a9e-8248-5064ce256ebd/1/281474986146365/1748322198131",
+      "conditions": [
+        {
+          "triggerId": 1031,
+          "description": "Asset stops moving",
+          "details": {
+            "deviceMovementStopped": {
+              "vehicle": {
+                "id": "281474986146365",
+                "externalIds": {
+                  "samsara.serial": "GR9YB78BSR",
+                  "samsara.vin": "3AKJHPDV5RSUX4014"
+                },
+                "name": "2097",
+                "tags": [
+                  {
+                    "id": "3155610",
+                    "name": "Sleeper",
+                    "parentTagId": "3265240"
+                  },
+                  {
+                    "id": "4674563",
+                    "name": "IFTA Reporting"
+                  }
+                ],
+                "serial": "GR9YB78BSR"
+              },
+              "driver": {
+                "id": "30760192",
+                "name": "Feliciano Saucedo"
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}
+

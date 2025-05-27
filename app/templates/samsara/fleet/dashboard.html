@@ -1,0 +1,247 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container-fluid px-4">
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <h1 class="h2">{{ client.name }} - Fleet Management</h1>
+        <div class="btn-toolbar mb-2 mb-md-0">
+            <div class="btn-group me-2">
+                <button type="button" class="btn btn-sm btn-outline-secondary" id="refreshFleet">
+                    <i class="fas fa-sync-alt"></i> Refresh
+                </button>
+                <button type="button" class="btn btn-sm btn-outline-primary" id="syncFleet">
+                    <i class="fas fa-cloud-download-alt"></i> Sync with Samsara
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sync Status Alert -->
+    <div id="syncAlert" class="alert alert-dismissible fade" role="alert" style="display: none;">
+        <div id="syncAlertContent"></div>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+
+    <!-- Fleet Overview Cards -->
+    <div class="row g-4 mb-4">
+        <div class="col-12 col-sm-6 col-xl-3">
+            <div class="card border-0 shadow">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="icon-shape icon-shape-primary rounded me-3">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <div>
+                            <h2 class="h6 text-gray-400 mb-0">Total Drivers</h2>
+                            <h3 class="fw-extrabold mb-0" id="totalDrivers">-</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-sm-6 col-xl-3">
+            <div class="card border-0 shadow">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="icon-shape icon-shape-success rounded me-3">
+                            <i class="fas fa-truck"></i>
+                        </div>
+                        <div>
+                            <h2 class="h6 text-gray-400 mb-0">Total Vehicles</h2>
+                            <h3 class="fw-extrabold mb-0" id="totalVehicles">-</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-sm-6 col-xl-3">
+            <div class="card border-0 shadow">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="icon-shape icon-shape-info rounded me-3">
+                            <i class="fas fa-trailer"></i>
+                        </div>
+                        <div>
+                            <h2 class="h6 text-gray-400 mb-0">Total Trailers</h2>
+                            <h3 class="fw-extrabold mb-0" id="totalTrailers">-</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-sm-6 col-xl-3">
+            <div class="card border-0 shadow">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="icon-shape icon-shape-warning rounded me-3">
+                            <i class="fas fa-exclamation-triangle"></i>
+                        </div>
+                        <div>
+                            <h2 class="h6 text-gray-400 mb-0">Active Alerts</h2>
+                            <h3 class="fw-extrabold mb-0" id="activeAlerts">-</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabs for Different Sections -->
+    <ul class="nav nav-tabs" id="fleetTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="drivers-tab" data-bs-toggle="tab" data-bs-target="#drivers" type="button" role="tab">
+                <i class="fas fa-users me-2"></i>Drivers
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="vehicles-tab" data-bs-toggle="tab" data-bs-target="#vehicles" type="button" role="tab">
+                <i class="fas fa-truck me-2"></i>Vehicles
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="trailers-tab" data-bs-toggle="tab" data-bs-target="#trailers" type="button" role="tab">
+                <i class="fas fa-trailer me-2"></i>Trailers
+            </button>
+        </li>
+    </ul>
+
+    <!-- Tab Content -->
+    <div class="tab-content mt-4" id="fleetTabContent">
+        <!-- Drivers Tab -->
+        <div class="tab-pane fade show active" id="drivers" role="tabpanel">
+            <div class="card border-0 shadow">
+                <div class="card-header">
+                    <div class="row align-items-center">
+                        <div class="col">
+                            <h5 class="mb-0">Drivers</h5>
+                        </div>
+                        <div class="col-auto">
+                            <input type="text" class="form-control form-control-sm" id="driverSearch" placeholder="Search drivers...">
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table align-items-center table-flush table-hover" id="driversTable">
+                            <thead class="thead-light">
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Status</th>
+                                    <th>Phone</th>
+                                    <th>License</th>
+                                    <th>Vehicle</th>
+                                    <th>Location</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Drivers will be loaded here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Vehicles Tab -->
+        <div class="tab-pane fade" id="vehicles" role="tabpanel">
+            <div class="card border-0 shadow">
+                <div class="card-header">
+                    <div class="row align-items-center">
+                        <div class="col">
+                            <h5 class="mb-0">Vehicles</h5>
+                        </div>
+                        <div class="col-auto">
+                            <input type="text" class="form-control form-control-sm" id="vehicleSearch" placeholder="Search vehicles...">
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table align-items-center table-flush table-hover" id="vehiclesTable">
+                            <thead class="thead-light">
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Status</th>
+                                    <th>Make/Model</th>
+                                    <th>VIN/Gateway</th>
+                                    <th>License Plate</th>
+                                    <th>Assigned Driver</th>
+                                    <th>Location</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Vehicles will be loaded here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Trailers Tab -->
+        <div class="tab-pane fade" id="trailers" role="tabpanel">
+            <div class="card border-0 shadow">
+                <div class="card-header">
+                    <div class="row align-items-center">
+                        <div class="col">
+                            <h5 class="mb-0">Trailers</h5>
+                        </div>
+                        <div class="col-auto">
+                            <input type="text" class="form-control form-control-sm" id="trailerSearch" placeholder="Search trailers...">
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table align-items-center table-flush table-hover" id="trailersTable">
+                            <thead class="thead-light">
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Status</th>
+                                    <th>Type</th>
+                                    <th>License/Gateway</th>
+                                    <th>Assigned Vehicle</th>
+                                    <th>Location</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Trailers will be loaded here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Details Modal -->
+<div class="modal fade" id="detailsModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="detailsModalTitle">Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="detailsModalBody">
+                <!-- Details will be loaded here -->
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Store client ID for API calls
+    const clientId = {{ client.id }};
+</script>
+<script src="{{ url_for('static', filename='js/utils/modal-utils.js') }}"></script>
+<script src="{{ url_for('static', filename='js/fleet.js') }}"></script>
+{% endblock %} 

@@ -21,6 +21,9 @@ class Contact(db.Model):
     source = db.Column(db.String(50), nullable=True) 
     # Example sources: 'Website Lead', 'Referral', 'Cold Call', 'Event', 'Advertisement', 'Other'
     
+    custom_data = db.Column(db.JSON, nullable=True) # For flexible custom fields initially
+    is_primary_for_account = db.Column(db.Boolean, default=False, nullable=False)
+
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
