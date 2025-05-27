@@ -24,6 +24,27 @@ def index():
         return redirect(url_for('main.dashboard'))
     return redirect(url_for('auth.login'))
 
+@main.route('/health')
+def health_check():
+    """Health check endpoint for Docker and load balancers"""
+    try:
+        # Test database connection
+        db.session.execute(text('SELECT 1'))
+        
+        return jsonify({
+            'status': 'healthy',
+            'timestamp': datetime.utcnow().isoformat(),
+            'version': '1.0.0',
+            'database': 'connected'
+        }), 200
+    except Exception as e:
+        current_app.logger.error(f"Health check failed: {str(e)}")
+        return jsonify({
+            'status': 'unhealthy',
+            'timestamp': datetime.utcnow().isoformat(),
+            'error': str(e)
+        }), 503
+
 @main.route('/dashboard')
 @login_required
 def dashboard():
