@@ -1392,8 +1392,8 @@ def make_call():
             to=to_number,
             from_=current_app.config['TWILIO_PHONE_NUMBER'], # Using the app's main Twilio number
             # This TwiML app URL needs to handle the 'client:sales-{id}' identity
-            url=f"{webhook_base}/webhooks/voice", 
-            status_callback=f"{webhook_base}/webhooks/status",
+            url=f"{webhook_base}/operations/webhooks/voice", 
+            status_callback=f"{webhook_base}/operations/webhooks/status",
             status_callback_event=['initiated', 'ringing', 'answered', 'completed'],
             record=record
         )

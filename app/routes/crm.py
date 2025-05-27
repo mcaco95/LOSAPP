@@ -2577,14 +2577,14 @@ def make_call():
             'DialTo': to_number, 
             'DialRecord': str(record).lower()
         })
-        twiml_url = f"{webhook_base}/webhooks/voice?{twiml_params}"
+        twiml_url = f"{webhook_base}/operations/webhooks/voice?{twiml_params}"
         current_app.logger.info(f"Using TwiML URL: {twiml_url}")
 
         call = call_manager.client.calls.create(
             to=to_number,
             from_=from_number_to_use,
             url=twiml_url, 
-            status_callback=f"{webhook_base}/webhooks/status",
+            status_callback=f"{webhook_base}/operations/webhooks/status",
             status_callback_event=['initiated', 'ringing', 'answered', 'completed']
         )
         call_sid = call.sid

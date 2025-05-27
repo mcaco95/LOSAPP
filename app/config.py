@@ -39,8 +39,8 @@ class Config:
     TWILIO_AUTH_TOKEN = os.environ.get('TWILIO_AUTH_TOKEN')
     TWILIO_PHONE_NUMBER = os.environ.get('TWILIO_PHONE_NUMBER')
     TWILIO_WEBHOOK_BASE_URL = os.environ.get('TWILIO_WEBHOOK_BASE_URL', 'https://your-domain.com')
-    TWILIO_VOICE_WEBHOOK = f"{TWILIO_WEBHOOK_BASE_URL}/webhooks/voice"
-    TWILIO_STATUS_CALLBACK = f"{TWILIO_WEBHOOK_BASE_URL}/webhooks/status"
+    TWILIO_VOICE_WEBHOOK = f"{TWILIO_WEBHOOK_BASE_URL}/operations/webhooks/voice"
+    TWILIO_STATUS_CALLBACK = f"{TWILIO_WEBHOOK_BASE_URL}/operations/webhooks/status"
     
     # Twilio Voice SDK Configuration
     TWILIO_API_KEY = os.environ.get('TWILIO_API_KEY')
