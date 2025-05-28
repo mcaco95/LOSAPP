@@ -41,47 +41,8 @@ services:
   web:
     build: .
     container_name: los_web
-    environment:
-      # Database
-      DATABASE_URL: postgresql://postgres:${POSTGRES_PASSWORD:-your_secure_password}@postgres:5432/los_referral
-      
-      # Redis
-      REDIS_URL: redis://redis:6379/0
-      
-      # Security
-      SECRET_KEY: ${SECRET_KEY:-your-very-secure-secret-key-change-this}
-      
-      # Email Configuration
-      MAIL_SERVER: ${MAIL_SERVER:-smtp.gmail.com}
-      MAIL_PORT: ${MAIL_PORT:-587}
-      MAIL_USE_TLS: ${MAIL_USE_TLS:-True}
-      MAIL_USERNAME: ${MAIL_USERNAME}
-      MAIL_PASSWORD: ${MAIL_PASSWORD}
-      MAIL_DEFAULT_SENDER: ${MAIL_DEFAULT_SENDER}
-      
-      # OAuth
-      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
-      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
-      
-      # Twilio
-      TWILIO_ACCOUNT_SID: ${TWILIO_ACCOUNT_SID}
-      TWILIO_AUTH_TOKEN: ${TWILIO_AUTH_TOKEN}
-      TWILIO_PHONE_NUMBER: ${TWILIO_PHONE_NUMBER}
-      TWILIO_WEBHOOK_BASE_URL: ${TWILIO_WEBHOOK_BASE_URL:-https://your-domain.com}
-      TWILIO_API_KEY: ${TWILIO_API_KEY}
-      TWILIO_API_SECRET: ${TWILIO_API_SECRET}
-      TWILIO_TWIML_APP_SID: ${TWILIO_TWIML_APP_SID}
-      
-      # Samsara
-      SAMSARA_API_KEY: ${SAMSARA_API_KEY}
-      
-      # Call Recording
-      CALL_RECORDING_ENABLED: ${CALL_RECORDING_ENABLED:-True}
-      CALL_RECORDING_PATH: recordings
-      
-      # Flask
-      FLASK_ENV: production
-      FLASK_APP: app
+    env_file: .env
+    command: sh -c "flask db upgrade && gunicorn --config gunicorn.conf.py app:create_app()"
     volumes:
       - app_logs:/app/logs
       - app_recordings:/app/recordings
@@ -94,12 +55,6 @@ services:
       redis:
         condition: service_healthy
     restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 40s
 
   # Nginx Reverse Proxy (optional, for production)
   nginx:

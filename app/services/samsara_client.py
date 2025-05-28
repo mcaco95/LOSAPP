@@ -240,6 +240,57 @@ class SamsaraService:
             logger.error(f"Error processing webhook event: {str(e)}", exc_info=True)
             return False
 
+    def _extract_vehicle_id_from_alert(self, event_data):
+        """
+        Tries to extract a vehicle or trailer ID from an alert event payload
+        by checking common paths.
+        """
+        data = event_data.get('data', {})
+        conditions = data.get('conditions', [])
+        event_description = conditions[0].get('description', '').lower() if conditions else ''
+        event_id_for_log = event_data.get('eventId', 'UnknownEventID')
+
+        # Attempt 1: Standard vehicle in details (e.g., severeSpeeding as AlertIncident)
+        if conditions and conditions[0].get('details'):
+            details = conditions[0].get('details')
+            if 'severeSpeeding' in details and details['severeSpeeding'].get('data', {}).get('vehicle', {}).get('id'):
+                logger.info(f"Attempt 1: Extracted vehicle ID from severeSpeeding details for event {event_id_for_log}")
+                return details['severeSpeeding']['data']['vehicle']['id']
+            # Check for vehicle directly under details (if applicable for other alerts)
+            if details.get('vehicle', {}).get('id'):
+                 logger.info(f"Attempt 1.1: Extracted vehicle ID directly from details.vehicle for event {event_id_for_log}")
+                 return details['vehicle']['id']
+
+
+        # Attempt 2: Reefer Temperature (trailer ID)
+        if 'reefer temperature' in event_description:
+            if conditions and conditions[0].get('details', {}).get('reeferTemperature', {}).get('trailer', {}).get('id'):
+                logger.info(f"Attempt 2: Extracted trailer ID for reeferTemperature for event {event_id_for_log}")
+                return conditions[0]['details']['reeferTemperature']['trailer']['id']
+
+        # Attempt 3: Check common vehicle path if not found yet (e.g. from a generic alert structure)
+        # This is a common path seen in some webhook structures
+        if data.get('vehicle', {}).get('id'):
+            logger.info(f"Attempt 3: Extracted vehicle ID from data.vehicle for event {event_id_for_log}")
+            return data['vehicle']['id']
+            
+        # Attempt 4: Path for some speeding incidents (if they come as AlertIncident)
+        # event_data.data.data.vehicle.id (less common for AlertIncident, more for direct speeding events)
+        if data.get('data', {}).get('vehicle', {}).get('id'):
+            logger.info(f"Attempt 4: Extracted vehicle ID from data.data.vehicle for event {event_id_for_log}")
+            return data['data']['vehicle']['id']
+
+        # If it's an HOS Violation, vehicle ID is often not directly in the payload.
+        # The driver ID is primary. Vehicle might be linked via driver.
+        if 'driver hos violation' in event_description:
+            logger.warning(f"Vehicle ID not directly found for 'Driver HOS Violation' event {event_id_for_log}. This is often expected. Driver ID should be present.")
+            # No vehicle ID to return here from typical HOS violation payloads.
+            # Further logic might involve looking up vehicle by driver if necessary.
+            return None
+
+        logger.warning(f"Could not extract vehicle/trailer ID from alert payload for event {event_id_for_log} with description '{event_description}' using known paths.")
+        return None
+
     def _process_alert_event(self, event_data):
         """Process alert type events"""
         try:
@@ -257,138 +308,186 @@ class SamsaraService:
             logger.info(f"Found SamsaraClient (DB ID: {samsara_client_instance.id}, Name: {samsara_client_instance.name}) for org_id: {org_id_for_log}")
 
             # 2. Get or create company
-            company = None
-            if samsara_client_instance.company:
-                company = samsara_client_instance.company
-                logger.info(f"Using existing Company (DB ID: {company.id}, Name: {company.name}) linked to SamsaraClient (DB ID: {samsara_client_instance.id}) (speeding event).")
-            else:
-                # Try to find existing company by name match
-                company = Company.query.filter_by(name=samsara_client_instance.name).first()
-                if company:
-                    logger.info(f"Found existing Company (DB ID: {company.id}, Name: {company.name}) by name match for SamsaraClient {samsara_client_instance.name} (speeding event).")
-                    samsara_client_instance.company = company
-                else:
-                    logger.info(f"No existing Company found by name match for SamsaraClient Name: {samsara_client_instance.name} (speeding event). Creating new Company.")
-                    company = Company(
-                        name=samsara_client_instance.name,
-                        user_id=1,  # Default User ID for Samsara-created companies
-                        status='referral_form_completed',  # Default status for Samsara companies
-                        created_at=datetime.utcnow(),
-                        updated_at=datetime.utcnow()
-                    )
+            company = Company.query.filter_by(samsara_client_id=samsara_client_instance.id).first()
+            if not company:
+                logger.warning(f"No Company found linked to SamsaraClient ID {samsara_client_instance.id}. Attempting to use/create company based on SamsaraClient name. (Event ID: {event_id_for_log})")
+                # Try to find company by name, or create a new one
+                company_name = samsara_client_instance.name  # Or a default name if name is not reliable
+                company = Company.query.filter_by(name=company_name).first()
+                if not company:
+                    logger.info(f"Creating new Company: {company_name} for SamsaraClient ID {samsara_client_instance.id} (Event ID: {event_id_for_log})")
+                    company = Company(name=company_name, samsara_client_id=samsara_client_instance.id)
                     db.session.add(company)
-                    logger.info(f"Created new Company (DB ID pending commit: {company.id}, Name: {samsara_client_instance.name}) for SamsaraClient {samsara_client_instance.name} (speeding event).")
-                    samsara_client_instance.company = company
+                    try:
+                        db.session.commit()
+                        logger.info(f"Successfully created new Company (DB ID: {company.id}) (Event ID: {event_id_for_log})")
+                    except Exception as e_commit_company:
+                        db.session.rollback()
+                        logger.error(f"Failed to create Company '{company_name}': {str(e_commit_company)} (Event ID: {event_id_for_log})")
+                        self._log_webhook_error(event_data, e_commit_company, f"Company creation failed for {company_name}")
+                        return False
+                else:
+                    logger.info(f"Found existing Company (DB ID: {company.id}) by name '{company_name}'. Linking to SamsaraClient ID {samsara_client_instance.id}. (Event ID: {event_id_for_log})")
+                    if not company.samsara_client_id: # Link if not already linked
+                        company.samsara_client_id = samsara_client_instance.id 
+                        try:
+                            db.session.commit()
+                        except Exception as e_link_company:
+                            db.session.rollback()
+                            logger.error(f"Failed to link Company '{company_name}' to SamsaraClient ID {samsara_client_instance.id}: {str(e_link_company)}")
+                            # Continue processing, but this is a warning state
+            else:
+                logger.info(f"Using existing Company (DB ID: {company.id}, Name: {company.name}) linked to SamsaraClient (DB ID: {samsara_client_instance.id}) (Alert Event ID: {event_id_for_log})")
 
-                try:
-                    db.session.commit() # Commit new company and updated SamsaraClient link
-                    logger.info(f"Committed link: SamsaraClient (DB ID: {samsara_client_instance.id}) now linked to Company (DB ID: {company.id}) (speeding event).")
-                except Exception as e_commit_link:
-                    db.session.rollback()
-                    logger.error(f"Failed to commit new Company and/or link for SC {samsara_client_instance.id} to Company {company.id if company else 'NewCompanyError'}: {str(e_commit_link)} (speeding event)")
-                    self._log_webhook_error(event_data, f"Failed to commit Company/SC link for SC {samsara_client_instance.id} (speeding event)", str(e_commit_link))
-                    return False
 
-            if not company: # Should not happen
-                logger.critical(f"Company object is unexpectedly None after find/create logic for SC {samsara_client_instance.id} (speeding event).")
-                return False
-
-            logger.info(f"Proceeding with Company (DB ID: {company.id}, Name: {company.name}) for SamsaraClient org_id: {org_id_for_log} (speeding event).")
+            # 3. Extract Vehicle ID from payload
+            samsara_vehicle_id_from_payload = self._extract_vehicle_id_from_alert(event_data)
             
-            # Extract vehicle ID from the event data based on event type and structure
-            samsara_vehicle_id_from_payload = None
             conditions = alert_data.get('conditions', [])
-            if conditions and len(conditions) > 0:
-                details = conditions[0].get('details', {})
-                # Check different possible paths for vehicle ID based on event type
-                if 'deviceMovementStopped' in details:
-                    samsara_vehicle_id_from_payload = details['deviceMovementStopped'].get('vehicle', {}).get('id')
-                elif 'geofenceExit' in details:
-                    samsara_vehicle_id_from_payload = details['geofenceExit'].get('vehicle', {}).get('id')
-                elif 'geofenceEntry' in details:
-                    samsara_vehicle_id_from_payload = details['geofenceEntry'].get('vehicle', {}).get('id')
-                elif 'unassignedDriving' in details:
-                    samsara_vehicle_id_from_payload = details['unassignedDriving'].get('vehicle', {}).get('id')
-                elif 'reeferTemperature' in details:
-                    # For reefer temperature alerts, use the trailer ID
-                    samsara_vehicle_id_from_payload = details['reeferTemperature'].get('trailer', {}).get('id')
-                elif 'severeSpeeding' in details:
-                    vehicle_data = details['severeSpeeding'].get('data', {}).get('vehicle', {})
-                    samsara_vehicle_id_from_payload = vehicle_data.get('id')
-                    if not samsara_vehicle_id_from_payload:
-                        logger.warning(f"No vehicle ID found in severeSpeeding data: {vehicle_data}")
-                elif 'harshEvent' in details:
-                    vehicle_data = details['harshEvent'].get('vehicle', {})
-                    samsara_vehicle_id_from_payload = vehicle_data.get('id')
-                    if not samsara_vehicle_id_from_payload:
-                        logger.warning(f"No vehicle ID found in harshEvent vehicle data: {vehicle_data}")
-                # Add more event types as needed
-            
-            if not samsara_vehicle_id_from_payload:
-                logger.warning(f"No vehicle/trailer ID found in event payload (Event ID: {event_id_for_log}). Cannot process vehicle/alert.")
+            specific_event_type = conditions[0].get('description') if conditions else event_data.get('eventType')
+            is_hos_violation = 'driver hos violation' in (specific_event_type.lower() if specific_event_type else '')
+
+
+            if not samsara_vehicle_id_from_payload and not is_hos_violation:
+                logger.warning(f"No vehicle/trailer ID found in event payload (Event ID: {event_id_for_log}, Type: {specific_event_type}). Cannot process vehicle/alert.")
                 self._log_webhook_error(event_data, "No vehicle/trailer ID found in payload", "Vehicle/Trailer ID extraction failed")
                 return False
             
-            logger.info(f"Extracted Samsara Vehicle ID from payload: {samsara_vehicle_id_from_payload} (Event ID: {event_id_for_log})")
-                
-            # Get or create vehicle record
-            vehicle_in_db = SamsaraVehicle.query.filter_by(vehicle_id=samsara_vehicle_id_from_payload).first()
+            if samsara_vehicle_id_from_payload:
+                logger.info(f"Extracted Samsara Vehicle/Trailer ID from payload: {samsara_vehicle_id_from_payload} (Event ID: {event_id_for_log})")
+            elif is_hos_violation:
+                logger.info(f"Proceeding to create HOS Violation alert without direct vehicle ID. Driver ID will be primary. (Event ID: {event_id_for_log})")
+
+
+            # 4. Get or create vehicle record
+            vehicle_in_db = None
             db_vehicle_id_for_alert = None
 
-            if not vehicle_in_db:
-                logger.info(f"SamsaraVehicle with Samsara ID: {samsara_vehicle_id_from_payload} not found in DB. Creating new one. (Event ID: {event_id_for_log})")
-                # Extract vehicle data from the appropriate path based on event type
-                vehicle_payload_for_creation = None
-                if 'deviceMovementStopped' in details:
-                    vehicle_payload_for_creation = details['deviceMovementStopped'].get('vehicle', {})
-                elif 'geofenceExit' in details:
-                    vehicle_payload_for_creation = details['geofenceExit'].get('vehicle', {})
-                elif 'geofenceEntry' in details:
-                    vehicle_payload_for_creation = details['geofenceEntry'].get('vehicle', {})
-                elif 'unassignedDriving' in details:
-                    vehicle_payload_for_creation = details['unassignedDriving'].get('vehicle', {})
-                elif 'harshEvent' in details:
-                    vehicle_payload_for_creation = details['harshEvent'].get('vehicle', {})
-                elif 'severeSpeeding' in details:
-                    vehicle_data = details['severeSpeeding'].get('data', {}).get('vehicle', {})
-                    vehicle_payload_for_creation = {
-                        'id': vehicle_data.get('id'),
-                        'name': vehicle_data.get('name', f'Vehicle {vehicle_data.get("id")}'),  # Use vehicle name if provided
-                        'externalIds': vehicle_data.get('externalIds', {}),
-                        'vin': vehicle_data.get('vin')
-                    }
-                
-                if not vehicle_payload_for_creation:
-                    logger.error(f"Could not extract vehicle data for creation from payload (Event ID: {event_id_for_log})")
-                    return False
+            if samsara_vehicle_id_from_payload: # Only process vehicle if ID was found
+                vehicle_in_db = SamsaraVehicle.query.filter_by(samsara_id=samsara_vehicle_id_from_payload, company_id=company.id).first()
+                if not vehicle_in_db: # Check with just samsara_id if not found with company_id
+                    vehicle_in_db = SamsaraVehicle.query.filter_by(samsara_id=samsara_vehicle_id_from_payload).first()
+                    if vehicle_in_db and vehicle_in_db.company_id != company.id:
+                        logger.warning(f"SamsaraVehicle (Samsara ID: {samsara_vehicle_id_from_payload}) found but linked to different company (DB Company ID: {vehicle_in_db.company_id}, Current Company ID: {company.id}). This might be an issue or require re-association.")
+                        # Depending on business logic, you might re-associate or flag this. For now, we'll use the found vehicle.
+                    elif not vehicle_in_db:
+                         logger.info(f"SamsaraVehicle with Samsara ID: {samsara_vehicle_id_from_payload} not found in DB. Creating new one. (Event ID: {event_id_for_log})")
+                         # Extract vehicle data from the appropriate path based on event type
+                         vehicle_payload_for_creation = {}
+                         # Default name
+                         default_vehicle_name = f"Vehicle {samsara_vehicle_id_from_payload}"
 
-                new_vehicle_in_db = SamsaraVehicle(
-                    vehicle_id=samsara_vehicle_id_from_payload,
-                    name=vehicle_payload_for_creation.get('name', f'Unknown Vehicle {samsara_vehicle_id_from_payload}'),
-                    data=vehicle_payload_for_creation,
-                    company_id=company.id,
-                    external_ids=vehicle_payload_for_creation.get('externalIds'),
-                    vin=vehicle_payload_for_creation.get('vin')
-                )
-                db.session.add(new_vehicle_in_db)
-                try:
-                    db.session.commit()
-                    db_vehicle_id_for_alert = new_vehicle_in_db.id
-                    logger.info(f"Successfully created new SamsaraVehicle (DB ID: {db_vehicle_id_for_alert}) for Samsara ID: {samsara_vehicle_id_from_payload}")
-                except Exception as e_commit_vehicle:
-                    db.session.rollback()
-                    logger.error(f"Failed to create SamsaraVehicle: {str(e_commit_vehicle)}")
-                    self._log_webhook_error(event_data, e_commit_vehicle, f"Vehicle creation failed. Company: {company.id}, VehicleSamsaraId: {samsara_vehicle_id_from_payload}")
-                    return False
-            else:
-                db_vehicle_id_for_alert = vehicle_in_db.id
-                logger.info(f"Found existing SamsaraVehicle (DB ID: {vehicle_in_db.id}) for Samsara ID: {samsara_vehicle_id_from_payload}")
-                if vehicle_in_db.company_id != company.id:
-                    logger.warning(f"Existing SamsaraVehicle (DB ID: {vehicle_in_db.id}) is linked to Company ID {vehicle_in_db.company_id}, but current event context is for Company ID {company.id}. Updating vehicle's company link.")
-                    vehicle_in_db.company_id = company.id
+                         if specific_event_type and 'reefer temperature' in specific_event_type.lower():
+                             if conditions and conditions[0].get('details', {}).get('reeferTemperature', {}).get('trailer'):
+                                 trailer_details = conditions[0]['details']['reeferTemperature']['trailer']
+                                 vehicle_payload_for_creation['name'] = trailer_details.get('name', default_vehicle_name)
+                                 # Assuming 'samsara.serial' might be VIN or a unique identifier
+                                 vehicle_payload_for_creation['vin'] = trailer_details.get('externalIds', {}).get('samsara.serial')
+                                 vehicle_payload_for_creation['license_plate'] = trailer_details.get('trailerSerialNumber') # Or another relevant field for license plate
+                                 logger.info(f"Populated vehicle_payload_for_creation from reeferTemperature details: {vehicle_payload_for_creation}")
+                         elif specific_event_type and 'severe speeding' in specific_event_type.lower(): # Example for severe speeding if it comes as AlertIncident
+                             if conditions and conditions[0].get('details', {}).get('severeSpeeding', {}).get('data', {}).get('vehicle'):
+                                 speeding_vehicle_details = conditions[0]['details']['severeSpeeding']['data']['vehicle']
+                                 vehicle_payload_for_creation['name'] = speeding_vehicle_details.get('name', default_vehicle_name)
+                                 # VIN/license plate might not be in this specific payload snippet, add if available
+                                 logger.info(f"Populated vehicle_payload_for_creation from severeSpeeding (AlertIncident) details: {vehicle_payload_for_creation}")
+                         else: # Fallback or for other alert types that might contain vehicle info
+                            # Try a generic path if available in data.vehicle
+                            webhook_data_prop = event_data.get('data', {})
+                            if webhook_data_prop.get('vehicle'):
+                                vehicle_payload_for_creation['name'] = webhook_data_prop['vehicle'].get('name', default_vehicle_name)
+                                vehicle_payload_for_creation['vin'] = webhook_data_prop['vehicle'].get('vin')
+                                vehicle_payload_for_creation['license_plate'] = webhook_data_prop['vehicle'].get('licensePlate')
+                                logger.info(f"Populated vehicle_payload_for_creation from generic data.vehicle path: {vehicle_payload_for_creation}")
+                            elif conditions and conditions[0].get('details', {}).get('vehicle'): # another generic path
+                                vehicle_detail_node = conditions[0]['details']['vehicle']
+                                vehicle_payload_for_creation['name'] = vehicle_detail_node.get('name', default_vehicle_name)
+                                vehicle_payload_for_creation['vin'] = vehicle_detail_node.get('vin')
+                                vehicle_payload_for_creation['license_plate'] = vehicle_detail_node.get('licensePlate')      
+                                logger.info(f"Populated vehicle_payload_for_creation from generic conditions[0].details.vehicle path: {vehicle_payload_for_creation}")
 
-            # Parse timestamp
-            event_time_str = event_data.get('eventTime')
+
+                         if not vehicle_payload_for_creation.get('name'): # Ensure at least a name if nothing else found
+                            vehicle_payload_for_creation['name'] = default_vehicle_name
+                            logger.warning(f"Could not extract detailed vehicle data for creation for event {event_id_for_log}, type {specific_event_type}. Using default name.")
+                            # self._log_webhook_error(event_data, "Could not extract vehicle data for creation from payload", "Vehicle Creation Data Missing")
+                            # return False # Decide if this is a fatal error
+
+                         new_vehicle_in_db = SamsaraVehicle(
+                            samsara_id=samsara_vehicle_id_from_payload,
+                            company_id=company.id,
+                            name=vehicle_payload_for_creation.get('name'),
+                            vin=vehicle_payload_for_creation.get('vin'),
+                            license_plate=vehicle_payload_for_creation.get('license_plate'),
+                            # Ensure other required fields for your SamsaraVehicle model are present or have defaults
+                            # e.g. make, model, year, etc. if they are not nullable
+                         )
+                         db.session.add(new_vehicle_in_db)
+                         try:
+                             db.session.commit()
+                             db_vehicle_id_for_alert = new_vehicle_in_db.id
+                             logger.info(f"Successfully created new SamsaraVehicle (DB ID: {db_vehicle_id_for_alert}) for Samsara ID: {samsara_vehicle_id_from_payload}")
+                         except Exception as e_commit_vehicle:
+                             db.session.rollback()
+                             logger.error(f"Failed to create SamsaraVehicle for Samsara ID {samsara_vehicle_id_from_payload}: {str(e_commit_vehicle)} (Event ID: {event_id_for_log})")
+                             self._log_webhook_error(event_data, e_commit_vehicle, f"Vehicle creation failed. Company: {company.id}, VehicleSamsaraId: {samsara_vehicle_id_from_payload}")
+                             return False
+                else: # Vehicle was found
+                    db_vehicle_id_for_alert = vehicle_in_db.id
+                    logger.info(f"Found existing SamsaraVehicle (DB ID: {vehicle_in_db.id}) for Samsara ID: {samsara_vehicle_id_from_payload} (Event ID: {event_id_for_log})")
+                    if vehicle_in_db.company_id != company.id:
+                        logger.warning(f"Existing SamsaraVehicle (DB ID: {vehicle_in_db.id}) for Samsara ID {samsara_vehicle_id_from_payload} is linked to Company ID {vehicle_in_db.company_id}, but current event context is for Company ID {company.id}. Updating vehicle's company link.")
+                        vehicle_in_db.company_id = company.id
+                        # Potentially update other vehicle details if they can change and payload has them
+                        db.session.add(vehicle_in_db) # Add to session before commit
+                        try:
+                            db.session.commit()
+                            logger.info(f"Successfully updated company link for SamsaraVehicle (DB ID: {vehicle_in_db.id})")
+                        except Exception as e_update_vehicle_company:
+                            db.session.rollback()
+                            logger.error(f"Failed to update company link for SamsaraVehicle (DB ID: {vehicle_in_db.id}): {str(e_update_vehicle_company)}")
+                            # This might not be a fatal error, depends on requirements.
+
+
+            # 5. Extract Driver Info & Get/Create Driver Record
+            driver_samsara_id = None
+            driver_name = None
+            driver_record = None
+
+            if conditions and conditions[0].get('details'):
+                details = conditions[0]['details']
+                if 'hosViolation' in details and details['hosViolation'].get('driver'):
+                    driver_samsara_id = details['hosViolation']['driver'].get('id')
+                    driver_name = details['hosViolation']['driver'].get('name')
+                # Add other alert types that might contain driver info directly
+                # elif 'other_alert_type_with_driver' in details ...
+
+            if driver_samsara_id:
+                logger.info(f"Extracted driver ID {driver_samsara_id} and name '{driver_name}' from HOS Violation payload (Event ID: {event_id_for_log})")
+                driver_record = SamsaraDriver.query.filter_by(samsara_id=driver_samsara_id, company_id=company.id).first()
+                if not driver_record:
+                    logger.info(f"Driver with Samsara ID {driver_samsara_id} not found for Company ID {company.id}. Creating new driver. (Event ID: {event_id_for_log})")
+                    new_driver = SamsaraDriver(
+                        samsara_id=driver_samsara_id,
+                        name=driver_name or f"Driver {driver_samsara_id}",
+                        company_id=company.id
+                        # Populate other fields like username, license_number if available and needed
+                    )
+                    db.session.add(new_driver)
+                    try:
+                        db.session.commit()
+                        driver_record = new_driver
+                        logger.info(f"Successfully created new SamsaraDriver (DB ID: {driver_record.id}) for Samsara ID {driver_samsara_id} (Event ID: {event_id_for_log})")
+                    except Exception as e_commit_driver:
+                        db.session.rollback()
+                        logger.error(f"Failed to create SamsaraDriver for Samsara ID {driver_samsara_id}: {str(e_commit_driver)} (Event ID: {event_id_for_log})")
+                        self._log_webhook_error(event_data, e_commit_driver, f"Driver creation failed for {driver_samsara_id}")
+                        # Decide if this is fatal; an HOS alert might still be created without a driver_record if allowed
+                else:
+                    logger.info(f"Found existing SamsaraDriver (DB ID: {driver_record.id}) for Samsara ID {driver_samsara_id} (Event ID: {event_id_for_log})")
+            
+            # 6. Parse timestamp
+            event_time_str = alert_data.get('happenedAtTime') or event_data.get('eventTime') # Prefer happenedAtTime
             if not event_time_str:
                 logger.error(f"Missing 'eventTime' in event (Event ID: {event_id_for_log}). Using current UTC time.")
                 timestamp = datetime.utcnow()
@@ -401,15 +500,6 @@ class SamsaraService:
                 except ValueError as e_ts:
                     logger.error(f"Invalid 'eventTime' format '{event_time_str}' for event (Event ID: {event_id_for_log}): {e_ts}. Using current UTC time.")
                     timestamp = datetime.utcnow()
-            
-            # Extract and store driver information if present
-            driver_info = self._extract_driver_info(event_data)
-            driver_record = None
-            if driver_info and driver_info != 'Unassigned':
-                # Try to find driver data in the event payload
-                driver_data = self._extract_driver_data(event_data)
-                if driver_data:
-                    driver_record = self.create_or_update_driver(driver_data, company.id)
             
             # Create alert record
             existing_alert = SamsaraAlert.query.filter_by(alert_id=event_id_for_log).first()
@@ -428,7 +518,7 @@ class SamsaraService:
                 alert_id=event_id_for_log,
                 vehicle_id=db_vehicle_id_for_alert,
                 driver_id=driver_record.id if driver_record else None,
-                alert_type=specific_event_type or event_data.get('eventType', 'UnknownEventType'),  # Use specific type if available
+                alert_type=specific_event_type or event_data.get('eventType', 'UnknownEventType'),
                 severity='high',
                 status='unassigned',
                 description=conditions[0].get('description', 'No description available') if conditions else 'No description available',
